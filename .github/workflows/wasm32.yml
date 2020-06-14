@@ -22,7 +22,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-binutils.tar
-	path: wasm32-unknown-none-binutils.tar
+        path: wasm32-unknown-none-binutils.tar
   gcc-preliminary:
     name: GCC (preliminary)
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc-preliminary.tar
-	path: wasm32-unknown-none-gcc-preliminary.tar
+        path: wasm32-unknown-none-gcc-preliminary.tar
   glibc:
     name: glibc
     runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-glibc.tar
-	path: wasm32-unknown-none-glibc.tar
+        path: wasm32-unknown-none-glibc.tar
   gcc:
     name: GCC (preliminary)
     runs-on: ubuntu-latest
@@ -98,4 +98,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc.tar
-	path: wasm32-unknown-none-gcc.tar
+        path: wasm32-unknown-none-gcc.tar
