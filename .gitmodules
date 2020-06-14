@@ -1,0 +1,4 @@
+[submodule "subrepos/binutils-gdb"]
+	path = subrepos/binutils-gdb
+	url = https://github.com/pipcet/binutils-gdb
+	branch = wasm
