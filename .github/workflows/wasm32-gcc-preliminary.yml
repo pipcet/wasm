@@ -1,4 +1,4 @@
-name: pre-glibc GCC (WASM32)
+name: GCC, preliminary pre-glibc version (WASM32)
 on:
   push:
     branches: [ master ]
