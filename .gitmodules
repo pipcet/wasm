@@ -14,3 +14,7 @@
 	path = subrepos/ncurses
 	url = https://github.com/pipcet/ncurses
 	branch = wasm
+[submodule "subrepos/bash"]
+	path = subrepos/bash
+	url = https://github.com/pipcet/bash
+	branch = wasm
