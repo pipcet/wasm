@@ -64,7 +64,7 @@ build/wasm32/gcc-preliminary/.dir: build/wasm32/.dir
 	test -d build/wasm32/gcc-preliminary || $(MKDIR) build/wasm32/gcc-preliminary
 	touch $@
 
-build/wasm32/gcc-preliminary/Makefile: src/gcc.dir build/wasm32/gcc-preliminary/.dir | build/wasm32/binutils-gdb.make
+build/wasm32/gcc-preliminary/Makefile: src/gcc.dir build/wasm32/gcc-preliminary/.dir
 	(cd build/wasm32/gcc-preliminary; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
@@ -80,7 +80,7 @@ build/wasm32/glibc/.dir: build/wasm32/.dir
 	test -d build/wasm32/glibc || $(MKDIR) build/wasm32/glibc
 	touch $@
 
-build/wasm32/glibc/Makefile: src/glibc.dir build/wasm32/glibc/.dir | build/wasm32/gcc-preliminary.make
+build/wasm32/glibc/Makefile: src/glibc.dir build/wasm32/glibc/.dir
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O3 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 	touch $@
 
@@ -93,7 +93,7 @@ build/wasm32/gcc/.dir: build/wasm32/.dir
 	test -d build/wasm32/gcc || $(MKDIR) build/wasm32/gcc
 	touch $@
 
-build/wasm32/gcc/Makefile: src/gcc.dir build/wasm32/gcc/.dir | build/wasm32/glibc.make
+build/wasm32/gcc/Makefile: src/gcc.dir build/wasm32/gcc/.dir
 	(cd build/wasm32/gcc; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
@@ -111,7 +111,7 @@ build/wasm32/ncurses/.dir: build/wasm32/.dir
 	test -d build/wasm32/ncurses || $(MKDIR) build/wasm32/ncurses
 	touch $@
 
-build/wasm32/ncurses/Makefile: src/ncurses.dir build/wasm32/ncurses/.dir | build/wasm32/gcc.make
+build/wasm32/ncurses/Makefile: src/ncurses.dir build/wasm32/ncurses/.dir
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping)
 	touch $@
 
