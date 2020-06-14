@@ -1,0 +1,19 @@
+name: pre-glibc GCC (WASM32)
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: install texinfo, bison, flex
+      run: sudo apt-get install texinfo bison flex
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: build binutils
+      run: make -kj5 build/wasm32/binutils-gdb.make
+    - name: build GCC
+      run: make -kj5 build/wasm32/gcc-preliminary.make
