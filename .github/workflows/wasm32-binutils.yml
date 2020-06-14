@@ -8,6 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
     - name: make
       run: make -kj5 build/wasm32/binutils-gdb.make
