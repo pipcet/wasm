@@ -26,8 +26,8 @@ src/wasm32/binutils-gdb/.dir: src/wasm32/.dir
 	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd src/wasm32/binutils-gdb; tar x)
 	touch $@
 
-src/gcc-preliminary/.dir: src/.dir
-	test -L src/gcc-preliminary || ln -sf ../subrepos/gcc src/gcc-preliminary
+src/gcc/.dir: src/.dir
+	test -L src/gcc || ln -sf ../subrepos/gcc src/gcc
 	touch $@
 
 build/.dir:
@@ -56,8 +56,8 @@ build/wasm32/gcc-preliminary/.dir: build/wasm32/.dir
 	test -d build/wasm32/gcc-preliminary || $(MKDIR) build/wasm32/gcc-preliminary
 	touch $@
 
-build/wasm32/gcc-preliminary/Makefile: src/gcc-preliminary/.dir build/wasm32/gcc-preliminary/.dir | build/wasm32/binutils-gdb.make
-	(cd build/wasm32/gcc-preliminary; ../../../src/gcc-preliminary/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+build/wasm32/gcc-preliminary/Makefile: src/gcc/.dir build/wasm32/gcc-preliminary/.dir | build/wasm32/binutils-gdb.make
+	(cd build/wasm32/gcc-preliminary; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
 build/wasm32/gcc-preliminary.make: build/wasm32/gcc-preliminary/Makefile
@@ -79,4 +79,22 @@ build/wasm32/glibc/Makefile: src/glibc/.dir build/wasm32/glibc/.dir | build/wasm
 build/wasm32/glibc.make: build/wasm32/glibc/Makefile
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
+	touch $@
+
+build/wasm32/gcc/.dir: build/wasm32/.dir
+	test -d build/wasm32/gcc || $(MKDIR) build/wasm32/gcc
+	touch $@
+
+build/wasm32/gcc/Makefile: src/gcc/.dir build/wasm32/gcc/.dir | build/wasm32/glibc.make
+	(cd build/wasm32/gcc; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	touch $@
+
+build/wasm32/gcc.make: build/wasm32/gcc/Makefile
+	test -d build/wasm32/gcc/gcc || $(MKDIR) build/wasm32/gcc/gcc
+	cp build/wasm32/gcc-preliminary/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
+	cp build/wasm32/gcc-preliminary/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
+	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
+	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc install
 	touch $@

@@ -1,4 +1,4 @@
-name: glibc (WASM32)
+name: GCC, final version (WASM32)
 on:
   push:
     branches: [ master ]
@@ -17,7 +17,9 @@ jobs:
         submodules: true
     - name: build binutils
       run: make -kj5 build/wasm32/binutils-gdb.make
-    - name: build GCC
+    - name: build preliminary GCC
       run: make -kj5 build/wasm32/gcc-preliminary.make
     - name: build glibc
       run: make -kj5 build/wasm32/glibc.make
+    - name: build final GCC
+      run: make -kj5 build/wasm32/gcc.make
