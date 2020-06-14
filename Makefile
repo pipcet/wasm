@@ -30,6 +30,10 @@ src/gcc/.dir: src/.dir
 	test -L src/gcc || ln -sf ../subrepos/gcc src/gcc
 	touch $@
 
+src/glibc/.dir: src/.dir
+	test -L src/glibc || ln -sf ../subrepos/glibc src/glibc
+	touch $@
+
 build/.dir:
 	test -d build || $(MKDIR) build
 	touch $@
