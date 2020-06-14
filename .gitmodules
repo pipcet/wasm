@@ -4,5 +4,5 @@
 	branch = wasm
 [submodule "subrepos/gcc"]
 	path = subrepos/gcc
-	url = /home/pip/wasm/subrepos/gcc
+	url = https://github.com/pipcet/gcc
 	branch = wasm
