@@ -2,3 +2,7 @@
 	path = subrepos/binutils-gdb
 	url = https://github.com/pipcet/binutils-gdb
 	branch = wasm
+[submodule "subrepos/gcc"]
+	path = subrepos/gcc
+	url = /home/pip/wasm/subrepos/gcc
+	branch = wasm
