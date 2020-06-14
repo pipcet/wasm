@@ -10,3 +10,7 @@
 	path = subrepos/glibc
 	url = https://github.com/pipcet/glibc
 	branch = wasm
+[submodule "subrepos/ncurses"]
+	path = subrepos/ncurses
+	url = https://github.com/pipcet/ncurses
+	branch = wasm
