@@ -6,3 +6,7 @@
 	path = subrepos/gcc
 	url = https://github.com/pipcet/gcc
 	branch = wasm
+[submodule "subrepos/glibc"]
+	path = subrepos/glibc
+	url = https://github.com/pipcet/glibc
+	branch = wasm
