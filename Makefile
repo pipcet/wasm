@@ -67,3 +67,16 @@ build/wasm32/gcc-preliminary.make: build/wasm32/gcc-preliminary/Makefile
 	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+
+build/wasm32/glibc/.dir: build/wasm32/.dir
+	test -d build/wasm32/glibc || $(MKDIR) build/wasm32/glibc
+	touch $@
+
+build/wasm32/glibc/Makefile: src/glibc/.dir build/wasm32/glibc/.dir | build/wasm32/gcc-preliminary.make
+	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O3 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	touch $@
+
+build/wasm32/glibc.make: build/wasm32/glibc/Makefile
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
+	touch $@
