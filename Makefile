@@ -26,6 +26,10 @@ src/wasm32/binutils-gdb/.dir: src/wasm32/.dir
 	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd src/wasm32/binutils-gdb; tar x)
 	touch $@
 
+src/gcc-preliminary/.dir: src/.dir
+	test -L src/gcc-preliminary || ln -sf ../subrepos/gcc src/gcc-preliminary
+	touch $@
+
 build/.dir:
 	test -d build || $(MKDIR) build
 	touch $@
@@ -47,3 +51,12 @@ build/wasm32/binutils-gdb.make: build/wasm32/binutils-gdb/Makefile bin/.dir
 	$(MAKE) -C build/wasm32/binutils-gdb install
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+
+build/wasm32/gcc-preliminary/.dir: build/wasm32/.dir
+	test -d build/wasm32/gcc-preliminary || $(MKDIR) build/wasm32/gcc-preliminary
+	touch $@
+
+build/wasm32/gcc-preliminary/Makefile: src/gcc-preliminary/.dir build/wasm32/gcc-preliminary/.dir | build/wasm32/binutils-gdb.make
+	(cd build/wasm32/gcc-preliminary; ../../../src/gcc-preliminary/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	touch $@
+
