@@ -1,0 +1,101 @@
+name: Toolchain (WASM32)
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  binutils:
+    name: Binutils
+    runs-on: ubuntu-latest
+    steps:
+    - name: install texinfo, bison, flex
+      run: sudo apt-get install texinfo bison flex
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: build binutils
+      run: make -kj5 build/wasm32/binutils-gdb.make
+    - name: Create artifact
+      run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32-unknown-none-binutils.tar
+	path: wasm32-unknown-none-binutils.tar
+  gcc-preliminary:
+    name: GCC (preliminary)
+    runs-on: ubuntu-latest
+    steps:
+    - name: install texinfo, bison, flex
+      run: sudo apt-get install texinfo bison flex
+    - name: install GCC dependencies
+      run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run: tar xf wasm32-unknown-none-binutils.tar
+    - name: build preliminary GCC
+      run: make -kj5 build/wasm32/gcc-preliminary.make
+    - name: Create artifact
+      run: tar cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32-unknown-none-gcc-preliminary.tar
+	path: wasm32-unknown-none-gcc-preliminary.tar
+  glibc:
+    name: glibc
+    runs-on: ubuntu-latest
+    steps:
+    - name: install texinfo, bison, flex
+      run: sudo apt-get install texinfo bison flex
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run: tar xf wasm32-unknown-none-gcc-preliminary.tar
+    - name: build glibc
+      run: make -kj5 build/wasm32/glibc.make
+    - name: Create artifact
+      run: tar cf wasm32-unknown-none-glibc.tar wasm32-unknown-none
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32-unknown-none-glibc.tar
+	path: wasm32-unknown-none-glibc.tar
+  gcc:
+    name: GCC (preliminary)
+    runs-on: ubuntu-latest
+    steps:
+    - name: install texinfo, bison, flex
+      run: sudo apt-get install texinfo bison flex
+    - name: install GCC dependencies
+      run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-glibc.tar
+    - name: Unpack
+      run: tar xf wasm32-unknown-none-glibc.tar
+    - name: build final GCC
+      run: make -kj5 build/wasm32/gcc.make
+    - name: Create artifact
+      run: tar cf wasm32-unknown-none-gcc.tar wasm32-unknown-none
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32-unknown-none-gcc.tar
+	path: wasm32-unknown-none-gcc.tar
