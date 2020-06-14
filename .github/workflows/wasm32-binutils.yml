@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: install texinfo
-      run: apt-get install texinfo
+      run: sudo apt-get install texinfo
     - uses: actions/checkout@v2
       with:
         submodules: true
