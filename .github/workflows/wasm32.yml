@@ -124,4 +124,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-ncurses.tar
-	path: wasm32-unknown-none-ncurses.tar
+        path: wasm32-unknown-none-ncurses.tar
