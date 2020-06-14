@@ -60,3 +60,10 @@ build/wasm32/gcc-preliminary/Makefile: src/gcc-preliminary/.dir build/wasm32/gcc
 	(cd build/wasm32/gcc-preliminary; ../../../src/gcc-preliminary/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
+build/wasm32/gcc-preliminary.make: build/wasm32/gcc-preliminary/Makefile
+	$(MAKE) -C build/wasm32/gcc-preliminary
+	$(MAKE) -C build/wasm32/gcc-preliminary install
+	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
+	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
+	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
+	touch $@
