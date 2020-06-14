@@ -1,4 +1,4 @@
-name: Toolchain (WASM32)
+name: WASM32
 on:
   push:
     branches: [ master ]
