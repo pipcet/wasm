@@ -102,3 +102,17 @@ build/wasm32/gcc.make: build/wasm32/gcc/Makefile
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc install
 	touch $@
+
+build/wasm32/ncurses/.dir: build/wasm32/.dir
+	test -d build/wasm32/ncurses || $(MKDIR) build/wasm32/ncurses
+	touch $@
+
+build/wasm32/ncurses/Makefile: src/ncurses.dir build/wasm32/ncurses/.dir | build/wasm32/gcc.make
+	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping)
+	touch $@
+
+build/wasm32/ncurses.make: build/wasm32/ncurses/Makefile
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
+	touch $@
+
