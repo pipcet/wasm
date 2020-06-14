@@ -8,8 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: install texinfo
-      run: sudo apt-get install texinfo
+    - name: install texinfo, bison
+      run: sudo apt-get install texinfo bison
     - uses: actions/checkout@v2
       with:
         submodules: true
