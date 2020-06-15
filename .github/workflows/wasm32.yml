@@ -36,7 +36,9 @@ jobs:
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
+    - name: Check out gcc subrepo
+      run: git submodule update --depth=1 --single-branch --init subrepos/gcc
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -61,7 +63,9 @@ jobs:
       run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
+    - name: Check out glibc subrepo
+      run: git submodule update --depth=1 --single-branch --init subrepos/glibc
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -100,7 +104,9 @@ jobs:
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
+    - name: Check out gcc subrepo
+      run: git submodule update --depth=1 --single-branch --init subrepos/gcc
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -123,7 +129,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
+    - name: Check out ncurses
+      run: git submodule update --depth=1 --single-branch --init subrepos/ncurses
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -149,7 +157,7 @@ jobs:
       run: cpanm File::Slurp
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
     - name: Build wasm32.js
       run: make js/wasm32.js
     - name: Upload artifact
@@ -164,7 +172,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -187,7 +195,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
@@ -208,7 +216,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
