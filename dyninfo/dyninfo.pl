@@ -21,10 +21,10 @@ my $pc_end;
 my $entry = -1;
 my @rawlibs;
 my @libs;
-my $path = ($ENV{WASMDIR} ? $ENV{WASMDIR} . "/bin" : ".");
+my $path = ($ENV{WASMDIR} ? $ENV{WASMDIR} : ".");
 
 for my $file (@ARGV) {
-    open $fh, "$path/wasm32-unknown-none-objdump -T $file|" or die;
+    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-objdump -T $file|" or die;
 
     while (<$fh>) {
         s/[ \t]+/ /g;
@@ -50,7 +50,7 @@ for my $file (@ARGV) {
             }
     }
 
-    open $fh, "$path/wasm32-unknown-none-objdump -R $file|" or die;
+    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-objdump -R $file|" or die;
 
     while (<$fh>) {
         s/[ \t]+/ /g;
@@ -112,7 +112,7 @@ for my $file (@ARGV) {
 	}
     }
 
-    open $fh, "$path/wasm32-unknown-none-objdump -t $file|" or die;
+    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-objdump -t $file|" or die;
 
     while (<$fh>) {
         s/[ \t]+/ /g;
@@ -138,7 +138,7 @@ for my $file (@ARGV) {
             }
     }
 
-    open $fh, "$path/wasm32-unknown-none-readelf -d $file|" or die;
+    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d $file|" or die;
 
     while (<$fh>) {
         s/[ \t]+/ /g;
