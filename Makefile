@@ -38,6 +38,10 @@ src/ncurses.dir: src/.dir
 	test -L src/ncurses || ln -sf ../subrepos/ncurses src/ncurses
 	touch $@
 
+src/bash.dir: src/.dir
+	test -L src/bash || ln -sf ../subrepos/bash src/bash
+	touch $@
+
 build/.dir:
 	test -d build || $(MKDIR) build
 	touch $@
@@ -105,7 +109,7 @@ build/wasm32/gcc.make: build/wasm32/gcc/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc install
 	touch $@
 
-build/wasm32/ncurses/.dir: build/wasm32/.dir
+build/wasm32/ncurses.dir: build/wasm32/.dir
 	test -d build/wasm32/ncurses || $(MKDIR) build/wasm32/ncurses
 	touch $@
 
@@ -116,6 +120,19 @@ build/wasm32/ncurses/Makefile: src/ncurses.dir build/wasm32/ncurses/.dir
 build/wasm32/ncurses.make: build/wasm32/ncurses/Makefile
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
+	touch $@
+
+build/wasm32/bash.dir: build/wasm32/.dir
+	test -d build/wasm32/bash || $(MKDIR) build/wasm32/bash
+	touch $@
+
+build/wasm32/bash/Makefile: src/bash.dir build/wasm32/bash.dir
+	(cd build/wasm32/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/bash/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	touch $@
+
+build/wasm32/bash.make: build/wasm32/bash/Makefile
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
 	touch $@
 
 bin/wasmify-library: wasmify/wasmify-library bin/.dir bin/wasmrewrite bin/wasmsect
@@ -133,6 +150,9 @@ wasm/libc.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown
 
 wasm/libncurses.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so
 	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
+
+wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash wasm/.dir bin/wasmify-executable
+	bash -x bin/wasmify-executable $< > $@
 
 js/.dir:
 	test -d js || mkdir js
