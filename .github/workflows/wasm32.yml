@@ -313,8 +313,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out ncurses
-      run: git submodule update --depth=1 --single-branch --init subrepos/ncurses
+    - name: Check out bash
+      run: git submodule update --depth=1 --single-branch --init subrepos/bash
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
