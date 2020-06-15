@@ -86,7 +86,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: libc.wasm
-	path: wasm/libc.wasm
+        path: wasm/libc.wasm
   gcc:
     name: GCC (final)
     runs-on: ubuntu-latest
