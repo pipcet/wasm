@@ -109,7 +109,7 @@ build/wasm32/gcc.make: build/wasm32/gcc/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc install
 	touch $@
 
-build/wasm32/ncurses.dir: build/wasm32/.dir
+build/wasm32/ncurses/.dir: build/wasm32/.dir
 	test -d build/wasm32/ncurses || $(MKDIR) build/wasm32/ncurses
 	touch $@
 
