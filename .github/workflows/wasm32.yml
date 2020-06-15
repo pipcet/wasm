@@ -179,3 +179,14 @@ jobs:
       with:
         name: 003-hello-world.exe
         path: 003-hello-world.exe
+  jsshell:
+    name: jsshell
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download
+      run: wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: jsshell-linux-x86_64.zip
+        path: jsshell-linux-x86_64.zip
