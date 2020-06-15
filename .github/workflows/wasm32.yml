@@ -152,7 +152,7 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
     - name: Assemble
-      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
+      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
