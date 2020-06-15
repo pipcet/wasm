@@ -121,4 +121,14 @@ build/wasm32/ncurses.make: build/wasm32/ncurses/Makefile
 	touch $@
 
 bin/wasmify-library: wasmify/wasmify-library
-	ln -sf $< $@
+	ln -sf ../$< $@
+
+wasm/.dir:
+	test -d wasm || $(MKDIR) wasm
+	touch $@
+
+wasm/ld.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1
+	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
+
+wasm/libc.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so
+	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@

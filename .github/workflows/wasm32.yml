@@ -75,6 +75,18 @@ jobs:
       with:
         name: wasm32-unknown-none-glibc.tar
         path: wasm32-unknown-none-glibc.tar
+    - name: Generate WASM modules
+      run: make wasm/ld.wasm wasm/libc.wasm
+    - name: Upload ld.wasm
+      uses: actions/upload-artifact@v1
+      with:
+        name: ld.wasm
+        path: wasm/ld.wasm
+    - name: Upload libc.wasm
+      uses: actions/upload-artifact@v1
+      with:
+        name: libc.wasm
+	path: wasm/libc.wasm
   gcc:
     name: GCC (final)
     runs-on: ubuntu-latest
