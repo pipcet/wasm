@@ -1,0 +1,24 @@
+#!/bin/bash
+set -o pipefail
+set -o errexit
+TMPD=$(mktemp -d --tmpdir wasmify.XXXXXXXXXX);
+if [ x"$JS" = x ]; then
+    JS=$(which js)
+fi
+if [ x"$WASMDIR" = x ]; then
+    WASMDIR=$HOME/git/wasm
+    export WASMDIR
+fi
+if [ x"$DELAY" = x ]; then
+    DELAY=1
+fi
+cp "$1" $TMPD/elf
+chmod u+rw $TMPD/elf
+perl $WASMDIR/dyninfo/dyninfo.pl $TMPD/elf > $TMPD/dyninfo.json
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-elfedit $TMPD/elf --output-type=rel
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -Map $TMPD/map1 -T $WASMDIR/lds/wasm32.cpp-lds.lds $TMPD/elf -o $TMPD/intermediate -N --warn-unresolved-symbols --no-check-sections 2>/dev/null
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -Map $TMPD/map2 -E -T $WASMDIR/lds/wasm32-wasmify.lds $TMPD/intermediate -o $TMPD/longwasm 2> /dev/null
+$WASMDIR/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
+$WASMDIR/wasmrewrite/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
+cat $TMPD/dyninfo.json.wass >> $TMPD/wasm
+cat $TMPD/wasm
