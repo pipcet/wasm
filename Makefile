@@ -94,7 +94,7 @@ build/wasm32/gcc/.dir: build/wasm32/.dir
 	touch $@
 
 build/wasm32/gcc/Makefile: src/gcc.dir build/wasm32/gcc/.dir
-	(cd build/wasm32/gcc; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
 build/wasm32/gcc.make: build/wasm32/gcc/Makefile
