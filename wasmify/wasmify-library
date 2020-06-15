@@ -3,7 +3,7 @@ set -o pipefail
 set -o errexit
 TMPD=$(mktemp -d --tmpdir wasmify.XXXXXXXXXX);
 if [ x"$WASMDIR" = x ]; then
-    WASMDIR=$HOME/git/wasm
+    WASMDIR=.
     export WASMDIR
 fi
 if [ x"$DELAY" = x ]; then
