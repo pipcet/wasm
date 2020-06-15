@@ -1,4 +1,4 @@
-all: error
+all: built/all
 
 MKDIR ?= mkdir
 PWD ?= $(shell pwd)
@@ -175,3 +175,12 @@ bin/wasmrewrite: wasmrewrite/wasmrewrite.c | bin
 
 bin/wasmsect: wasmrewrite/wasmsect.c | bin
 	gcc -g3 $< -o $@
+
+built/all: built/wasm32/all built/common/all
+	touch $@
+
+built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/wasm32/glibc built/wasm32/gcc built/wasm32/ncurses built/wasm32/bash built/wasm32/emacs
+	touch $@
+
+built/common/all: built/common/binaryen built/common/wabt
+	touch $@
