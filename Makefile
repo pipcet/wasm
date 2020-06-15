@@ -138,6 +138,9 @@ build/wasm32/bash.make: build/wasm32/bash/Makefile
 bin/wasmify-library: wasmify/wasmify-library bin/.dir bin/wasmrewrite bin/wasmsect
 	ln -sf ../$< $@
 
+bin/wasmify-executable: wasmify/wasmify-executable bin/.dir bin/wasmrewrite bin/wasmsect
+	ln -sf ../$< $@
+
 wasm/.dir:
 	test -d wasm || $(MKDIR) wasm
 	touch $@
