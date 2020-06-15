@@ -1,0 +1,3479 @@
+// -*- mode: js; orgstruct-heading-prefix-regexp: "//"; -*-
+#{#define _GNU_SOURCE}
+#{#include <stdio.h>}
+#{#include <sys/stat.h>}
+#{#include <fcntl.h>}
+#{#include <sys/fcntl.h>}
+#{#include <unistd.h>}
+#{#include <sys/types.h>}
+#{#include <errno.h>}
+#{#include <sys/ioctl.h>}
+#{#include <sys/poll.h>}
+#{#include <sys/uio.h>}
+#{#include <dirent.h>}
+#{#include "zeropage.h"}
+#{#define AT_FDROOTD -101}
+#{#define offsetof(type, field) ((unsigned)&((type *)0)->field)}
+#{#include "js3.h"}
+
+#{Heap thisheap("this.HEAP");}
+#{Context context(&thisheap);}
+
+#{JSV<zeropage*> zp("4096", "HEAP");}
+#{JSV<timeval*> tvptr("tvptr");}
+#{JSV<timespec*> timespec("timespec");}
+#{JSV<struct stat*> statbufptr("statbufptr");}
+#{JSV<dirent*> direntp("direntp");}
+#{JSV<pollfd*> fdsptr("fdsptr");}
+#{JSV<int*> intptr("intptr");}
+#{JSV<size_t> i("i");}
+#{JSV<iovec*> iov("iov");}
+
+#{JSV<threadpage*> tp1("8192", "HEAP");}
+
+//* globals
+var ThinThin = {};
+//** ThinThin.sbrk (unused)
+ThinThin.sbrk = function (size)
+{
+    size = (size + 4095) & -4096;
+    var ret = this.%{zp[&zeropage::top_of_sbrk]};
+
+    this.%{zp[&zeropage::top_of_sbrk]} += size;
+
+    if (this.%{zp[&zeropage::top_of_sbrk]} > this.%{zp[&zeropage::top_of_memory]}) {
+        throw "OOM";
+    }
+
+    return ret;
+};
+//** ThinThin.brk (unused)
+ThinThin.brk = function (addr)
+{
+    return 0;
+};
+//* globals
+var data = {};
+var offsets = {};
+
+var data_sections = [];
+var gFunctions = {};
+var main_pc;
+var premain_pc;
+var gdbstub_pc;
+var initsp;
+
+var MyCode;
+
+var args;
+//** argument initialization
+if (args) {
+}
+else if (typeof process !== "undefined") {
+    args = process.argv.slice(1);
+}
+else if (typeof scriptArgs !== "undefined") {
+    args = scriptArgs.slice(0);
+} else {
+    args = ["<this program>"];
+}
+//* Syscall
+function Syscall(number, argspec0, argspec1, argspec2, argspec3, argspec4)
+{
+    var argspecs = [];
+    if (argspec0 !== undefined) argspecs.push(argspec0);
+    if (argspec1 !== undefined) argspecs.push(argspec1);
+    if (argspec2 !== undefined) argspecs.push(argspec2);
+    if (argspec3 !== undefined) argspecs.push(argspec3);
+    if (argspec4 !== undefined) argspecs.push(argspec4);
+    return function(arg0, arg1, arg2, arg3, arg4, arg5) {
+        var args = [arg0, arg1, arg2, arg3, arg4, arg5];
+        var rargs = [number];
+        var i;
+        var ret;
+        for (i = 0; i < argspecs.length; i++) {
+            var spec = argspecs[i];
+            if (spec == "ptr") {
+                rargs.push(this.HEAPU8);
+            }
+            rargs.push(args[i]);
+        }
+        ret = os.sys.call.apply(undefined, rargs);
+
+        return ret;
+    };
+}
+//* Syscall64
+function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
+                   argspec4, argspec5)
+{
+    var argspecs = [];
+    if (argspec0 !== undefined) argspecs.push(argspec0);
+    if (argspec1 !== undefined) argspecs.push(argspec1);
+    if (argspec2 !== undefined) argspecs.push(argspec2);
+    if (argspec3 !== undefined) argspecs.push(argspec3);
+    if (argspec4 !== undefined) argspecs.push(argspec4);
+    if (argspec5 !== undefined) argspecs.push(argspec5);
+    return function(arg0, arg1, arg2, arg3, arg4, arg5) {
+        var args = [arg0, arg1, arg2, arg3, arg4, arg5];
+        var rargs = [number, 0];
+        var i;
+        var ret;
+        for (i = 0; i < argspecs.length; i++) {
+            var spec = argspecs[i];
+            switch (spec) {
+            case "fd":
+            case "u64":
+                rargs.push(args[i]);
+                rargs.push(0);
+                break;
+
+            case "ptr":
+            case "str":
+            case "path":
+                rargs.push(this.HEAPU8);
+                rargs.push(args[i]);
+                break;
+
+            case "ptrs":
+            case "strs":
+                var arg = [];
+                var j;
+
+                for (j = 0; this.HEAP32[args[i]+4*j>>2]; j++) {
+                    arg.push(this.HEAPU8);
+                    arg.push(this.HEAP32[args[i]+4*j>>2]);
+                }
+                arg.push(0);
+                arg.push(0);
+
+                rargs.push(arg);
+            }
+        }
+        ret = os.sys.call64.call(undefined, rargs);
+
+        return ret;
+    };
+}
+//* init_syscall
+function init_syscall(name, number, ...args)
+{
+    Syscalls[name] = Syscalls[number] = new Syscall(number, ...args);
+}
+//* init_syscall64
+function init_syscall64(name, number, ...args)
+{
+    Syscalls[name] = Syscalls[number] = new Syscall64(number, ...args);
+}
+//* syscall table
+var Syscalls = {};
+
+init_syscall(  "read",            0, "fd", "ptr", "u64");
+init_syscall(  "write",           1, "fd", "ptr", "u64");
+init_syscall(  "open",            2, "ptr", "u64", "u64");
+init_syscall(  "close",           3, "fd");
+init_syscall(  "stat",            4, "ptr", "ptr");
+init_syscall(  "fstat",           5, "u64", "ptr");
+init_syscall(  "lseek",           8, "u64", "u64", "u64");
+init_syscall(  "rt_sigprocmask",    14, "u64", "ptr", "ptr");
+init_syscall(  "ioctl_p",        16, "u64", "u64", "ptr");
+init_syscall(  "access",         21, "ptr", "u64");
+init_syscall(  "select",         23, "u64", "ptr", "ptr", "ptr", "ptr");
+init_syscall(  "sched_yield",    24);
+init_syscall(  "dup",            32, "u64");
+init_syscall(  "dup2",           33, "u64", "u64");
+init_syscall(  "getpid",         39);
+init_syscall(  "clone",          56, "u64", "ptr", "ptr", "ptr", "ptr");
+init_syscall(  "fork",           57);
+init_syscall64("execve",         59, "path", "strs", "strs");
+//init_syscall(  "exit",           60, "u64");
+init_syscall(  "exit",          231, "u64");
+init_syscall(  "wait4",          61, "u64", "ptr", "u64", "ptr");
+init_syscall(  "kill",           62, "u64", "u64");
+init_syscall(  "fcntl_v",        72, "u64", "u64");
+init_syscall(  "fcntl_i",        72, "u64", "u64", "u64");
+init_syscall(  "fcntl_p",        72, "u64", "u64", "ptr");
+init_syscall(  "ftruncate",      77, "u64", "u64");
+init_syscall(  "getcwd",         79, "ptr", "u64");
+init_syscall(  "chdir",          80, "ptr");
+init_syscall(  "fchdir",         81, "u64");
+init_syscall(  "rename",         82, "ptr", "ptr");
+init_syscall(  "mkdir",          83, "ptr", "u64");
+init_syscall(  "rmdir",          84, "ptr");
+init_syscall(  "unlink",         87, "ptr");
+init_syscall(  "rename",         82, "ptr", "ptr");
+init_syscall(  "chdir",          80, "ptr");
+init_syscall(  "fchmod",         91, "fd", "u64");
+init_syscall(  "gettimeofday",   96, "ptr", "u64");
+init_syscall(  "getuid",        102);
+init_syscall(  "getgid",        104);
+init_syscall(  "geteuid",       107);
+init_syscall(  "getegid",       108);
+init_syscall(  "gettid",        186);
+init_syscall(  "tkill",         200);
+init_syscall(  "getdents",      217, "fd", "ptr", "u64");
+init_syscall(  "clock_gettime", 228, "u64", "ptr");
+init_syscall(  "exit_group",    231, "u64");
+init_syscall(  "openat",        257, "fd", "ptr", "u64", "u64");
+init_syscall(  "mkdirat",       258, "fd", "ptr", "u64");
+init_syscall(  "newfstatat",    262, "fd", "ptr", "ptr", "u64");
+init_syscall(  "unlinkat",      263, "fd", "ptr", "u64");
+init_syscall(  "linkat",        265, "fd", "ptr", "fd", "ptr", "u64");
+init_syscall(  "readlinkat",    267, "fd", "ptr", "ptr", "u64");
+init_syscall(  "fchmodat",      268, "fd", "ptr", "u64", "u64");
+init_syscall(  "faccessat",     269, "fd", "ptr", "u64", "u64");
+init_syscall(  "ppoll",         271, "ptr", "u64", "ptr", "ptr");
+init_syscall(  "utimensat",     280, "fd", "ptr", "ptr", "u64");
+init_syscall(  "pipe2",         293, "ptr", "u64");
+init_syscall(  "renameat2",     316, "fd", "ptr", "fd", "ptr", "u64");
+init_syscall(  "execveat",      333, "fd", "ptr", "aptr", "aptr", "u64");
+
+var SyscallSignatures = {
+    read:         [  0, "fd", "ptr", "u64"],
+    write:        [  1, "fd", "ptr", "u64"],
+    open:         [  2, "ptr", "u64", "u64"],
+    close:        [  3, "fd"],
+    stat:         [  4, "ptr", "ptr"],
+    fstat:        [  5, "u64", "ptr"],
+    lseek:        [  8, "u64", "u64", "u64"],
+    ioctl_p:      [ 16, "u64", "u64", "ptr"],
+    access:       [ 21, "ptr", "u64"],
+    select:       [ 23, "u64", "ptr", "ptr", "ptr", "ptr"],
+    sched_yield:  [ 24],
+    dup:          [ 32, "u64"],
+    dup2:         [ 33, "u64", "u64"],
+    getpid:       [ 39],
+    clone:        [ 56, "u64", "ptr", "ptr", "ptr", "ptr"],
+    fork:         [ 57],
+    execve:       [ 59, "path", "strs", "strs"],
+    exit:         [ 60, "u64"],
+    wait4:        [ 61, "u64", "ptr", "u64", "ptr"],
+    kill:         [ 62, "u64", "u64"],
+    fcntl_v:      [ 72, "u64", "u64"],
+    fcntl_i:      [ 72, "u64", "u64", "u64"],
+    fcntl_p:      [ 72, "u64", "u64", "ptr"],
+    ftruncate:    [ 77, "u64", "u64"],
+    getcwd:       [ 79, "ptr", "u64"],
+    chdir:        [ 80, "ptr"],
+    fchdir:       [ 81, "u64"],
+    rename:       [ 82, "ptr", "ptr"],
+    mkdir:        [ 83, "ptr", "u64"],
+    rmdir:        [ 84, "ptr"],
+    unlink:       [ 87, "ptr"],
+    rename:       [ 82, "ptr", "ptr"],
+    chdir:        [ 80, "ptr"],
+    gettimeofday: [ 96, "ptr", "u64"],
+    getuid:       [102],
+    getgid:       [104],
+    geteuid:      [107],
+    getegid:      [108],
+    getdents:     [217, "fd", "ptr", "u64"],
+    clock_gettime:[227, "u64", "ptr"],
+    openat:       [257, "fd", "ptr", "u64", "u64"],
+    mkdirat:      [258, "fd", "ptr", "u64"],
+    newfstatat:   [262, "fd", "path", "wptr", "u64"],
+    unlinkat:     [263, "fd", "ptr", "u64"],
+    linkat:       [265, "fd", "ptr", "fd", "ptr", "u64"],
+    readlinkat:   [267, "fd", "ptr", "ptr", "u64"],
+    fchmodat:     [268, "fd", "ptr", "u64", "u64"],
+    faccessat:    [269, "fd", "ptr", "u64", "u64"],
+    ppoll:        [271, "ptr", "u64", "ptr", "ptr"],
+    utimensat:    [280, "fd", "ptr", "ptr", "u64"],
+    pipe2:        [293, "ptr", "u64"],
+    renameat2:    [316, "fd", "ptr", "fd", "ptr", "u64"],
+    execveat:     [333, "fd", "ptr", "aptr", "aptr", "u64"],
+};
+//* utility
+//** TimeoutPromise
+function TimeoutPromise(timeout)
+{
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, timeout);
+    });
+}
+//** SplitPromise
+function SplitPromise(n, promise)
+{
+    var resolve_lhs, resolve_rhs;
+    var reject_lhs, reject_rhs;
+
+    var promise_lhs = new Promise((resolve, reject) => {
+        resolve_lhs = resolve;
+        reject_lhs = reject;
+    });
+
+    var promise_rhs = new Promise((resolve, reject) => {
+        resolve_rhs = resolve;
+        reject_rhs = reject;
+    });
+
+    promise.then(value => {
+        var lhs = value.substr(0, n);
+        var rhs = value.substr(n);
+
+        resolve_rhs(rhs);
+        resolve_lhs(lhs);
+    });
+
+    return [promise_lhs, promise_rhs];
+}
+//** DissectedPromise
+function DissectedPromise()
+{
+    this.promise = new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+    });
+}
+
+DissectedPromise.prototype.then = function (consequence)
+{
+    return this.promise.then(consequence);
+};
+//** ImmediatePromise
+function ImmediatePromise(v)
+{
+    if (v instanceof Promise)
+        return v;
+
+    this.value = v;
+}
+
+ImmediatePromise.prototype.then = function (consequence)
+{
+    return consequence(this.value);
+};
+//** ThinThinRWer
+function ThinThinRWer()
+{
+}
+
+ThinThinRWer.prototype.kind = () => "rw";
+
+ThinThinRWer.prototype.toString = function ()
+{
+    if ("data" in this)
+        return this.kind() + ` "${this.data}"`;
+    return this.kind();
+};
+
+ThinThinRWer.prototype.debug = function (f)
+{
+    this.debugf = f;
+
+    return this.toString();
+};
+//** ThinThinReader
+function ThinThinReader()
+{
+}
+
+ThinThinReader.prototype = Object.create(ThinThinRWer.prototype);
+
+ThinThinReader.prototype.kind = () => "reader";
+
+ThinThinReader.prototype.max = function ()
+{
+    return 0;
+};
+
+ThinThinReader.prototype.consume = function (s)
+{
+    return 0;
+};
+
+ThinThinReader.prototype.done = function ()
+{
+    return true;
+};
+//** ThinThinWriter
+function ThinThinWriter()
+{
+}
+
+ThinThinWriter.prototype = Object.create(ThinThinRWer.prototype);
+
+ThinThinWriter.prototype.kind = () => "writer";
+
+ThinThinWriter.prototype.provide = function (n)
+{
+    return "";
+};
+
+ThinThinWriter.prototype.advance = function (n)
+{
+};
+
+ThinThinWriter.prototype.done = function ()
+{
+    return true;
+};
+//** ThinThinMetaReader
+function ThinThinMetaReader(req, resolve, reject)
+{
+    this.req = req;
+    this.resolve = resolve;
+    this.reject = reject;
+}
+
+ThinThinMetaReader.prototype = Object.create(ThinThinRWer.prototype);
+
+ThinThinMetaReader.prototype.kind = () => "metareader";
+
+ThinThinMetaReader.prototype.request = function ()
+{
+    return this.req;
+};
+
+ThinThinMetaReader.prototype.consume = function (data)
+{
+    this.resolve(data);
+};
+
+ThinThinMetaReader.prototype.done = function ()
+{
+    return true;
+};
+//** ThinThinMetaWriter
+function ThinThinMetaWriter()
+{
+}
+
+ThinThinMetaWriter.prototype = Object.create(ThinThinRWer.prototype);
+
+ThinThinMetaWriter.prototype.kind = () => "metawriter";
+
+ThinThinMetaWriter.prototype.provide = function (request)
+{
+    return [[], []];
+};
+
+ThinThinMetaWriter.prototype.done = function ()
+{
+    return false;
+};
+//** ThinThinFlow
+function ThinThinFlow()
+{
+    this.readers = [];
+    this.writers = [];
+    this.metareaders = [];
+    this.metawriters = [];
+}
+
+ThinThinFlow.prototype.reader = function (reader)
+{
+    this.readers.push(reader);
+    this.connect();
+};
+
+ThinThinFlow.prototype.writer = function (writer)
+{
+    this.writers.push(writer);
+    this.connect();
+};
+
+ThinThinFlow.prototype.metareader = function (reader)
+{
+    this.metareaders.push(reader);
+    this.metaconnect();
+};
+
+ThinThinFlow.prototype.metawriter = function (writer)
+{
+    this.metawriters.push(writer);
+    this.metaconnect();
+};
+
+ThinThinFlow.prototype.connect = function ()
+{
+    if (this.readers.length && this.writers.length) {
+        var r = this.readers.shift();
+        var w = this.writers.shift();
+        var nmax;
+
+        this.state = 0;
+
+        Promise.resolve(r.max()).then(n => {
+            nmax = n;
+            return w.provide(n);
+        }).then(s => {
+            r.data = w.data = s;
+            if (s.length > nmax)
+                s = s.substr(0, nmax);
+
+            return r.consume(s);
+        }).then(n => {
+            return w.advance(n);
+        }).then(() => {
+            Promise.all([Promise.resolve(r.done()).then(done => {
+                            if (!done)
+                                this.readers.push(r);
+                         }),
+                         Promise.resolve(w.done()).then(done => {
+                             if (!done)
+                                 this.writers.push(w);
+                         })]).then(() => {
+                             this.connect();
+                         });
+        })/*.catch(err => {
+            console.log(err);
+            r.close(err);
+            w.close(err);
+            this.readers.shift();
+            this.writers.shift();
+        });*/
+    }
+};
+
+ThinThinFlow.prototype.metaconnect = function ()
+{
+    if (this.metareaders.length && this.metawriters.length) {
+        var r = this.metareaders[0];
+        var w = this.metawriters[0];
+
+        Promise.resolve(r.request()).then(request => {
+            return w.provide(request);
+        }).then(data => {
+            return r.consume(data);
+        }).then(() => {
+            Promise.all([Promise.resolve(r.done()).then(done => {
+                            if (done)
+                                this.metareaders.shift();
+                         }),
+                         Promise.resolve(w.done()).then(done => {
+                             if (done)
+                                 this.metawriters.shift();
+                         })]).then(() => {
+                             this.metaconnect();
+                         });
+        })/*.catch(err => {
+            console.log(err);
+            r.close(err);
+            w.close(err);
+            this.readers.shift();
+            this.writers.shift();
+        });*/
+    }
+};
+//** ThinThinFlowReader
+function ThinThinFlowReader(nmax, resolve, reject)
+{
+    this.nmax = nmax;
+    this.resolve = resolve;
+    this.reject = reject;
+}
+ThinThinFlowReader.prototype = Object.create(ThinThinReader.prototype);
+
+ThinThinFlowReader.prototype.kind = () => "flow-reader";
+
+ThinThinFlowReader.prototype.max = function ()
+{
+    return this.nmax;
+};
+
+ThinThinFlowReader.prototype.consume = function (s)
+{
+    this.resolve(s);
+
+    return s.length;
+};
+
+ThinThinFlowReader.prototype.done = function ()
+{
+    return true;
+};
+
+ThinThinFlowReader.prototype.close = function (err)
+{
+    this.reject(err);
+};
+//** ThinThinFlow
+ThinThinFlow.prototype.read = function (n)
+{
+    return new Promise((resolve, reject) => {
+        this.reader(new ThinThinFlowReader(n, resolve, reject));
+    });
+};
+//** ThinThinFlowWriter
+function ThinThinFlowWriter(s, resolve, reject)
+{
+    this.s = s;
+    this.resolve = resolve;
+    this.reject = reject;
+}
+ThinThinFlowWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+ThinThinFlowWriter.prototype.kind = () => "flow-writer";
+
+ThinThinFlowWriter.prototype.provide = function (n)
+{
+    return this.s;
+};
+
+ThinThinFlowWriter.prototype.advance = function (n)
+{
+    this.resolve(n);
+};
+
+ThinThinFlowWriter.prototype.done = function ()
+{
+    return true;
+};
+
+ThinThinFlowWriter.prototype.close = function (err)
+{
+    this.reject(err);
+};
+//** ThinThinFlow
+ThinThinFlow.prototype.write = function (s)
+{
+    return new Promise((resolve, reject) => {
+        this.writer(new ThinThinFlowWriter(s, resolve, reject));
+    });
+};
+
+ThinThinFlow.prototype.meta = function (request)
+{
+    return new Promise((resolve, reject) => {
+        this.metareader(new ThinThinMetaReader(request, resolve, reject));
+    });
+};
+
+ThinThinFlow.prototype.debug = function (name, f)
+{
+    var str = "";
+
+    str += `flow ${name}<br>`;
+    str += (this.readers.map(x => x.debug(f)).join(":")) + " <- " + (this.writers.map(x => x.debug(f))) + "["+this.state+"]";
+    str += "<br>";
+    str += (this.metareaders.map(x => x.debug(f)).join(":")) + " <= " + (this.metawriters.map(x => x.debug(f))) + "["+this.state+"]";
+    str += "<br>";
+
+    this.debugf = f;
+
+    return str;
+};
+//** ThinThinHalf
+function ThinThinHalf(flows, metas)
+{
+    Array.call(this);
+    this[0] = flows && flows[0] || new ThinThinFlow();
+    this[1] = flows && flows[1] || new ThinThinFlow();
+}
+ThinThinHalf.prototype = Object.create(Array.prototype);
+
+ThinThinHalf.prototype.reverse = function()
+{
+    return new ThinThinHalf([this[1], this[0]]);
+}
+
+ThinThinHalf.prototype.debug = function (name, f)
+{
+    var str = "";
+
+    str += `half ${name}<br>`;
+    str += this[0].debug(`${name}[0]`, f);
+    str += this[1].debug(`${name}[1]`, f);
+
+    this.debugf = f;
+
+    return str;
+};
+
+ThinThinHalf.prototype.meta = function (request)
+{
+    return this[0].meta(request);
+};
+//*** sendflow (unused?)
+function sendflow(flow1, flow2, n, count)
+{
+    if (count === undefined)
+        count = 0;
+
+    if (n === undefined)
+        n = Infinity;
+
+    if (n === 0)
+        return Promise.resolve(count);
+
+    flow1.read(n).then(s => {
+        return flow2.write(s);
+    }).then(k => {
+        count += k;
+        n -= k;
+
+        return sendflow(flow1, flow2, n, count);
+    });
+}
+//** ThinThinDD (kill)
+function ThinThinDD(process, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+    this.entries = {
+        ".": this,
+        "..": this.parent,
+    }
+}
+ThinThinDD.prototype = Object.create(ThinThinFD.prototype);
+
+ThinThinDD.prototype.mode = function ()
+{
+    return %{S_IFDIR + 0777};
+};
+
+ThinThinDD.prototype.openat = function (path)
+{
+    return -%{ENOENT};
+};
+//** ThinThinFetchDD (kill)
+function ThinThinFetchDD(process, parent, stem, cache, fdno)
+{
+    ThinThinDD.call(this, process, fdno);
+    this.stem = stem;
+    this.cache = cache;
+}
+
+ThinThinFetchDD.prototype = Object.create(ThinThinDD.prototype);
+//** ThinThinDD
+ThinThinDD.prototype.walk = function (component, isdir)
+{
+    if (component in this.entries)
+        return this.entries[component];
+
+    var ret = Promise.resolve(this.discover(component, isdir));
+
+    return ret.then(entry => {
+        if (entry)
+            this.entries[component] = entry;
+    });
+};
+//** ThinThinFetchDD
+ThinThinFetchDD.prototype.discover = function (component, isdir)
+{
+    var url = this.stem + "/" + component;
+    var ret;
+
+    if (isdir) {
+        ret = new ThinThinFetchDD(this.process, this, url, this.cache);
+    } else {
+        ret = new ThinThinFetchFD(this.process, url, this.cache);
+    }
+
+    return ret;
+};
+
+ThinThinFetchDD.prototype.openat_dir = function (path)
+{
+    return (new ThinThinFetchDD(this.process, this, this.stem + "/" + path,
+                                this.cache))
+        .open();
+};
+
+ThinThinFetchDD.prototype.openat = function (path)
+{
+    return (new ThinThinFetchFD(this.process, this.stem + "/" + path,
+                                this.cache))
+        .open();
+};
+//** ThinThinFD
+function ThinThinFD(process, fdno)
+{
+    if (fdno === undefined)
+        for (fdno = 0; process.fds[fdno]; fdno++)
+            ;
+    this.fdno = fdno;
+    this.readers = 0;
+    this.readData = "";
+    this.readPosition = 0;
+    this.readTo = 0;
+    this.onstuff = new Set();
+
+    this.writers = 0;
+    this.writeData = "";
+    this.writePosition = 0;
+    this.writeTo = 0;
+    this.onprovide = new Set();
+    this.onadvance = new Set();
+
+    process.fds[fdno] = this;
+    this.process = process;
+}
+
+ThinThinFD.prototype.clonedesc = function ()
+{
+    return {
+        fdno: this.fdno,
+    };
+};
+
+ThinThinFD.prototype.mode = function ()
+{
+    return %{__S_IFCHR + 0777};
+};
+
+ThinThinFD.prototype.size = function ()
+{
+    return this.readData.length;
+}
+
+ThinThinFD.prototype.open = function ()
+{
+    return Promise.resolve(this);
+};
+
+ThinThinFD.prototype.close = function ()
+{
+    while (this.readers)
+        this.pause();
+
+    try {
+        i.dont.exist++;
+    } catch (e) {
+        console.log(e.stack);
+    }
+    console.log("closing " + this.fdno);
+
+    delete this.process.fds[this.fdno];
+
+    return Promise.resolve(0);
+};
+
+ThinThinFD.prototype.advance = function (i)
+{
+    this.writeData = this.writeData.substr(i);
+
+    var onadvance = this.onadvance;
+    this.onadvance = new Set();
+
+    for (var handler of onadvance)
+        handler();
+};
+
+ThinThinFD.prototype.consume = function (i)
+{
+    this.readData = this.readData.substr(i);
+};
+
+ThinThinFD.prototype.provideString = function (data)
+{
+    this.writeData += data;
+
+    var onprovide = this.onprovide;
+    this.onprovide = new Set();
+
+    for (var handler of onprovide)
+        handler();
+};
+
+ThinThinFD.prototype.provideOpened = function ()
+{
+    this.writeOpened = true;
+
+    var onprovide = this.onprovide;
+    this.onprovide = new Set();
+
+    for (var handler of onprovide)
+        handler();
+};
+
+ThinThinFD.prototype.provideError = function (error)
+{
+    this.writeError = error;
+    this.writeEOF = true;
+
+    var onprovide = this.onprovide;
+    this.onprovide = new Set();
+
+    for (var handler of onprovide)
+        handler();
+
+    this.close();
+};
+
+ThinThinFD.prototype.provideEOF = function ()
+{
+    this.writeEOF = true;
+
+    var onprovide = this.onprovide;
+    this.onprovide = new Set();
+
+    for (var handler of onprovide)
+        handler();
+};
+
+ThinThinFD.prototype.startProviding = function ()
+{
+};
+
+ThinThinFD.prototype.stuffString = function (data)
+{
+    this.readData += data;
+
+    var onstuff = this.onstuff;
+    this.onstuff = new Set();
+
+
+    for (var handler of onstuff) {
+        handler();
+    }
+};
+
+ThinThinFD.prototype.stuffOpened = function ()
+{
+    this.readOpened = true;
+
+    var onstuff = this.onstuff;
+    this.onstuff = new Set();
+
+    for (var handler of onstuff)
+        handler();
+};
+
+ThinThinFD.prototype.stuffError = function (error)
+{
+    this.readError = error;
+    this.readEOF = true;
+
+    var onstuff = this.onstuff;
+    this.onstuff = new Set();
+
+    for (var handler of onstuff)
+        handler();
+
+    this.close();
+};
+
+ThinThinFD.prototype.stuffEOF = function ()
+{
+    this.readEOF = true;
+
+    var onstuff = this.onstuff;
+    this.onstuff = new Set();
+
+    for (var handler of onstuff)
+        handler();
+};
+
+ThinThinFD.prototype.startStuffing = function ()
+{
+    this.stuffing = true;
+
+    if (this.startStuffingResolve) {
+        this.startStuffingResolve(Infinity);
+        delete this.startStuffingResolve;
+    }
+
+    if (!this.activeInputPromise) {
+        this.activeInputPromise = new DissectedPromise();
+
+        this.inputPromise().then(data => {
+            this.stuffString(data);
+        });
+    }
+
+    return Promise.resolve();
+};
+
+ThinThinFD.prototype.stopStuffing = function ()
+{
+    if (this.activeInputPromise) {
+        var activeInputPromise = this.activeInputPromise;
+        delete this.activeInputPromise;
+        activeInputPromise.resolve(data);
+    }
+};
+
+ThinThinFD.prototype.unpause = function (len)
+{
+    if (this.readTo < this.readPosition + len)
+        this.readTo = this.readPosition + len;
+
+    if (this.readers++ === 0) {
+        return new Promise((resolve, reject) => {
+            this.startStuffing().then(() => {
+                this.stuffOpened();
+                resolve();
+            });
+        });
+    }
+
+    return Promise.resolve();
+};
+
+ThinThinFD.prototype.pause = function ()
+{
+    if (--this.readers === 0)
+        this.stopStuffing();
+};
+
+ThinThinFD.prototype.makeSeekable = function ()
+{
+    this.consume = i => {
+        this.readPosition += i;
+    };
+};
+
+ThinThinFD.prototype.readAsString = function ()
+{
+    return new Promise((resolve, reject) => {
+        if (!this.readEOF) {
+            this.onstuff.add(() => {
+                resolve(this.readData);
+            });
+            this.unpause(Infinity);
+            return;
+        }
+
+        resolve(this.readData);
+    });
+};
+
+ThinThinFD.prototype.readAsArrayBuffer = function ()
+{
+    return Promise.resolve(this.readAsString()).then(str => {
+        var ab = new ArrayBuffer(str.length);
+        var av = new Uint8Array(ab);
+
+        for (var i = 0; i < str.length; i++)
+            av[i] = str.charCodeAt(i)&0xff;
+
+        return ab;
+    });
+};
+
+/* .read(undefined, 0, 0) returns a promise that resolves to 0 when
+ * data is available to read. */
+ThinThinFD.prototype.read = function(heap, ptr, len)
+{
+    if (ptr === undefined)
+        ptr = 0;
+    if (len === undefined)
+        len = 0;
+
+    if (this.readData.length > this.readPosition ||
+        this.readEOF) {
+        var i;
+
+        for (i=0; i<len && i<this.readData.length - this.readPosition; i++) {
+            var cc = this.readData.charCodeAt(this.readPosition+i);
+            if (cc >= 0x80 || cc <= 0 || cc != cc) {
+                //console.log("UTF-8 char in " + this.readData.substr(this.readPosition+i, 32));
+            }
+            heap[ptr+i] = cc;
+        }
+        this.consume(i);
+
+        if (i == 0 || i == len)
+            return i;
+
+        if (true || this.readUnbuffered)
+            return Promise.resolve(i);
+
+        return Promise.resolve(this.read(heap, ptr+i, len-i)).then(j => i+j);
+    }
+
+    return this.unpause(len).then(() => {
+        return new Promise((resolve, reject) => {
+            this.onstuff.add(() => {
+                this.pause();
+                resolve(this.read(heap, ptr, len));
+            });
+
+            if (this.readData.length > this.readPosition ||
+                this.readEOF) {
+                var onstuff = this.onstuff;
+                for (var handler of onstuff)
+                    handler();
+            }
+        });
+    });
+};
+
+ThinThinFD.prototype.available = function ()
+{
+    if (this.readData.length > this.readPosition)
+        return Promise.resolve(this.readData.length - this.readPosition);
+
+    if (!this.readAvailable) {
+        var readAvailable = () => {
+            this.pause();
+            this.onstuff.delete(this.readAvailable);
+            delete this.readAvailable;
+        };
+        this.unpause(0).then(() => {
+            this.readAvailable = readAvailable;
+            this.onstuff.add(this.readAvailable);
+        });
+    }
+
+    return this.unpause(0).then(() => {
+        this.pause();
+        return this.readData.length - this.readPosition;
+    });
+};
+
+ThinThinFD.prototype.inputPromise = function () {
+    this.stuffEOF();
+    return Promise.resolve("");
+};
+
+ThinThinFD.prototype.write = function (heap, ptr, len) {
+    var initialPosition = this.writePosition;
+
+    if (ptr === undefined)
+        ptr = 0;
+    if (len === undefined)
+        len = 0;
+
+    if (len == 0)
+        return Promise.resolve(0);
+
+    var data = "";
+
+    for (i=0; i<len; i++)
+        data += String.fromCharCode(heap[ptr+i]);
+
+    if (this.half)
+        return this.half[0].write(data);
+    else {
+        console.log(data);
+
+        return data.length;
+    }
+};
+
+ThinThinFD.prototype.providee = function () {
+    var handler; handler = () => {
+        var len = this.writeData.length;
+
+        putstr(this.writeData);
+
+        this.advance(len);
+
+        this.onprovide.add(handler);
+    };
+
+    this.onprovide.add(handler);
+};
+
+ThinThinFD.prototype.domPromise = function () {
+    return document.getElementById("output");
+};
+
+ThinThinFD.prototype.connectPort = function (port) {
+    var n = 0;
+
+    var handler = () => {
+        if (this.readData.length > this.readPosition ||
+            this.readEOF) {
+            if (n > this.readData.length - this.readPosition)
+                n = this.readData.length - this.readPosition;
+            port.postMessage(this.readData.substr(this.readPosition, n));
+            this.consume(n);
+        }
+
+        this.onstuff.add(handler);
+    };
+
+    port.onmessage = event => {
+        var data = event.data;
+        var kind = data[0];
+
+        if (kind === "write") {
+            this.provideString(data[1]);
+        } else if (kind === "read") {
+            n = data[1];
+
+            handler();
+        }
+    };
+
+    port.postMessage(["read"]);
+};
+
+ThinThinFD.prototype.readdir = function ()
+{
+    return [];
+};
+
+ThinThinFD.prototype.clone = function ()
+{
+    return this;
+};
+
+ThinThinFD.prototype.freeze = function ()
+{
+    return new FrozenThinThinFD(this);
+};
+//** ThinThinFDReader
+function ThinThinFDReader(fd, len)
+{
+    this.fd = fd;
+    this.len = len;
+}
+ThinThinFDReader.prototype = Object.create(ThinThinReader.prototype);
+
+ThinThinFDReader.prototype.kind = () => "fd-reader";
+
+ThinThinFDReader.prototype.max = function ()
+{
+    return Infinity;
+};
+
+ThinThinFDReader.prototype.consume = function (s)
+{
+    return new Promise((resolve, reject) => {
+        this.fd.stuffString(s);
+        resolve(s.length);
+    });
+};
+
+ThinThinFDReader.prototype.done = function ()
+{
+    return true;
+};
+//** ThinThinFDWriter
+function ThinThinFDWriter(fd)
+{
+    this.fd = fd;
+}
+
+ThinThinFDWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+ThinThinFDWriter.prototype.kind = () => "fd-writer";
+
+ThinThinFDWriter.prototype.provide = function (n)
+{
+    return this.fd.writeData;
+};
+
+ThinThinFDWriter.prototype.consume = function (s)
+{
+    return new Promise((resolve, reject) => {
+        this.fd.stuffString(s);
+        resolve(s.length);
+    });
+};
+
+ThinThinFDWriter.prototype.advance = function (n)
+{
+    return this.fd.advance(n);
+};
+
+ThinThinFDWriter.prototype.done = function ()
+{
+    return true;
+};
+//** ThinThinHalfFD
+function ThinThinHalfFD(process, half, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+
+    this.half = half;
+
+    this.providee();
+}
+ThinThinHalfFD.prototype = Object.create(ThinThinFD.prototype);
+
+ThinThinHalfFD.prototype.unpause = function (len)
+{
+    return new Promise((resolve, reject) => {
+        this.half[1].reader(new ThinThinFDReader(this, len));
+
+        resolve();
+    });
+};
+
+ThinThinHalfFD.prototype.providee = function () {
+    var handler; handler = () => {
+        if (this.writeData.length > 0) {
+            this.half[1].writer(new ThinThinFDWriter(this));
+        }
+
+        this.onprovide.add(handler);
+    };
+
+    this.onprovide.add(handler);
+};
+
+ThinThinHalfFD.prototype.modeXXX = function ()
+{
+    return new Promise((resolve, reject) => {
+        this.half[1].metareader(new ThinThinMetaReader(["mode"], resolve,
+                                                       reject));
+    });
+};
+
+ThinThinHalfFD.prototype.openat = function (path, flags)
+{
+    return new Promise((resolve, reject) => {
+        this.half[1].metareader(new ThinThinMetaReader(["openat", path, flags], resolve, reject));
+    }).then(response => {
+        var obj = response[0][0];
+
+        if ((obj instanceof Array) && obj.length && (obj[0] instanceof File)) {
+            var pipe = new ThinThinHalf();
+            new FileListHalf(pipe, obj);
+            return new ThinThinHalfFD(this.process, pipe);
+        } else if (obj instanceof File) {
+            var pipe = new ThinThinHalf();
+            new FileHalf(pipe, obj);
+            return new ThinThinHalfFD(this.process, pipe);
+        }
+    });
+};
+
+ThinThinHalfFD.prototype.readdir = function ()
+{
+    return new Promise((resolve, reject) => {
+        this.half[1].metareader(new ThinThinMetaReader(["readdir"], resolve, reject));
+    });
+};
+//** SparseMetaWriter
+function SparseMetaWriter(half)
+{
+    this.half = half;
+}
+SparseMetaWriter.prototype = Object.create(ThinThinMetaWriter.prototype);
+
+SparseMetaWriter.prototype.kind = () => "sparse-metawriter";
+
+SparseMetaWriter.prototype.provide = function (request)
+{
+    if (request[0] === "readdir")
+        return this.half.readdir();
+    else if (request[0] === "openat")
+        return this.half.openat(request[1], request[2], request[3]);
+    else if (request[0] === "openat_dir")
+        return this.half.openat_dir(request[1], request[2], request[3]);
+    else
+        return this.half.base.meta(request);
+};
+
+//** SparseHalf
+function SparseHalf(flows, base)
+{
+    ThinThinHalf.call(this, flows);
+    this.base = base;
+
+    this.entries = {};
+}
+SparseHalf.prototype = Object.create(ThinThinHalf.prototype);
+
+SparseHalf.prototype.readdir = function ()
+{
+    var ret = [];
+
+    for (var name in this.entries)
+        ret.push(name);
+
+    return ret;
+};
+
+SparseHalf.prototype.openat = function (path, flags, mode)
+{
+    var ret = this.base.openat(path, flags, mode);
+
+    return ret.then(obj => {
+        this.entries[path] = true;
+    }).then(() => {
+        return ret;
+    });
+};
+
+SparseHalf.prototype.openat_dir = function (path, flags, mode)
+{
+    var ret = this.base.openat_dir(path, flags, mode);
+
+    return ret.then(obj => {
+        this.entries[path] = true;
+    }).then(() => {
+        return ret;
+    });
+};
+
+//** HTMLReader
+function HTMLReader()
+{
+}
+HTMLReader.prototype = Object.create(ThinThinReader.prototype);
+
+HTMLReader.prototype.kind = () => "html-reader";
+
+HTMLReader.prototype.max = function ()
+{
+    return Infinity;
+};
+
+HTMLReader.prototype.consume = function (s)
+{
+    putstr(s);
+
+    return s.length;
+};
+
+HTMLReader.prototype.done = function ()
+{
+    return false;
+};
+//** BufferedWriter
+function BufferedWriter(writer)
+{
+    this.writer = writer;
+}
+BufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+BufferedWriter.prototype.kind = function ()
+{
+    return "buffered(" + this.writer.kind() + ")";
+};
+
+BufferedWriter.prototype.provide = function (n)
+{
+    if (this.buffer === undefined) {
+        return this.writer.provide(n).then(s => {
+            this.buffer = s;
+        }).then(() => {
+            this.writer.advance(this.buffer.length);
+        }).then(() => {
+            return this.buffer;
+        });
+    }
+
+    return this.buffer;
+};
+
+BufferedWriter.prototype.advance = function (n)
+{
+    this.buffer = this.buffer.substr(n);
+    if (this.buffer === "")
+        delete this.buffer;
+};
+
+BufferedWriter.prototype.done = function ()
+{
+    if (this.buffer)
+        return false;
+
+    return this.writer.done();
+};
+//** HTMLWriter
+function HTMLWriter(dom)
+{
+    this.dom = dom;
+}
+HTMLWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+HTMLWriter.prototype.kind = () => "html-writer";
+
+HTMLWriter.prototype.activate = function ()
+{
+    if (!this.active) {
+        this.active = true;
+
+        this.node = document.createElement("div");
+        this.node_ta = document.createElement("textarea");
+        this.node_ta.spellcheck = false;
+        this.node_ta.inputmode = "verbatim";
+        this.node_eof = document.createElement("button");
+        this.node_eof.innerHTML = "EOF";
+
+        this.node_send = document.createElement("button");
+        this.node_send.innerHTML = "Send";
+
+        this.node.appendChild(this.node_ta);
+        this.node.appendChild(this.node_send);
+        this.node.appendChild(this.node_eof);
+
+        this.dom.appendChild(this.node);
+
+        this.node_eof.onclick = e => {
+            this.resolve(this.node_ta.value);
+            this.deactivate();
+            this.node_ta.value = "";
+
+            e.stopPropagation();
+            e.preventDefault();
+        };
+
+        this.node_send.onclick = e => {
+            this.resolve(this.node_ta.value);
+            this.node_ta.value = "";
+
+            e.stopPropagation();
+            e.preventDefault();
+        };
+    }
+
+    this.node.focus();
+};
+
+HTMLWriter.prototype.deactivate = function ()
+{
+    if (this.active) {
+        delete this.active;
+
+        this.dom.removeChild(this.node);
+    }
+}
+
+HTMLWriter.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+
+        this.activate();
+    });
+};
+
+HTMLWriter.prototype.advance = function (n)
+{
+};
+
+HTMLWriter.prototype.done = function ()
+{
+    return !this.active;
+};
+//** BufferedWriter
+function BufferedWriter(writer)
+{
+    this.writer = writer;
+}
+BufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+BufferedWriter.prototype.kind = function ()
+{
+    return "buffered(" + this.writer.kind() + ")";
+};
+
+BufferedWriter.prototype.provide = function (n)
+{
+    if (this.buffer === undefined) {
+        return this.writer.provide(n).then(s => {
+            this.buffer = s;
+        }).then(() => {
+            this.writer.advance(this.buffer.length);
+        }).then(() => {
+            return this.buffer;
+        });
+    }
+
+    return this.buffer;
+};
+
+BufferedWriter.prototype.advance = function (n)
+{
+    this.buffer = this.buffer.substr(n);
+    if (this.buffer === "")
+        delete this.buffer;
+};
+
+BufferedWriter.prototype.done = function ()
+{
+    if (this.buffer)
+        return false;
+
+    return this.writer.done();
+};
+//** HTMLWriter
+function HTMLWriter(dom)
+{
+    this.dom = dom;
+}
+HTMLWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+HTMLWriter.prototype.kind = () => "html-writer";
+
+HTMLWriter.prototype.activate = function ()
+{
+    if (!this.active) {
+        this.active = true;
+
+        this.node = document.createElement("div");
+        this.node_ta = document.createElement("textarea");
+        this.node_eof = document.createElement("button");
+        this.node_eof.innerHTML = "EOF";
+
+        this.node_send = document.createElement("button");
+        this.node_send.innerHTML = "Send";
+
+        this.node.appendChild(this.node_ta);
+        this.node.appendChild(this.node_send);
+        this.node.appendChild(this.node_eof);
+
+        this.dom.appendChild(this.node);
+
+        this.node_eof.onclick = e => {
+            this.resolve(this.node_ta.value);
+            this.deactivate();
+            this.node_ta.value = "";
+
+            e.stopPropagation();
+            e.preventDefault();
+        };
+
+        this.node_send.onclick = e => {
+            this.resolve(this.node_ta.value);
+            this.node_ta.value = "";
+
+            e.stopPropagation();
+            e.preventDefault();
+        };
+    }
+
+    this.node.focus();
+};
+
+HTMLWriter.prototype.deactivate = function ()
+{
+    if (this.active) {
+        delete this.active;
+
+        this.dom.removeChild(this.node);
+    }
+}
+
+HTMLWriter.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+
+        this.activate();
+    });
+};
+
+HTMLWriter.prototype.advance = function (n)
+{
+};
+
+HTMLWriter.prototype.done = function ()
+{
+    return !this.active;
+};
+//** HTMLMetaWriter
+function HTMLMetaWriter(half)
+{
+    this.half = half;
+}
+HTMLMetaWriter.prototype = Object.create(ThinThinMetaWriter.prototype);
+
+HTMLMetaWriter.prototype.kind = () => "html-metawriter";
+
+HTMLMetaWriter.prototype.provide = function (request)
+{
+    if (request[0] === "AYT")
+        return [["yes", "HTML"]];
+    else if (request[0] === "mode")
+        return [%{__S_IFCHR + 0777}];
+    else if (request[0] === "readdir")
+        return this.half.readdir();
+    else if (request[0] === "openat")
+        return this.half.openat(request[1], request[2]);
+    else if (request[0] === "openat_dir")
+        return this.half.openat_dir(request[1], request[2]);
+
+    return [[]];
+};
+//** HTMLHalf
+function HTMLHalf(flows, dom)
+{
+    ThinThinHalf.call(this, flows);
+
+    this.dom = dom;
+    this[0].reader(new HTMLReader());
+    this[1].writer(new BufferedWriter(new HTMLWriter(this.dom)));
+    this.meta = new HTMLMetaWriter(this);
+    this[0].metawriter(this.meta);
+    this[1].metawriter(this.meta);
+}
+HTMLHalf.prototype = Object.create(ThinThinHalf.prototype);
+
+HTMLHalf.prototype.openat = function (path, flags)
+{
+    return new Promise((resolve, reject) => {
+        this.pickdir().then(dir => {
+            if (this.input_f)
+                this.dom.removeChild(this.input_f);
+            return dir.getFilesAndDirectories();
+        }).then(fs => {
+            for (var f of fs) {
+                if (f.name === path) {
+                    resolve(f);
+                    break;
+                }
+            }
+            reject(-%{ENOENT});
+        });
+        this.input_f = document.createElement("input");
+        this.input_f.accept = "*/*";
+        this.input_f.allowdirs = true;
+        //this.input_f.webkitdirectory = "true";
+        //this.input_f.multiple = true;
+        this.input_f.type = "file";
+        this.dom.appendChild(this.input_f);
+
+        this.input_f.addEventListener("change", () => {
+            if (this.input_d)
+                this.dom.removeChild(this.input_d);
+            var flist = this.input_f.files;
+
+            if (!flist || flist.length !== 1)
+                resolve([["no such file"]]);
+
+            resolve([[flist[0]]]);
+
+            this.dom.removeChild(this.input_f);
+        });
+    });
+};
+
+HTMLHalf.prototype.openat_dir = function (path, flags)
+{
+    return new Promise((resolve, reject) => {
+        this.input_f = document.createElement("input");
+        this.input_f.type = "file";
+        this.input_f.multiple = true;
+        this.dom.appendChild(this.input_f);
+
+        this.input_f.addEventListener("change", () => {
+            var flist = this.input_f.files;
+            var array = [...flist];
+
+            resolve([[array]]);
+
+            this.dom.removeChild(this.input_f);
+        });
+    });
+};
+
+HTMLHalf.prototype.pickdir = function ()
+{
+    if (this.directory)
+        return this.directory;
+
+    return new Promise((resolve, reject) => {
+        this.input_d = document.createElement("input");
+        this.input_d.type = "file";
+        this.input_d.allowdirs = true;
+        this.dom.appendChild(this.input_d);
+
+        this.input_d.addEventListener("change", () => {
+            this.input_d.getFilesAndDirectories().then(ds => {
+                var promises = [];
+
+                for (var d of ds) {
+                    this.directory = d;
+                    resolve(d);
+                    this.dom.removeChild(this.input_d);
+
+                    return;
+                }
+            });
+        });
+    });
+};
+
+HTMLHalf.prototype.readdir = function ()
+{
+    var names = [];
+
+    return Promise.resolve(this.pickdir()).then(d => {
+        return d.getFilesAndDirectories().then(fs => {
+            for (var f of fs)
+                names.push(f.name);
+
+            return names;
+        });
+    });
+};
+//** CLogReader
+function CLogReader()
+{
+}
+CLogReader.prototype = Object.create(ThinThinReader.prototype);
+
+CLogReader.prototype.kind = () => "clog-reader";
+
+CLogReader.prototype.max = function ()
+{
+    return Infinity;
+};
+
+CLogReader.prototype.consume = function (s)
+{
+    console.log("clog: " + s);
+
+    return s.length;
+};
+
+CLogReader.prototype.done = function ()
+{
+    return false;
+};
+//** CLogHalf
+function CLogHalf(flows)
+{
+    ThinThinHalf.call(this, flows);
+
+    this[0].reader(new CLogReader());
+}
+CLogHalf.prototype = Object.create(ThinThinHalf.prototype);
+//** ForwardReader
+function ForwardReader(half)
+{
+    this.half = half;
+}
+ForwardReader.prototype = Object.create(ThinThinReader.prototype);
+
+ForwardReader.prototype.kind = () => "forward-reader";
+
+ForwardReader.prototype.max = function ()
+{
+    return Infinity;
+};
+
+ForwardReader.prototype.consume = function (s)
+{
+    return this.half[0].write(s).then(() => {
+        return s.length;
+    });
+};
+
+ForwardReader.prototype.done = function ()
+{
+    return false;
+};
+//** ForwardWriter
+function ForwardWriter(half)
+{
+    this.half = half;
+}
+ForwardWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+ForwardWriter.prototype.kind = () => "forward-writer";
+
+ForwardWriter.prototype.provide = function (n)
+{
+    return this.half[1].read(n);
+};
+
+ForwardWriter.prototype.advance = function (n)
+{
+};
+
+ForwardWriter.prototype.done = function ()
+{
+    return false;
+};
+//** ForwardMetaWriter
+function ForwardMetaWriter(half)
+{
+    this.half = half;
+}
+ForwardMetaWriter.prototype = Object.create(ThinThinMetaWriter.prototype);
+
+ForwardMetaWriter.prototype.kind = () => "forward-metawriter";
+
+ForwardMetaWriter.prototype.provide = function (request)
+{
+    return this.half[0].meta(request);
+};
+
+ForwardMetaWriter.prototype.done = function ()
+{
+    return false;
+};
+//** ForwardHalf
+function ForwardHalf(flows, half)
+{
+    ThinThinHalf.call(this, flows);
+
+    this[0].reader(new ForwardReader(half));
+    this[1].writer(new ForwardWriter(half));
+    this[0].metawriter(new ForwardMetaWriter(half));
+    this[1].metawriter(new ForwardMetaWriter(half));
+}
+ForwardHalf.prototype = Object.create(ThinThinHalf.prototype);
+//** MessagePortReader1
+function MessagePortReader1(port)
+{
+    this.port = port;
+    this.port.addEventListener("close", () => {
+        delete this.port;
+    });
+}
+MessagePortReader1.prototype = Object.create(ThinThinReader.prototype);
+
+MessagePortReader1.prototype.kind = () => "messageport-reader";
+
+MessagePortReader1.prototype.max = function ()
+{
+    return Infinity;
+};
+
+MessagePortReader1.prototype.consume = function (s)
+{
+    if (!this.port)
+        return 0;
+
+    this.port.postMessage(s);
+
+    return s.length;
+};
+
+MessagePortReader1.prototype.done = function ()
+{
+    return !this.port;
+};
+//** MessagePortWriter1
+function MessagePortWriter1(port)
+{
+    this.port = port;
+    this.port.addEventListener("close", () => {
+        delete this.port;
+    });
+}
+MessagePortWriter1.prototype = Object.create(ThinThinWriter.prototype);
+
+MessagePortWriter1.prototype.kind = () => "messageport-writer";
+
+MessagePortWriter1.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        if (!this.port)
+            reject("EOF");
+
+        this.oldonmessage = this.port.onmessage;
+        this.port.onmessage = event => {
+            resolve(event.data);
+            this.port.onmessage = this.oldonmessage;
+        };
+    });
+};
+
+MessagePortWriter1.prototype.advance = function (n)
+{
+};
+
+MessagePortWriter1.prototype.done = function ()
+{
+    return !this.port;
+};
+//** MessagePortHalf1
+function MessagePortHalf1(flows, port)
+{
+    ThinThinHalf.call(this, flows);
+
+    this[0].reader(new MessagePortReader1(port));
+    this[1].writer(new MessagePortWriter1(port));
+}
+MessagePortHalf1.prototype = Object.create(ThinThinHalf.prototype);
+//** RRPort
+function RRPort(port)
+{
+    this.port = port;
+    this.seq = 1;
+
+    this.requesters = {};
+    this.responders = {};
+    this.rejecters = {};
+
+    this.port.addEventListener("message", event => {
+        var [kind, seq, data] = event.data;
+
+        if (kind === "response") {
+            var requester = this.requesters[seq];
+            delete this.requesters[seq];
+            delete this.rejecters[seq];
+
+            requester(data);
+        } else if (kind in this.responders) {
+            var responder = this.responders[kind];
+
+            Promise.resolve(responder(data)).then(([resp, transfer]) => {
+                var msg = ["response", seq];
+                msg.push(resp);
+                this.port.postMessage(msg, transfer);
+            });
+        } else {
+            console.log("couldn't deal with it");
+        }
+    }, false);
+    this.port.start();
+
+    this.port.onclose = event => {
+        for (var seq in this.rejecters)
+            this.rejecters[seq](event);
+    };
+}
+
+RRPort.prototype.open = function ()
+{
+    return Promise.resolve();
+};
+
+RRPort.prototype.req = function (kind, ...data)
+{
+    return new Promise((resolve, reject) => {
+        var seq = this.seq++;
+        var msg = [kind, seq];
+        msg.push(...data);
+
+        this.requesters[seq] = data => {
+            resolve(data);
+        };
+        this.rejecters[seq] = err => {
+            reject(err);
+        };
+        this.port.postMessage(msg);
+    });
+};
+
+RRPort.prototype.resp = function (kind, f)
+{
+    this.responders[kind] = f;
+};
+//** RRPortReader
+function RRPortReader(rr) {
+    this.rr = rr;
+}
+RRPortReader.prototype = Object.create(ThinThinReader.prototype);
+
+RRPortReader.prototype.kind = () => "rrport-reader";
+
+RRPortReader.prototype.max = function ()
+{
+    return this.rr.req("max");
+};
+
+RRPortReader.prototype.consume = function (s)
+{
+    return this.rr.req("consume", s);
+};
+
+RRPortReader.prototype.done = function ()
+{
+    return this.rr.req("done");
+};
+//** RRPortWriter
+function RRPortWriter(rr) {
+    this.rr = rr;
+    this.max = {};
+
+    this.rr.resp("max", () => new Promise((resolve, reject) => {
+        if (this.max.n !== undefined) {
+            resolve([[this.max.n]]);
+        } else {
+            this.max.resolve = resolve;
+            this.max.reject = reject;
+        }
+    }));
+
+    this.consume = {};
+    this.consume1 = {};
+    this.consume2 = {};
+
+    this.rr.resp("consume", s => new Promise((resolve, reject) => {
+        this.consume1.resolve(s);
+        if (this.consume1.n !== undefined)
+            resolve([[this.consume1.n]]);
+        else {
+            this.consume2.resolve = resolve;
+            this.consume2.reject = reject;
+        }
+    }));
+
+    this.rr.resp("done", () => new Promise((resolve, reject) => {
+        resolve([false]);
+    }));
+    this.rr.open();
+}
+RRPortWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+RRPortWriter.prototype.kind = () => "rrport-writer";
+
+RRPortWriter.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        if (this.max.resolve !== undefined) {
+            this.max.resolve([[n]]);
+        } else {
+            this.max.n = n;
+        }
+
+        this.consume1.resolve = resolve;
+        this.consume1.reject = reject;
+    });
+};
+
+RRPortWriter.prototype.advance = function (n)
+{
+    return new Promise((resolve, reject) => {
+        this.consume2.resolve([[n]]);
+        resolve();
+    });
+};
+
+RRPortWriter.prototype.done = function ()
+{
+    return false;
+};
+//** RRPortMetaWriter
+function RRPortMetaWriter(rr)
+{
+    this.rr = rr;
+}
+RRPortMetaWriter.prototype = Object.create(ThinThinMetaWriter.prototype);
+
+RRPortMetaWriter.prototype.kind = () => "rrport-metawriter";
+
+RRPortMetaWriter.prototype.provide = function (request)
+{
+    return this.rr.req("meta", request);
+};
+//** RRPortHalf
+function RRPortHalf(flows, rr, metawriter)
+{
+    ThinThinHalf.call(this, flows);
+
+    this[0].reader(new RRPortReader(rr));
+    this[1].writer(new RRPortWriter(rr));
+    if (metawriter) {
+        this.meta = new RRPortMetaWriter(rr);
+        this[0].metawriter(this.meta);
+        this[1].metawriter(this.meta);
+    } else {
+        rr.resp("meta", request => new Promise((resolve, reject) => {
+            this[0].metareader(new ThinThinMetaReader(request, data => { console.log(data); resolve([data]); }, reject));
+        }));
+    }
+}
+RRPortHalf.prototype = Object.create(ThinThinHalf.prototype);
+//** WebSocketWriter
+function WebSocketWriter(websocket)
+{
+    this.websocket = websocket;
+    this.websocket.addEventListener("message", ev => this.onmessage(ev));
+    this.websocket.addEventListener("close", ev => this.onclose(ev));
+}
+WebSocketWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+WebSocketWriter.prototype.kind = () => "websocket-writer";
+
+WebSocketWriter.prototype.onmessage = function (event)
+{
+    this.resolve(event.data);
+};
+
+WebSocketWriter.prototype.onclose = function (event)
+{
+    this.reject("EOF");
+};
+
+WebSocketWriter.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+        reader.readAsArrayBuffer(this.webSocket);
+    }).then(abuf => {
+        var view = new Uint8Array(abuf);
+        var s = "";
+        for (var i = 0; i < abuf.byteLength; i++)
+            s += String.fromCharCode(view[i]);
+
+        return s;
+    });
+};
+
+WebSocketWriter.prototype.advance = function (n)
+{
+};
+
+WebSocketWriter.prototype.done = function ()
+{
+    return true;
+};
+//** WebSocketHalf
+function WebSocketHalf(flows, webSocket)
+{
+    ThinThinHalf.call(this, flows);
+    this[1].writer(new BufferedWriter(new WebSocketWriter(webSocket)));
+}
+WebSocketHalf.prototype = Object.create(ThinThinHalf.prototype);
+//** FileListMetaWriter
+function FileListMetaWriter(filelist)
+{
+    this.filelist =  filelist;
+};
+FileListMetaWriter.prototype = Object.create(ThinThinMetaWriter.prototype);
+
+FileListMetaWriter.prototype.kind = () => "filelist-metawriter";
+
+FileListMetaWriter.prototype.provide = function (request)
+{
+    if (request[0] === "openat") {
+        for (var i = 0; i < this.filelist.length; i++)
+            if (this.filelist[i].name === request[1])
+                return Promise.resolve([[this.filelist[i]]]);
+        return Promise.reject();
+    } else if (request[0] === "readdir") {
+        var names = [];
+
+        for (var i = 0; i < this.filelist.length; i++)
+            names.push(this.filelist[i].name);
+
+        return Promise.resolve([[names]]);
+    }
+};
+//** FileListHalf
+function FileListHalf(flows, filelist)
+{
+    ThinThinHalf.call(this, flows);
+
+    this.meta = new FileListMetaWriter(filelist);
+    this[0].metawriter(this.meta);
+    this[1].metawriter(this.meta);
+}
+FileListHalf.prototype = Object.create(ThinThinHalf.prototype);
+//** FileWriter
+function FileWriter(file)
+{
+    this.file = file;
+}
+FileWriter.prototype = Object.create(ThinThinWriter.prototype);
+
+FileWriter.prototype.kind = () => "file-writer";
+
+FileWriter.prototype.provide = function (n)
+{
+    return new Promise((resolve, reject) => {
+        var reader = new FileReader();
+
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.readAsArrayBuffer(this.file);
+    }).then(abuf => {
+        var view = new Uint8Array(abuf);
+        var s = "";
+        for (var i = 0; i < abuf.byteLength; i++)
+            s += String.fromCharCode(view[i]);
+
+        return s;
+    });
+};
+
+FileWriter.prototype.advance = function (n)
+{
+};
+
+FileWriter.prototype.done = function ()
+{
+    return true;
+};
+//** FileHalf
+function FileHalf(flows, file)
+{
+    ThinThinHalf.call(this, flows);
+    this[1].writer(new BufferedWriter(new FileWriter(file)));
+}
+FileHalf.prototype = Object.create(ThinThinHalf.prototype);
+//* globals
+var gLimboFD;
+var gLimboPath;
+
+var gRemoteFDs = {};
+//** FrozenThinThinFD
+function FrozenThinThinFD(fd)
+{
+    var rfdno;
+
+    for (rfdno = 0; rfdno in gRemoteFDs; rfdno++);
+
+    gRemoteFDs[rfdno] = fd;
+
+    this.rfdno = rfdno;
+    this.fdno = fd.fdno;
+}
+
+FrozenThinThinFD.prototype.thaw = function (process, target)
+{
+    var fd = new RemoteFD(process, target, this.rfdno, this.fdno);
+    gRemoteFDs[this.rfdno] = fd;
+    fd.target = target;
+
+    return fd;
+};
+//** ThinThinFetchFD (kill)
+function ThinThinFetchFD(process, url, cache, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+    this.url = url;
+    this.cache = cache;
+    this.makeSeekable();
+}
+
+ThinThinFetchFD.prototype = Object.create(ThinThinFD.prototype);
+
+ThinThinFetchFD.prototype.open = function ()
+{
+    return new Promise((resolve, reject) => {
+        this.unpause(0).then(() => {
+            var handler = () => {
+                if (this.readError) {
+                    reject(this.readError);
+                } else if (this.readOpened || this.readEOF) {
+                    resolve(this);
+                } else {
+                    this.onstuff.add(handler);
+                }
+            };
+            handler();
+        });
+    });
+};
+
+ThinThinFetchFD.prototype.startStuffing = function ()
+{
+    var url = this.url;
+
+    delete this.url;
+
+    if (url === undefined) {
+        return Promise.reject("EOF");
+    }
+
+    delete this.cache;
+
+    if (this.cache) {
+        var req = new Request(url);
+
+        return this.cache.match(req).then(response => {
+            if (response === undefined) {
+                console.log("have to fetch " + url);
+                return fetch(url);
+            }
+            return response;
+        }).then(response => {
+            this.cache.put(url, response.clone());
+            if (response.ok)
+                return response.arrayBuffer();
+
+            return Promise.reject(response);
+        }).then(abuf => {
+            var view = new Uint8Array(abuf);
+            var text = "";
+
+            for (var i = 0; i < abuf.byteLength; i++) {
+                var cc = view[i];
+                if (cc & 0x80) cc += 0x100;
+                text += String.fromCharCode(cc);
+            }
+
+            this.stuffString(text);
+            this.stuffEOF();
+        });
+    }
+
+    return fetch(url).then(response => {
+        if (response.ok)
+            return response.arrayBuffer();
+
+        return Promise.reject(response);
+    }).then(abuf => {
+        var view = new Uint8Array(abuf);
+        var text = "";
+
+        for (var i = 0; i < abuf.byteLength; i++) {
+            var cc = view[i];
+            if (cc & 0x80) cc += 0x100;
+            text += String.fromCharCode(cc);
+        }
+
+        this.stuffString(text);
+        this.stuffEOF();
+    });
+};
+
+ThinThinFetchFD.prototype.inputPromise = function ()
+{
+    var url = this.url;
+
+    delete this.url;
+
+    if (!url) {
+        return Promise.resolve("");
+    }
+
+};
+//** SparseDD (kill)
+function SparseDD(base, fdno)
+{
+    ThinThinDD.call(this, base.process, fdno);
+    this.base = base;
+
+    this.entries = {};
+}
+SparseDD.prototype = Object.create(ThinThinDD.prototype);
+
+SparseDD.prototype.mode = function ()
+{
+    return this.base.mode();
+};
+
+SparseDD.prototype.open = function ()
+{
+    if (this.readOpened)
+        return Promise.resolve(this);
+
+    return this.base.open().then(fd => {
+        return this.readMeta();
+    }).then(() => {
+        this.stuffOpened();
+
+        return this;
+    });
+};
+
+SparseDD.prototype.readMeta = function ()
+{
+    return this.base.openat(".dirs").then(fd => {
+        return fd.readAsString();
+    }).then(str => {
+        var dirs = str.split(/\0/);
+
+        for (var dir of dirs) {
+            dir = dir.replace(/^\.\//, "");
+            this.entries[dir] = true;
+        }
+
+        return true;
+    });
+};
+
+SparseDD.prototype.openat = function (path)
+{
+    var m;
+    if (m = path.match(/^([^/]+)\/(.+)$/)) {
+        return this.openat(m[1]).then(fd => {
+            return fd.open().then(() => {
+                return fd;
+            });
+        }).then(fd => {
+            return fd.openat(m[2]);
+        });
+    } else {
+        if (path === ".") {
+            return Promise.resolve(this);
+        }
+        if (path in this.entries)
+            return this.base.openat_dir(path).then(fd => {
+                return fd.open().then(() => {
+                    return new SparseDD(fd);
+                });
+            });
+        else
+            return this.base.openat(path).then(fd => {
+                return fd.open().then(() => {
+                    return fd;
+                });
+            });
+    }
+};
+//** ReadableFD
+function ReadableFD(process, readable, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+    this.readable = readable;
+    this.makeSeekable();
+};
+
+ReadableFD.prototype = Object.create(ThinThinFD.prototype);
+
+ReadableFD.prototype.startStuffing = function ()
+{
+    var readable = this.readable;
+    this.onend = () => {
+        this.stuffEOF();
+    };
+    this.ondata = (data) => {
+        var text = "";
+
+        for (var i = 0; i < data.length; i++) {
+            var cc = data[i];
+            if (cc & 0x80) cc += 0x100;
+            text += String.fromCharCode(cc);
+        }
+
+        this.stuffString(text);
+    };
+
+    readable.on("end", this.onend);
+    readable.on("data", this.ondata);
+
+    return Promise.resolve();
+};
+
+ReadableFD.prototype.stopStuffing = function ()
+{
+    var readable = this.readable;
+
+    readable.removeListener("end", this.onend);
+    delete this.onend;
+
+    readable.removeListener("data", this.ondata);
+    delete this.ondata;
+};
+//** WritableFD
+function WritableFD(process, writable, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+    this.writable = writable;
+};
+
+WritableFD.prototype = Object.create(ThinThinFD.prototype);
+
+WritableFD.prototype.outputPromise = function (heap, ptr, len)
+{
+    var data = "";
+
+    if (len == 0)
+        return 0;
+
+    for (i=0; i<len; i++)
+        data += String.fromCharCode(heap[ptr+i]);
+
+    this.writable.write(data);
+
+    return Promise.resolve(len);
+};
+//** ArrayBufferFD
+function ArrayBufferFD(process, abufPromise, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+
+    this.abufPromise = abufPromise;
+}
+ArrayBufferFD.prototype = Object.create(ThinThinFD.prototype);
+//**  MessagePortDD
+function MessagePortDD(process, port, fdno)
+{
+    ThinThinDD.call(this, process, fdno);
+    this.port = port;
+    this.seq = 1;
+    this.onmessage = {};
+
+    this.port.onmessage = (event) => {
+        var data = event.data;
+        var seq = data[0];
+
+        this.onmessage[seq](data);
+    };
+}
+MessagePortDD.prototype = Object.create(ThinThinDD.prototype);
+
+MessagePortDD.prototype.openat = function (path)
+{
+    return new Promise((resolve, reject) => {
+        var seq = this.seq++;
+        this.onmessage[seq] = (data) => {
+            delete this.onmessage[seq];
+            var success = data[1];
+
+            if (success)
+                resolve(new MessagePortFD(this.process, data[2]));
+            else
+                reject(data[2]);
+        }
+
+        this.port.postMessage([seq, "openat", path]);
+    });
+};
+
+MessagePortDD.prototype.openat_dir = function (path)
+{
+    return new Promise((resolve, reject) => {
+        var seq = this.seq++;
+        this.onmessage[seq] = (data) => {
+            delete this.onmessage[seq];
+            var success = data[1];
+
+            if (success)
+                resolve(new MessagePortDD(this.process, data[2]));
+            else
+                reject(data[2]);
+        }
+
+        this.port.postMessage([seq, "openat_dir", path]);
+    });
+};
+//** RemoteFD
+function RemoteFD(process, target, rfdno, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+
+    gRemoteFDs[rfdno] = this;
+    this.target = target;
+    this.rfdno = rfdno;
+}
+
+RemoteFD.prototype = Object.create(ThinThinFD.prototype);
+
+RemoteFD.prototype.inputPromise = function ()
+{
+    return new Promise((resolve, reject) => {
+        this.target(["read", this.rfdno], "*");
+        this.stuffString = (data) => {
+            resolve(data);
+            delete this.stuffString;
+        };
+    });
+};
+
+RemoteFD.prototype.outputPromise = function (heap, ptr, len)
+{
+    var buf = new ArrayBuffer(len);
+    var buf8 = new Uint8Array(buf);
+    for (var i = 0; i < buf.byteLength; i++)
+        buf8[i] = heap[ptr+i];
+
+    this.target(["send", this.rfdno, buf]);
+
+    return Promise.resolve(len);
+};
+//** FSDD
+var fs;
+
+//if (typeof global !== "undefined")
+//    fs = require('fs');
+
+function FSDD(process, root, fdno)
+{
+
+    ThinThinDD.call(this, process, fdno);
+    this.root = root;
+}
+
+FSDD.prototype = Object.create(ThinThinDD.prototype);
+
+FSDD.prototype.openat = function (path, flags, mode)
+{
+    if (!path.match(/^\//))
+        path = this.root + "/" + path;
+    if (flags === undefined)
+        flags = "r";
+    if (mode === undefined)
+        mode = 0;
+    return new Promise((resolve, reject) => {
+        fs.open(path, flags, mode, (err, fd) => {
+            if (err)
+                reject(err);
+            else
+                resolve(new ReadableFD(this.process, fs.createReadStream
+                                       (null,
+                                        { flags: "r",
+                                          encoding: null,
+                                          fd: fd,
+                                          mode: mode,
+                                          autoClose: true
+                                        })));
+        });
+    });
+};
+//** syscalls
+if (typeof(os) !== "undefined" &&
+    typeof(os.sys) !== "undefined") {
+    for (var syscall in Syscalls)
+        ThinThin[syscall] = Syscalls[syscall];
+/*
+    ThinThin.exit = function (code) {
+        //console.log("exiting");
+        if (os.getenv("STATS"))
+            console.log("runtime: " + (Date.now() - lastdonetime));
+        quit(code);
+        if (code != 0 && code !== undefined)
+            throw "Exit Status " + code;
+        else
+            throw new SuccessException();
+    };
+*/
+    ThinThin.gethostname = function (addr, len) {
+        this.HEAP8[addr] = 0;
+
+        return 0;
+    };
+    ThinThin.isatty = function () {
+	return 1;
+    };
+    ThinThin.restart = function (dst, src, len, entry)
+    {
+        return this.restart(dst, src, len, entry);
+    };
+    ThinThin.fork = function () {
+        return os.sys.fork();
+    };
+} else {
+    if (typeof global !== "undefined") {
+        ThinThin.fcntl_i = function () {
+            return 0;
+        };
+        ThinThin.fcntl_v = function () {
+            return 0;
+        };
+        ThinThin.clock_gettime = function (clk_id, timespec)
+        {
+            var date = new Date();
+            var s = date / 1000.0;
+            var ns = (date % 1000.0) * 1000000.0;
+
+            %{timespec[&timespec::tv_sec] = 0}
+            %{timespec[&timespec::tv_nsec] = 0}
+            %{timespec[&timespec::tv_sec] = "s"}
+            %{timespec[&timespec::tv_nsec] = "ns"}
+
+            return 0;
+        };
+        ThinThin.getcwd = function (addr, len) {
+            this.HEAP8[addr] = 0;
+
+            return 0;
+        };
+    } else {
+    }
+    ThinThin.isatty = function (fdno) {
+        return fdno <= 2 ? 1 : 0;
+    };
+    ThinThin.gethostname = function (addr, len) {
+        this.HEAP8[addr] = 0;
+
+        return 0;
+    };
+    ThinThin.read = function (fdno, ptr, len) {
+        var fd = this.fds[fdno];
+
+        if (!fd)
+            return -%{EBADF};
+
+        if (len == 0)
+            return 0;
+
+        var ret = fd.read(this.HEAPU8, ptr, len);
+
+        return ret;
+    };
+    ThinThin[1] = ThinThin.write = function (fdno, ptr, len) {
+        var fd = this.fds[fdno];
+
+        if (!fd)
+            return -%{EBADF};
+
+        if (len == 0)
+            return 0;
+
+        return fd.write(this.HEAPU8, ptr, len);
+    };
+    ThinThin.openat = function (fdno, ptr, flags, mode) {
+        var path = CStringAt(this.HEAPU8, ptr);
+
+        if (path.length && path === gLimboPath) {
+            console.log("match! path: " + path);
+            var ret = gLimboFD;
+            gLimboFD = undefined;
+            gLimboPath = undefined;
+            return ret.fdno;
+        }
+
+        if (path.match(/^\//))
+            return -%{ENOENT};
+
+        var dd = this.fds[fdno];
+        if (!dd)
+            dd = this.process.ddroot;
+
+        if (path.length === 0)
+            return dd.then(fd => fd.fdno);
+
+        return dd.openat(path, flags, mode)
+            .then(fd => fd.fdno);
+    };
+    ThinThin.close = function (fdno) {
+        var fd = this.fds[fdno];
+
+        console.log("CLOSE " + fd + " " + fdno);
+
+        return 0;
+
+        if (!fd)
+            return -%{EBADF};
+
+        return fd.close();
+    };
+    ThinThin.faccessat = function (fdno, ptr, flags, mode) {
+        return 0;
+    };
+    ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
+        var dd = this.fds[fdno] || this.process.ddroot;
+        var path = CStringAt(this.HEAPU8, pathstr);
+
+        if (path.match(/^\//))
+            return -%{ENOENT};
+
+        if (!dd)
+            return -%{EBADF};
+
+        if (path.length === 0)
+            return Promise.resolve(dd).then(fd => {
+                var off;
+                for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+                    this.HEAP32[statbufptr+off>>2] = 0;
+
+                %{statbufptr[&stat::st_nlink] = 1LL}
+                %{statbufptr[&stat::st_mode] = "fd.mode()"}
+                %{statbufptr[&stat::st_size] = "fd.size()"}
+                %{statbufptr[&stat::st_blksize] = "fd.size()"}
+                %{statbufptr[&stat::st_blocks] = "1"}
+
+                return 0;
+            });
+
+        if ("openat" in dd)
+            return dd.openat(path).then(fd => {
+                var off;
+                for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+                    this.HEAP32[statbufptr+off>>2] = 0;
+
+                %{statbufptr[&stat::st_nlink] = 1LL}
+                %{statbufptr[&stat::st_mode] = "fd.mode()"}
+                %{statbufptr[&stat::st_size] = "fd.size()"}
+                %{statbufptr[&stat::st_blksize] = "fd.size()"}
+                %{statbufptr[&stat::st_blocks] = "1"}
+
+                return 0;
+            });
+        else {
+            var fd = dd;
+            var off;
+            for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+                this.HEAP32[statbufptr+off>>2] = 0;
+
+            %{statbufptr[&stat::st_nlink] = 1LL}
+            %{statbufptr[&stat::st_mode] = "fd.mode()"};
+            %{statbufptr[&stat::st_size] = "fd.size()"}
+            %{statbufptr[&stat::st_blksize] = "fd.size()"}
+            %{statbufptr[&stat::st_blocks] = "1"}
+
+            return 0;
+        }
+    };
+    ThinThin.stat = function (ptr, bufptr) {
+        var path = CStringAt(this.HEAPU8, ptr);
+
+        path = path.replace(/^.*[\/]/, "");
+
+        /* st_dev: 64 bits */
+        this.HEAP32[bufptr+ 0>>2] = 0;
+        this.HEAP32[bufptr+ 4>>2] = 0;
+        /* pad1: 32 bits */
+        this.HEAP32[bufptr+ 8>>2] = 0;
+        /* __st_ino: 32 bits */
+        this.HEAP32[bufptr+12>>2] = 0;
+        /* st_mode: 32 bits */
+        this.HEAP32[bufptr+16>>2] = 0;
+        /* st_nlink: 64 bits */
+        this.HEAP32[bufptr+20>>2] = 0;
+        this.HEAP32[bufptr+24>>2] = 0;
+        this.HEAP32[bufptr+28>>2] = 0;
+        this.HEAP32[bufptr+32>>2] = 0;
+        this.HEAP32[bufptr+36>>2] = 0;
+        this.HEAP32[bufptr+40>>2] = 0;
+        this.HEAP32[bufptr+44>>2] = 0;
+
+        if (path == "terminfo") {
+            this.HEAP32[bufptr+6*4>>2] = 4 << 12;
+        } else if (path.match(/\.elc$/)) {
+            return -2;
+        } else {
+            //console.log("statting " + CStringAt(ptr));
+        }
+
+        return 0;
+    };
+    ThinThin.getdents = function (fdno, direntp, count)
+    {
+        var fd = this.fds[fdno];
+
+        if (!fd)
+            return -%{EBADF};
+
+        return new Promise((resolve, reject) => {
+            if (!fd.readdir_entries) {
+                resolve(Promise.resolve(fd.readdir()).then(entries => {
+                    fd.readdir_entries = entries;
+                }).then(() => ThinThin.getdents.call(this, fdno, direntp,
+                                                     count)));
+                return;
+            }
+
+            var es = fd.readdir_entries;
+            var ret = 0;
+
+            if (es.length === 0) {
+                delete fd.readdir_entries;
+                resolve(0);
+                return;
+            }
+
+            var s = %{sizeof(dirent)};
+            while (es.length && ret === 0 &&
+                   ret + 4 * es[0].length + s < count) {
+                %{direntp[&dirent::d_ino] = 1}
+                %{direntp[&dirent::d_off] = "0"}
+                var l = CStringTo(es[0], this.HEAP8, %{direntp + &dirent::d_name});
+                %{direntp[&dirent::d_reclen] = "s + l"}
+                ret += s + l;
+                direntp += s + l;
+                es.shift();
+            }
+
+            resolve(ret);
+        });
+    };
+    ThinThin.fstat = function (fdno, bufptr) {
+        var fd = this.fds[fdno];
+        this.HEAP32[bufptr+ 0>>2] = 0;
+        this.HEAP32[bufptr+ 4>>2] = 0;
+        this.HEAP32[bufptr+ 8>>2] = 0;
+        this.HEAP32[bufptr+12>>2] = 0;
+        this.HEAP32[bufptr+16>>2] = 0;
+        this.HEAP32[bufptr+20>>2] = 0;
+        this.HEAP32[bufptr+24>>2] = 0;
+        this.HEAP32[bufptr+28>>2] = 0;
+        this.HEAP32[bufptr+32>>2] = 0;
+        this.HEAP32[bufptr+36>>2] = 0;
+        this.HEAP32[bufptr+40>>2] = 0;
+        this.HEAP32[bufptr+44>>2] = 0;
+        this.HEAP32[bufptr+48>>2] = 0;
+        this.HEAP32[bufptr+52>>2] = 0;
+        this.HEAP32[bufptr+56>>2] = 0;
+        this.HEAP32[bufptr+60>>2] = 0;
+        this.HEAP32[bufptr+64>>2] = 0;
+
+        if (false) {
+            this.HEAP32[bufptr+6*4>>2] = 4 << 12;
+        } else {
+            this.HEAP32[bufptr+6*4>>2] = 1 << 15;
+        }
+
+        return Promise.resolve(fd.read()).then(i => {
+            this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
+            this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
+            this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
+            return 0;
+        });
+    };
+    ThinThin.ioctl_p = function (fdno, code, intptr) {
+        fdno = 0;
+        var fd = this.fds[fdno];
+
+        switch (code) {
+        case %{FIONREAD}:
+            return fd.available().then(avail => {
+                if (avail) {
+                    %{*intptr = "avail"}
+                } else {
+                    %{*intptr = 0}
+                }
+
+                return 0;
+            });
+
+        default:
+            return -%{EINVAL};
+        }
+    };
+    ThinThin.ppoll = function (fdsptr, nfds, tvptr, sigmaskptr) {
+        var incall = true;
+        var retval = 0;
+        var retry = function () {
+            if (incall)
+                return ThinThin.ppoll.call(this,
+                                           fdsptr, nfds, tvptr, sigmaskptr);
+        };
+
+        var all = [];
+        var any = [];
+
+        var ii;
+        for (ii = 0; ii < nfds; ii++) {
+            var i = ii;
+            var fdno = %{fdsptr[i+&pollfd::fd]};
+            var fd = this.fds[fdno];
+            var events = %{fdsptr[i+&pollfd::events]};
+            %{fdsptr[i+&pollfd::revents] = 0}
+            if (events & %{POLLIN}) {
+                all.push(Promise.resolve(fd.read()).then(() => {
+                    return fd.available();
+                }).then(avail => {
+                    if (incall) {
+                        if (avail > 0) {
+                            if (%{fdsptr[i+&pollfd::revents]} == 0)
+                                retval++;
+                            %{fdsptr[i+&pollfd::revents]} |= %{POLLIN};
+                        }
+                    }
+                }));
+                any.push(() => Promise.resolve(fd.read()));
+            }
+        }
+
+        return Promise.all(all).then(() => {
+            if (retval)
+                return retval;
+
+            var a = [];
+            a.push(Promise.race(any.map(p => Promise.resolve(p()))).then(() => retry()));
+            if (tvptr) {
+                var s = %{tvptr[&timeval::tv_sec]};
+                var ns = %{tvptr[&timeval::tv_usec]};
+
+                var ms = 1000 * s + 1e-6 * ns;
+
+                a.push(TimeoutPromise(ms).then(() => {
+                    return 0;
+                }));
+            }
+
+            return Promise.race(a).then(rval => {
+                incall = false;
+                return rval;
+            });
+        });
+    };
+    ThinThin.lseek = function (fdno, pos, whence) {
+        console.log("lseek " + fdno + " " + pos + " " + whence);
+        var fd = this.fds[fdno];
+
+        if (whence == %{SEEK_SET})
+            fd.readPosition = pos;
+        else if (whence == %{SEEK_CUR})
+            fd.readPosition += pos;
+        else if (whence == %{SEEK_END})
+            throw("SEEK_END not supported");
+        else
+            return -%{EINVAL};
+
+        return fd.readPosition;
+    };
+    ThinThin.access = function (ptr, mode) {
+        return ThinThin.stat.call(this, ptr, 0);
+    };
+    ThinThin.exit = function (code) {
+        //console.log("exiting: " + code);
+        return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
+
+        console.log("runtime: " + (Date.now() - lastdonetime));
+        if (typeof quit !== "undefined")
+            quit(code);
+        else if (typeof self !== "undefined") {
+            self.close();
+            return new Promise((resolve, reject) => {
+            });
+        } else if (typeof process !== "undefined")
+            process.exit(code);
+        else if (typeof document !== "undefined") {
+            document.getElementById("output").textContent += "Exit Status " + code;
+            this.stop(0xffffffff);
+        }
+        //if (code != 0 && code !== undefined)
+        //    throw "Exit Status " + code;
+        //else
+        //    throw new SuccessException();
+    };
+    //ThinThin.unlink =       Module._unlink;
+    //ThinThin.rename =       Module._rename;
+    //ThinThin.chdir =        Module._chdir;
+    ThinThin.gettimeofday = function (tvptr, tzptr) {
+        var date = new Date();
+        var s = date / 1000.0;
+        var us = (date % 1000.0) * 1000.0;
+
+        %{tvptr[&timeval::tv_sec] = "s"}
+        %{tvptr[&timeval::tv_usec] = "us"}
+
+        return 0;
+    };
+    ThinThin.fork = function ()
+    {
+        var okay = false;
+        return new Promise((resolve, reject) => {
+            var test; test = () => {
+                var sp = this.syscall_sp;
+
+                if (this.extcallRet[sp] instanceof Promise ||
+                    okay) {
+                    okay = true;
+                    resolve();
+                } else
+                    Promise.resolve().then(test);
+            };
+
+            test();
+        }).then(() => {
+            return this.kport.req("fork");
+        }).then(data => new Promise((resolve, reject) => {
+            var pid = data[0];
+            var kport = data[1];
+            var worker = new Worker("wasm32-forkedworker.js");
+            var fdchannels = {};
+            var lfdports = {};
+            var rfdports = {};
+            var rports = [];
+            for (var fdno in this.process.fds) {
+                fdchannels[fdno] = new MessageChannel();
+                lfdports[fdno] = fdchannels[fdno].port1;
+                rfdports[fdno] = fdchannels[fdno].port2;
+                rports.push(rfdports[fdno]);
+            }
+            worker.postMessage([kport, this.process.clonedesc(), this.vm.clonedesc(), this.syscall_sp, rfdports], [kport, ...rports]);
+
+            var pipes = {};
+            for (var fdno in lfdports) {
+                pipes[fdno] = new ThinThinHalf();
+                new ForwardHalf(pipes[fdno].reverse(), this.process.fds[fdno].half);
+                var rr = new RRPort(lfdports[fdno]);
+                new RRPortHalf(pipes[fdno], rr, false);
+
+                rr.port.start();
+            }
+            worker.onmessage = success => {
+                console.log(success);
+
+                resolve(success ? pid : -1);
+            };
+        }));
+    };
+    ThinThin.restart = function (dst, src, len, entry)
+    {
+        return this.restart(dst, src, len, entry);
+    };
+    ThinThin.execve = function (pathptr, argvptr, envpptr)
+    {
+        return ThinThin.execveat.call(this, 0, pathptr, argvptr, envpptr, 0);
+    };
+    ThinThin.execveat = function (dirfdno, pathptr, argvptr, envpptr, flags)
+    {
+        if (this.HEAP8[pathptr] == "/".charCodeAt(0))
+            dirfdno = %{AT_FDROOTD};
+
+        //var fd;
+        //if (this.HEAP8[pathptr] == 0 &&
+        //    flags & %{AT_EMPTY_PATH})
+        //    fd = this.fds[dirfdno];
+        //else
+        var process;
+        var thread;
+        var module;
+        var vm;
+        var args;
+        var env;
+        var sizes = {
+            tablesize: 65536,
+            memsize: 512 * 1024 * 1024,
+            stacksize: 1 * 1024 * 1024,
+            stackbottom: 511 * 1024 * 1024,
+        };
+
+        return Promise.resolve(ThinThin.openat.call(this, dirfdno, pathptr, 0))
+            .then(fdno => this.fds[fdno])
+
+            .then(fd => {
+                var ret;
+                try {
+                    args = CStringsAt(this.heap, argvptr);
+                    env = CStringsAt(this.heap, envpptr);
+
+                    process = new Wasm32Process(this.process.system, this.fds);
+                    ret = fd.readAsArrayBuffer();
+                } catch (e) {
+                    console.log(e);
+                    console.log(e.stack);
+                }
+
+                return ret;
+            }).then(ab => {
+                module = new Wasm32Module(process, ab);
+                thread = new Wasm32Thread(this.kport.port, process, 8192);
+                return module.load(thread, thread.vm);
+            }).then(() => {
+                vm = thread.vm;
+                var ret = module.instantiate(thread, vm, 0x4000, true);
+                var tos = (module.dyninfo.data_end + 4095) & -4096;
+
+                vm.%{zp[&zeropage::top_of_sbrk] = "tos"}
+
+                return ret;
+            }).then(() => {
+                process.HEAP8 = vm.HEAP8;
+                process.HEAP16 = vm.HEAP16;
+                process.HEAP32 = vm.HEAP32;
+                process.HEAPU8 = vm.HEAPU8;
+                process.HEAPU16 = vm.HEAPU16;
+                process.HEAPU32 = vm.HEAPU32;
+                process.HEAPF32 = vm.HEAPF32;
+                process.HEAPF64 = vm.HEAPF64;
+
+                thread.heap = vm.heap;
+                var HEAP32 = vm.HEAP32;
+
+                %{zp[&zeropage::top_of_memory] = "module.top_of_memory"}
+                %{zp[&zeropage::thread_list]} = %{tp1};
+                %{zp[&zeropage::bottom_of_sbrk] = "module.start_of_sbrk"}
+
+                %{tp1[&threadpage::next]} = %{tp1};
+                %{tp1[&threadpage::prev]} = %{tp1};
+                %{tp1[&threadpage::id] = "1"}
+                %{tp1[&threadpage::bottom_of_stack] = "module.bottom_of_stack"}
+                module.top_of_stack = sizes.stackbottom + sizes.stacksize;
+                %{tp1[&threadpage::top_of_stack] = "module.top_of_stack"}
+
+                var sp = this.process.system.init_sp(vm, module.top_of_stack, args, env);
+                %{tp1[&threadpage::sp] = "sp"}
+                %{tp1[&threadpage::initsp] = -1}
+
+                %{tp1[&threadpage::pc] = "process.entry"}
+                thread.first = true;
+            }).then(() => {
+                this.process.system.threads[0] = thread;
+                thread.stop(0);
+                run();
+            }).then(() => new Promise((resolve, reject) => {
+            }));
+    };
+    ThinThin.wait4 = function(pid, wstatusp, options, rusage)
+    {
+        var ret = this.kport.req("wait4");
+
+        if (wstatusp)
+            this.HEAP32[wstatusp>>2] = 0;
+
+        if (options & 1)
+            return Promise.resolve(0);
+
+        return ret.then(([pid, wstatus]) => {
+            if (wstatusp)
+                this.HEAP32[wstatusp>>2] = wstatus;
+
+            return pid;
+        });
+    };
+}
+
+ThinThin.getuid = ThinThin.geteuid = ThinThin.getgid = ThinThin.getegid = function ()
+{
+    return 1;
+};
+
+ThinThin.getpid = ThinThin.getppid = function ()
+{
+    return 1;
+};
+
+ThinThin.dlload = function (addr, len, memp)
+{
+    var sab = this.heap.slice(addr, addr+len);
+    var ab = new ArrayBuffer(len);
+    var sav = new Uint8Array(sab);
+    var av = new Uint8Array(ab);
+    for (var i=0; i < len; i++)
+        av[i] = sav[i];
+    var module = new Wasm32Module(this.process, ab);
+
+    return module.load(this, this.vm).then(ret => {
+        this.HEAP32[memp>>2] = module.dyninfo.data_end - module.dyninfo.data;
+        if (module.dyninfo.libs.length)
+            module.depstring = module.dyninfo.libs.join(String.fromCharCode(0)) + String.fromCharCode(0);
+        else
+            module.depstring = "";
+
+        return ret;
+    });
+};
+
+ThinThin.dlreaddep = function (modi, mem, len)
+{
+    var module = Wasm32Modules[modi];
+    var ret = 0;
+
+    while (module.depstring.length > 0 && ret < len) {
+        this.HEAPU8[mem+ret] = module.depstring.charCodeAt(0);
+        module.depstring = module.depstring.substr(1);
+        ret++;
+    }
+
+    return ret;
+};
+
+ThinThin.dlinstantiate = function (modi, mem)
+{
+    var module = Wasm32Modules[modi];
+
+    return module.instantiate(this, this.vm, mem).then(() => {
+        return 0;
+    });
+};
+
+ThinThin.dlkill = function (modi)
+{
+    var module = Wasm32Modules[modi];
+
+    return module.kill(this, this.vm);
+};
+
+ThinThin.dlopen = function (cpath)
+{
+    console.log('dlopen')
+    var path = CStringAt(this.HEAP8, cpath);
+    console.log('dlopen: ' + cpath + ' ' + path)
+    var module = new Wasm32Module(os.file.readFile(path, "binary"));
+    console.log('dlopen: ' + module)
+
+    return module.instantiate(this, this.vm).then(() => {
+        console.log("success");
+        return 0;
+    });
+};
+
+ThinThin.dlsym = function (modi, csym)
+{
+    var module = Wasm32Modules[modi];
+
+    return new Promise((resolve, reject) => {
+        var symbol = CStringAt(this.HEAP8, csym);
+
+        let ret = module.symtab[symbol] || 0;
+
+        resolve(ret);
+    });
+};
+
+ThinThin[20] = ThinThin.writev = function (fd, iov, iovcnt)
+{
+    var gret = 0;
+    if (iovcnt == 0)
+        return 0;
+    var i = 0;
+    while (%{iov[i+&iovec::iov_len]} == 0)
+        i++;
+    var ret = ThinThin.write.call(this, fd, %{iov[i+&iovec::iov_base]}, %{iov[i+&iovec::iov_len]});
+
+    return ret;
+};
+
+
+// mmap
+ThinThin[9] = function ()
+{
+    return -1;
+};
+
+// brk
+ThinThin[12] = function (brk)
+{
+    return brk;
+};
+
+ThinThin.syscall = function (n, ...args)
+{
+    if (n.toString() in ThinThin)
+        return ThinThin[n].call(this, ...args);
+    else
+        return -38;
+};
+
+ThinThin.init_trampoline = function (mtramp)
+{
+    var sigstr = CStringAt(this.HEAPU8, this.HEAPU32[mtramp>>2]);
+    var sigarray = build_sig(sigstr);
+    var length = 8 + 11 + 7 + 1 + 1 + sigarray.length;
+    var siglength = sigarray.length;
+    var ab = new ArrayBuffer (length);
+    var code = new Uint8Array (ab);
+    var i = 0;
+
+    code[i++] = 0x00;
+    code[i++] = 0x61;
+    code[i++] = 0x73;
+    code[i++] = 0x6d;
+
+    code[i++] = 0x01;
+    code[i++] = 0x00;
+    code[i++] = 0x00;
+    code[i++] = 0x00;
+
+    code[i++] = 0x01; // signature
+    code[i++] = (sigarray.length & 0x7f); // XXX > 127 args
+    while (sigarray.length)
+        code[i++] = sigarray.shift();
+
+    code[i++] = 0x02; // import
+    code[i++] = 9; // length
+    code[i++] = 0x01; // 1 import
+    code[i++] = 0x03;
+    code[i++] = 0x73;
+    code[i++] = 0x79;
+    code[i++] = 0x73;
+
+    code[i++] = 0x01;
+    code[i++] = 0x54;
+
+    code[i++] = 0x00; // function
+    code[i++] = 0x00; // signature
+
+
+    code[i++] = 0x07; // export
+    code[i++] = 5; // length
+    code[i++] = 0x01; // 1 export
+    code[i++] = 0x01;
+    code[i++] = 0x54;
+    code[i++] = 0x00; // function
+    code[i++] = 0x00; // func 0
+
+    if (i !== length) {
+        console.log(i + " != " + length);
+        throw "length mismatch";
+    }
+
+    return WebAssembly.compile(code).then(module => {
+        var imports = {};
+        imports.sys = {};
+        imports.sys.T = (...args) => {
+            var fnaddr = this.HEAPU32[mtramp+8>>2];
+            var static_chain = this.HEAPU32[mtramp+16>>2];
+
+            this.set_rv(static_chain);
+            return this.vm.table.get(fnaddr)(...args);
+        };
+        return WebAssembly.instantiate(module, imports);
+    }).then(instance => {
+        let index = this.vm.space_functions.alloc(1);
+        this.vm.table.set(index, instance.exports.T);
+        this.HEAPU32[mtramp+24>>2] = index;
+        return 0;
+    }).catch(e => {
+        console.log("error in build_trampoline: " + e);
+        return -%{EIO};
+    });
+};
+
+ThinThin.destroy_trampoline = function (mtramp)
+{
+    var index = this.HEAPU32[mtramp+24>>2];
+
+    this.vm.space_functions.free(index);
+
+    return 0;
+};

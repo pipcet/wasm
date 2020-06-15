@@ -1,0 +1,122 @@
+    var sizes = {
+        tablesize: 65536,
+        memsize: 512 * 1024 * 1024,
+        stacksize: 1 * 1024 * 1024,
+        stackbottom: 511 * 1024 * 1024,
+    };
+var kernel = new Wasm32Kernel();
+var vm = new Wasm32VM(sizes);
+var system = new Wasm32System();
+var module;
+
+
+if (remote) {
+    fetch(path).then(response => {
+        if (response.ok)
+            return response.arrayBuffer();
+
+        return Promise.reject(response);
+    }).then((ab) => {
+        return remote_process(kernel, ab);
+    }).then(([root, cwd, stdin, stdout, stderr]) => {
+        console.log("got ports");
+        var process = new Wasm32Process(system);
+        var dom = document.getElementById("output");
+
+        var pipe0 = new ThinThinHalf();
+        var pipe1 = new ThinThinHalf();
+        var pipe2 = new ThinThinHalf();
+
+        new HTMLHalf(pipe0.reverse(), dom);
+        new HTMLHalf(pipe1.reverse(), dom);
+        new HTMLHalf(pipe2.reverse(), dom);
+
+        var rr0 = new RRPort(stdin);
+        var rr1 = new RRPort(stdout);
+        var rr2 = new RRPort(stderr);
+
+        new RRPortHalf(pipe0, rr0, false);
+        new RRPortHalf(pipe1, rr1, false);
+        new RRPortHalf(pipe2, rr2, false);
+
+        rr0.port.start();
+        rr1.port.start();
+        rr2.port.start();
+
+        var f;
+        f = () => document.getElementById("debug2").innerHTML =
+            `${pipe0.debug("pipe0", f)}<br>${pipe1.debug("pipe1", f)}<br>${pipe2.debug("pipe2", f)}`;
+        f();
+    }).catch(e => {
+        console.log("e2:" + e + "\n" + e.stack);
+    });
+} else if (typeof os !== "undefined") {
+    module = new Wasm32Module(new Wasm32Process(system), os.file.readFile(path, "binary"));
+    module.sizes = sizes;
+
+    system.instantiate(module, vm, args, environment_variables()).then(() => {
+        try {
+            run = () => {
+                try {
+                    system.threads[0].step();
+                    if (!system.threads[0].stopped())
+                        Promise.resolve().then(run);
+                } catch (e) {
+                    console.log(e);
+                }
+            };
+            run();
+        } catch (e) {
+            console.log("exception");
+            console.log(e);
+            console.log(e.stack);
+        }
+    }).catch((e) => {
+        console.log("caught");
+        console.log(e);
+    });
+} else if (typeof fetch !== "undefined") {
+    caches.open("v3").then((cache) => {
+        var req = new Request(path);
+
+        return cache.match(req).then((response) => {
+            if (response === undefined)
+                return fetch(path);
+
+            return response;
+        }).then(response => {
+            cache.put(path, response.clone());
+
+            if (response.ok)
+                return response.arrayBuffer();
+
+            return Promise.reject(response);
+        });
+    }).then((ab) => {
+        module = new Wasm32Module(ab);
+
+        return system.instantiate(module, vm, args, []);
+    }).then(() => {
+        try {
+            run = () => {
+                try {
+                    system.threads[0].step();
+                    if (!system.threads[0].stopped())
+                        Promise.resolve().then(run);
+                } catch (e) {
+                    console.log(e);
+                }
+            };
+            run();
+        } catch (e) {
+            console.log("exception");
+            console.log(e);
+            console.log(e.stack);
+        }
+    }).catch((e) => {
+        console.log("caught");
+        console.log(e);
+        console.log(e.stack);
+    });
+}
+
