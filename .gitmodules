@@ -22,3 +22,11 @@
 	path = subrepos/emacs
 	url = https://github.com/pipcet/emacs
 	branch = wasm
+[submodule "subrepos/binaryen"]
+	path = subrepos/binaryen
+	url = https://github.com/pipcet/binaryen
+	branch = wasm
+[submodule "subrepos/wabt"]
+	path = subrepos/wabt
+	url = https://github.com/pipcet/wabt
+	branch = wasm
