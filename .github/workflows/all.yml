@@ -12,5 +12,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
+    - run: git submodule init --recursive --
     - name: make all
       run: make -kj10 all
