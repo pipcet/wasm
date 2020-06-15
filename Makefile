@@ -126,13 +126,13 @@ wasm/.dir:
 	touch $@
 
 wasm/ld.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1
-	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
+	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
 
 wasm/libc.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so
-	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
+	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
 
 wasm/libncurses.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so
-	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
+	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
 
 js/.dir:
 	test -d js || mkdir js
