@@ -13,7 +13,9 @@ jobs:
       run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: false
+    - name: Check out binutils-gdb subrepo
+      run: git submodule update --depth=1 --single-branch subrepos/binutils-gdb
     - name: build binutils
       run: make -kj5 build/wasm32/binutils-gdb.make
     - name: Create artifact
