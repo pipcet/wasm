@@ -112,7 +112,7 @@ build/wasm32/ncurses/.dir: build/wasm32/.dir
 	touch $@
 
 build/wasm32/ncurses/Makefile: src/ncurses.dir build/wasm32/ncurses/.dir
-	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping)
+	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
 
 build/wasm32/ncurses.make: build/wasm32/ncurses/Makefile
@@ -132,3 +132,6 @@ wasm/ld.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-n
 
 wasm/libc.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so
 	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
+
+wasm/libncurses.wasm: wasm/.dir bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so
+	bash bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
