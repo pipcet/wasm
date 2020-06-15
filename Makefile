@@ -33,6 +33,12 @@ src/ncurses: | src
 src/bash: | src
 	test -L src/bash || ln -sf ../subrepos/bash src/bash
 
+src/wabt: | src
+	test -L src/wabt || ln -sf ../subrepos/wabt src/wabt
+
+src/binaryen: | src
+	test -L src/binaryen || ln -sf ../subrepos/binaryen src/binaryen
+
 bin build built js lib wasm:
 	test -d $@ || $(MKDIR) $@
 
@@ -60,6 +66,15 @@ build/common/binaryen/Makefile: | src/binaryen build/common
 built/common/binaryen: build/common/binaryen/Makefile | built/common
 	$(MAKE) -C build/common/binaryen
 	$(MAKE) -C build/common/binaryen install
+	(cd bin; ln -sf ../common/bin/* .)
+	touch $@
+
+build/common/wabt/Makefile: | src/wabt build/common
+	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
+
+built/common/wabt: build/common/wabt/Makefile | built/common
+	$(MAKE) -C build/common/wabt
+	$(MAKE) -C build/common/wabt install
 	(cd bin; ln -sf ../common/bin/* .)
 	touch $@
 
