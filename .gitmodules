@@ -18,3 +18,7 @@
 	path = subrepos/bash
 	url = https://github.com/pipcet/bash
 	branch = wasm
+[submodule "emacs"]
+	path = subrepos/emacs
+	url = https://github.com/pipcet/emacs
+	branch = wasm
