@@ -69,7 +69,7 @@ build/wasm32/gcc-preliminary/.dir: build/wasm32/.dir
 	touch $@
 
 build/wasm32/gcc-preliminary/Makefile: src/gcc.dir build/wasm32/gcc-preliminary/.dir
-	(cd build/wasm32/gcc-preliminary; ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
 build/wasm32/gcc-preliminary.make: build/wasm32/gcc-preliminary/Makefile
@@ -98,7 +98,7 @@ build/wasm32/gcc/.dir: build/wasm32/.dir
 	touch $@
 
 build/wasm32/gcc/Makefile: src/gcc.dir build/wasm32/gcc/.dir
-	(cd build/wasm32/gcc; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	(cd build/wasm32/gcc; ../../../src/gcc/configure --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 	touch $@
 
 build/wasm32/gcc.make: build/wasm32/gcc/Makefile
