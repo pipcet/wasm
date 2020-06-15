@@ -104,7 +104,7 @@ jobs:
     - name: build glibc
       run: make -kj5 build/wasm32/glibc.make
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-glibc.tar wasm32-unknown-none
+      run: tar cvf wasm32-unknown-none-glibc.tar wasm32-unknown-none
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -212,7 +212,7 @@ jobs:
       with:
         name: wasm32-unknown-none-glibc.tar
     - name: Unpack
-      run: tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+      run: tar xvf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: Compile
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/002-hello-world/hello-world.c -o 001-hello-world.exe
     - name: Upload artifact
