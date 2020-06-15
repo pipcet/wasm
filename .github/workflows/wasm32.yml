@@ -250,6 +250,9 @@ jobs:
       - wasm32-js
       - glibc
     steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: false
       - name: Download jsshell artifact
         uses: actions/download-artifact@v1
         with:
@@ -274,6 +277,9 @@ jobs:
     needs:
       - _001-hello-world-exe
     steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: false
       - name: Download 001-hello-world.exe
         uses: actions/download-artifact@v1
         with:
