@@ -289,3 +289,24 @@ jobs:
         with:
           name: 001-hello-world.wasm
           path: 001-hello-world.wasm
+  bash:
+    name: Bash
+    runs-on: ubuntu-latest
+    needs:
+      - gcc
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-gcc.tar
+    - name: Unpack
+      run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: Build
+      run: make -kj5 build/wasm32/bash.make
+    - name: Build WASM
+      run: make -kj5 wasm/bash.wasm
+    - name: Upload WASM
+      uses: actions/upload-artifact@v1
+      with:
+        name: bash.wasm
+        path: wasm/bash.wasm
