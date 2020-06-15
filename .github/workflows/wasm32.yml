@@ -174,9 +174,9 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-binutils.tar
+        name: wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
-      run: tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+      run: tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: Assemble
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
     - name: Upload artifact
