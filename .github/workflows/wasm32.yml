@@ -13,6 +13,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
+    - name: check out subrepos/binaryen
+      run: git submodule update --depth=1 --single-branch --init subrepos/binaryen
     - name: build
       run: make built/common/binaryen
 
@@ -23,6 +25,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
+    - name: check out subrepos/wabt
+      run: git submodule update --depth=1 --single-branch --init subrepos/wabt
     - name: build
       run: make built/common/wabt
 
