@@ -6,6 +6,26 @@ on:
     branches: [ master ]
 jobs:
 
+  binaryen:
+    name: binaryen
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: build
+      run: make built/common/binaryen
+
+  wabt:
+    name: wabt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: build
+      run: make built/common/wabt
+
   jsshell:
     name: jsshell
     runs-on: ubuntu-latest
