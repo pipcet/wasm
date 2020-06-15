@@ -60,7 +60,7 @@ build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/
 build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
 
-build/common/binaryen/Makefile: | src/binaryen build/common
+build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
 	(cd build/common/binaryen; cmake ../../../src/binaryen -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
 
 built/common/binaryen: build/common/binaryen/Makefile | built/common
@@ -69,7 +69,7 @@ built/common/binaryen: build/common/binaryen/Makefile | built/common
 	(cd bin; ln -sf ../common/bin/* .)
 	touch $@
 
-build/common/wabt/Makefile: | src/wabt build/common
+build/common/wabt/Makefile: | src/wabt build/common/wabt
 	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
 
 built/common/wabt: build/common/wabt/Makefile | built/common
