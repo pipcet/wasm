@@ -1,0 +1,243 @@
+#define BYTELEB128(x)                           \
+  BYTE((((x)>>0*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>1*7)&0x7f))
+
+#define LONGLEB128(x)                           \
+  BYTE((((x)>>0*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>1*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>2*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>3*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>4*7)&0x7f))
+
+#define QUADLEB128(x)                           \
+  BYTE((((x)>>0*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>1*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>2*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>3*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>4*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>5*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>6*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>7*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>8*7)&0x7f)|0x80);                 \
+  BYTE((((x)>>9*7)&0x7f))
+
+#define SECTION_SIZED(name)                                             \
+  *(.wasm.header_id.name)                              \
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
+  __wasm_##name##_payload = .;                                          \
+  *(.wasm.header.name);                                \
+  LONGLEB128(__wasm_space_##name##_end - __wasm_space_##name);          \
+  *(.wasm.name);                                                \
+  __wasm_##name##_payload_end = .;
+
+#define SECTION_NAME(name)                                              \
+  *(.wasm.header_id.name)                              \
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
+  __wasm_##name##_payload = .;                                          \
+  *(.wasm.header.name);                                \
+  BYTE(1)                                                               \
+  LONGLEB128(__wasm_##name##_function_payload_end - __wasm_##name##_function_payload) \
+  __wasm_##name##_function_payload = .;                                 \
+  LONGLEB128(__wasm_space_##name##_function_end - __wasm_space_##name##_function); \
+  *(.wasm.name.function)                                        \
+  *(.wasm.name.function.plt)                                    \
+  __wasm_##name##_function_payload_end = .;                             \
+  BYTE(2)                                                               \
+  LONGLEB128(__wasm_##name##_local_payload_end - __wasm_##name##_local_payload) \
+  __wasm_##name##_local_payload = .;                                    \
+  LONGLEB128(__wasm_space_##name##_local_end - __wasm_space_##name##_local); \
+  *(.wasm.name.local)                                           \
+  __wasm_##name##_local_payload_end = .;                                \
+  __wasm_##name##_payload_end = .;
+
+#define SECTION_ELEMENT(name)                                           \
+  *(.wasm.header_id.name)                              \
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
+  __wasm_##name##_payload = .;                                          \
+  *(.wasm.header.name);                                \
+  BYTE(1);                                                              \
+  BYTE(0);                                                              \
+  BYTE(0x23);                                                           \
+  BYTE(0x01);                                                           \
+  BYTE(0x0b);                                                           \
+  LONGLEB128(__wasm_space_##name##_end - __wasm_space_##name);          \
+  *(.wasm.name);                                                \
+  __wasm_##name##_payload_end = .;
+
+#define SECTION_DATA_HEADER(name)                                       \
+  *(.wasm.header_id.name);                             \
+  LONGLEB128(__wasm_##name##_header_end - __wasm_##name##_header + __wasm_##name##_segment_end - __wasm_##name##_segment); \
+  *(.wasm.header.name);                                \
+  __wasm_##name##_header = .;                                           \
+  BYTE(1);                                                              \
+  BYTE(0);                                                              \
+  BYTE(0x23);                                                           \
+  BYTE(0x00);                                                           \
+  BYTE(0x0b);                                                           \
+  LONGLEB128(__wasm_##name##_segment_end - __wasm_##name##_segment);    \
+  __wasm_##name##_header_end = .;
+
+#define SECTION_DATA_BODY(name)                                      \
+  __wasm_##name##_segment = .;                                       \
+  *(.data*);                                                         \
+  *(.gnu.linkonce.d.*)                                               \
+  *(__libc_IO_vtables)                                               \
+  *(.asmjs.header);                                                  \
+  *(.rodata);                                                        \
+  *(.bss);                                                           \
+  __wasm_##name##_segment_end = .;                                   \
+  __wasm_##name##_payload_end = .;
+
+#define SECTION_UNSIZED(name, contents)                                 \
+  *(.wasm.header_id.name);                             \
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
+  *(.wasm.header.name);                                \
+  __wasm_##name##_payload = .;                                          \
+  contents;                                                             \
+  *(.wasm.name*);                                               \
+  __wasm_##name##_payload_end = .;
+
+#define SECTION_SPACE(name)                                  \
+  .discard.space.name :                                      \
+  {                                                          \
+    __wasm_space_##name = .;                                 \
+    *(.space.name.import);                              \
+    *(.space.name.*);                                   \
+    *(.space.name*);                                   \
+    *(.space.name##_.plt);                              \
+    __wasm_space_##name##_end = .;                           \
+    __wasm_space_##name##_size = . - __wasm_space_##name;    \
+  }
+#define SECTION_SPACE_NAME(name)                             \
+  .discard.space.name :                                      \
+  {                                                          \
+    __wasm_space_##name = .;                                 \
+    __wasm_space_##name##_function = .;                      \
+    *(.space.name.function.import);                     \
+    *(.space.name.function.*);                          \
+    *(.space.name.function*);                          \
+    *(.space.name.function##_.plt);                     \
+    __wasm_space_##name##_function_end = .;                  \
+    __wasm_space_##name##_local = .;                         \
+    *(.space.name.local.import);                        \
+    *(.space.name.local.*);                             \
+    *(.space.name.local*);                             \
+    *(.space.name.local##_.plt);                        \
+    __wasm_space_##name##_local_end = .;                     \
+    __wasm_space_##name##_size = . - __wasm_space_##name;    \
+  }
+
+ENTRY(_start)
+SECTIONS
+{
+  .output (INFO) : {
+    LONG(0x6d736100)
+    LONG(1) /* MVP: see https://lists.w3.org/Archives/Public/public-webassembly/2017Feb/0002.html */
+    SECTION_SIZED(type)
+    SECTION_SIZED(import)
+    SECTION_SIZED(function)
+    //SECTION_SIZED(table)
+    //SECTION_SIZED(memory)
+    SECTION_SIZED(global)
+    SECTION_SIZED(export)
+    //SECTION_UNSIZED(start, LONGLEB128(1+(_start>>32)))
+    SECTION_ELEMENT(element)
+    SECTION_SIZED(code)
+    SECTION_DATA_HEADER(data)
+  }
+  . = 16384;
+  .asmjs.header :
+  {
+    __wasm_data_segment = .;
+    *(.asmjs.header);
+  }
+  .data :
+  {
+     __data_start = .;
+     *(.got*)
+     *(.data*)
+     *(.tm_clone_table)
+     *(.gnu.linkonce.d.*)
+     *(.rodata*)
+     *(.jcr*)
+     *(.dynbss)
+     *(.bss* .gnu.linkonce.b.*)
+     *(.gcc_except_table*)
+     *(.eh_frame*)
+     __start___libc_atexit = .;
+     *(__libc_atexit)
+     __stop___libc_atexit = .;
+     __start___libc_subfreeres = .;
+     *(__libc_subfreeres)
+     __stop___libc_subfreeres = .;
+     *(__libc_thread_subfreeres)
+     *(__libc_freeres_ptrs)
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
+    KEEP (*(.init_array EXCLUDE_FILE (*crtend.o *crtend?.o) .ctors))
+    PROVIDE_HIDDEN (__init_array_end = .);
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
+    KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  }
+  .bss :
+  {
+     *(COMMON)
+     *(.tbss*)
+  }
+  .preinit_array     :
+  {
+    PROVIDE_HIDDEN (__preinit_array_start = .);
+    KEEP (*(.preinit_array))
+    PROVIDE_HIDDEN (__preinit_array_end = .);
+  }
+  .ctors          :
+  {
+    /* gcc uses crtbegin.o to find the start of
+       the constructors, so we make sure it is
+       first.  Because this is a wildcard, it
+       doesn't matter if the user does not
+       actually link against crtbegin.o; the
+       linker won't look for a file to match a
+       wildcard.  The wildcard also means that it
+       doesn't matter which directory crtbegin.o
+       is in.  */
+    KEEP (*crtbegin.o(.ctors))
+    KEEP (*crtbegin?.o(.ctors))
+    /* We don't want to include the .ctor section from
+       the crtend.o file until after the sorted ctors.
+       The .ctor section from the crtend file contains the
+       end of ctors marker and it must be last */
+    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
+    KEEP (*(SORT(.ctors.*)))
+    KEEP (*(.ctors))
+  }
+  .dtors          :
+  {
+    KEEP (*crtbegin.o(.dtors))
+    KEEP (*crtbegin?.o(.dtors))
+    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))
+    KEEP (*(SORT(.dtors.*)))
+    KEEP (*(.dtors))
+    __wasm_data_segment_end = .;
+    __wasm_data_payload_end = .;
+  }
+  .output.named (INFO) : {
+    SECTION_NAME(name)
+  }
+  SECTION_SPACE(function_index)
+  SECTION_SPACE(global_index)
+  SECTION_SPACE(type)
+  SECTION_SPACE(import)
+  SECTION_SPACE(function)
+  //SECTION_SPACE(table)
+  //SECTION_SPACE(memory)
+  SECTION_SPACE(global)
+  SECTION_SPACE(export)
+  SECTION_SPACE(element)
+  SECTION_SPACE(code)
+  SECTION_SPACE(data)
+  SECTION_SPACE_NAME(name)
+  /DISCARD/ : { *(.asmjs.term) *(.dynamic) }
+}
