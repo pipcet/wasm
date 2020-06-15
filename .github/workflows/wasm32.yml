@@ -190,7 +190,7 @@ jobs:
     name: Hello World (final C version)
     runs-on: ubuntu-latest
     needs:
-      - gcc
+      - gcc-preliminary
       - _001-hello-world-o
     steps:
     - uses: actions/checkout@v2
@@ -199,9 +199,9 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc.tar
+        name: wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
-      run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+      run: tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: Compile
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/001-hello-world/hello-world.c -o 001-hello-world.exe
     - name: Upload artifact
