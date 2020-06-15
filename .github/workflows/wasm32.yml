@@ -279,9 +279,9 @@ jobs:
         with:
           name: 001-hello-world.exe
       - name: Build wasmrewrite
-        run: make wasmrewrite/wasmrewrite
+        run: make bin/wasmrewrite
       - name: Build wasmssect
-        run: make wasmrewrite/wasmsect
+        run: make bin/wasmsect
       - name: wasmify
         run: bash -x ./wasmify/wasmify-executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
       - name: Upload 001-hello-world.wasm
@@ -293,14 +293,20 @@ jobs:
     name: Bash
     runs-on: ubuntu-latest
     needs:
-      - gcc
+      # bash fails to compile unless ncurses is there, too.
+      - ncurses
     steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Check out ncurses
+      run: git submodule update --depth=1 --single-branch --init subrepos/ncurses
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc.tar
+        name: wasm32-unknown-none-ncurses.tar
     - name: Unpack
-      run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+      run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: Build
       run: make -kj5 build/wasm32/bash.make
     - name: Build WASM
