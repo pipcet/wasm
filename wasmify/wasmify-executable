@@ -2,9 +2,6 @@
 set -o pipefail
 set -o errexit
 TMPD=$(mktemp -d --tmpdir wasmify.XXXXXXXXXX);
-if [ x"$JS" = x ]; then
-    JS=$(which js)
-fi
 if [ x"$WASMDIR" = x ]; then
     WASMDIR=$HOME/git/wasm
     export WASMDIR
