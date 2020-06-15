@@ -266,12 +266,12 @@ jobs:
       - run: mkdir js
       - name: Unpack wasm32
         run: cp wasm32.js/wasm32.js js/wasm32.js
-      - name: Download hello-world.wasm artifact
+      - name: Download 001-hello-world.wasm artifact
         uses: actions/download-artifact@v1
         with:
-          name: hello-world.wasm
+          name: 001-hello-world.wasm
       - name: Run
-        run: ./bin/js ./js/wasm32.js ./hello-world.wasm/hello-world.wasm
+        run: ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
   _001-hello-world-wasm:
     name: Hello World (WASM)
     runs-on: ubuntu-latest
