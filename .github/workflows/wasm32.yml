@@ -138,7 +138,7 @@ jobs:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
   wasm32-js:
-    name: wasm32.js script
+    name: wasm32.js
     runs-on: ubuntu-latest
     steps:
     - name: Install cpanm
@@ -267,6 +267,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: 001-hello-world.exe
+      - name: Build wasmrewrite
+        run: make wasmrewrite/wasmrewrite
+      - name: Build wasmssect
+        run: make wasmrewrite/wasmsect
       - name: wasmify
         run: bash -x ./wasmify/wasmify-executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
       - name: Upload 001-hello-world.wasm
