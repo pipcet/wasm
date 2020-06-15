@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+use Data::Dumper;
+use File::Slurp qw(read_file write_file);
+use File::Temp;
+
+my $dir = File::Temp->newdir;
+my $cache;
+my $prefix;
+
+my $cache_changed;
+
+sub do_subst {
+    my ($format, $c, $preamble) = @_;
+
+    # we deliberately cache values independently of the preamble.
+    my $program = qq{
+int main(void) {
+    printf("$format", $c);
+
+    return 0;
+}
+};
+
+    my $ret = $cache->{$program};
+
+    return $ret if defined($ret);
+
+    write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
+    system("${prefix}-g++ --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
+
+    $cache_changed = 1;
+    return $cache->{$program} = `$dir/a.out`;
+}
+
+sub do_cpp_subst {
+    my ($c, $preamble) = @_;
+
+    # we deliberately cache values independently of the preamble.
+    my $program = qq{
+int main(void) {
+    std::cout << to_string($c);
+
+    return 0;
+}
+};
+
+    my $ret = $cache->{$c};
+
+    return $ret if defined($ret);
+
+    write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
+    system("${prefix}-g++ -static -fconcepts -fpermissive --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
+
+    $cache_changed = 1;
+    # system($dir . "/a.out>/dev/null");
+    $cache->{$c} = `$dir/a.out`;
+
+    print STDERR "$c => " . $cache->{$c} . "\n";
+
+    return $cache->{$c};
+}
+
+$prefix = $ARGV[0] // "wasm32-unknown-none";
+
+if (-e "cache/interpolate-cache-${prefix}.pl") {
+    $cache = eval(read_file("cache/interpolate-cache-${prefix}.pl")) // {};
+} else {
+    $cache = {};
+}
+
+my $in = join("", <STDIN>);
+my $preamble = "";
+
+while ($in =~ s/\#(\{(((?>[^\{\}]+)|(?-3))*)\})\n//m) {
+    $preamble .= $2 . "\n";
+}
+
+while ($in =~ s/(\%[l.0-9]*[defgosx])(\{((?:(?>[^\{\}]+)|(?-2))*)\})/do_subst($1, $3, $preamble)/mesgx) {}
+
+while ($in =~ s/\%(\{((?:(?>[^\{\}]+)|(?-2))*)\})/do_cpp_subst($2, $preamble)/mesgx) {}
+
+print $in;
+
+if ($cache_changed) {
+    write_file("cache/interpolate-cache-${prefix}.pl", Data::Dumper->new([$cache])->Sortkeys(1)->Dump());
+}
