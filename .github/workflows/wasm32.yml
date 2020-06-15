@@ -5,6 +5,35 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
+  jsshell:
+    name: jsshell
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download
+      run: wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: jsshell-linux-x86_64.zip
+        path: jsshell-linux-x86_64.zip
+  wasm32-js:
+    name: wasm32.js
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install cpanm
+      run: sudo apt-get install cpanminus
+    - name: Install File::Slurp
+      run: cpanm File::Slurp
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Build wasm32.js
+      run: make js/wasm32.js
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32.js
+        path: js/wasm32.js
   binutils:
     name: Binutils
     runs-on: ubuntu-latest
@@ -147,24 +176,6 @@ jobs:
       with:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
-  wasm32-js:
-    name: wasm32.js
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install cpanm
-      run: sudo apt-get install cpanminus
-    - name: Install File::Slurp
-      run: cpanm File::Slurp
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Build wasm32.js
-      run: make js/wasm32.js
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: wasm32.js
-        path: js/wasm32.js
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
@@ -230,17 +241,6 @@ jobs:
       with:
         name: 003-hello-world.exe
         path: 003-hello-world.exe
-  jsshell:
-    name: jsshell
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download
-      run: wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: jsshell-linux-x86_64.zip
-        path: jsshell-linux-x86_64.zip
   _001-hello-world-run:
     name: Hello World (run)
     runs-on: ubuntu-latest
