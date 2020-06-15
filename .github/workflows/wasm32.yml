@@ -154,7 +154,7 @@ jobs:
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
-    needs: binutils
+    needs: gcc-preliminary
     steps:
     - uses: actions/checkout@v2
       with:
