@@ -36,6 +36,12 @@ src/bash: | src
 bin build built js lib wasm:
 	test -d $@ || $(MKDIR) $@
 
+build/common: | build
+	test -d $@ || $(MKDIR) $@
+
+built/common: | build
+	test -d $@ || $(MKDIR) $@
+
 build/wasm32: | build
 	test -d $@ || $(MKDIR) $@
 
@@ -44,6 +50,18 @@ built/wasm32: | built
 
 build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/ncurses build/wasm32/bash build/wasm32/emacs: | build/wasm32
 	test -d $@ || $(MKDIR) $@
+
+build/common/binaryen build/common/wabt: | build/common
+	test -d $@ || $(MKDIR) $@
+
+build/common/binaryen/Makefile: | src/binaryen build/common
+	(cd build/common/binaryen; cmake ../../../src/binaryen -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
+
+built/common/binaryen: build/common/binaryen/Makefile | built/common
+	$(MAKE) -C build/common/binaryen
+	$(MAKE) -C build/common/binaryen install
+	(cd bin; ln -sf ../common/bin/* .)
+	touch $@
 
 build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binutils-gdb
 	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
