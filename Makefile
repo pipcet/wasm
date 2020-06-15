@@ -184,3 +184,6 @@ built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/w
 
 built/common/all: built/common/binaryen built/common/wabt
 	touch $@
+
+clean:
+	rm -rf build built src wasm32-unknown-none
