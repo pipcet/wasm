@@ -26,9 +26,11 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("${prefix}-g++ --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
+    my $ret = `$dir/a.out`;
+    warn "$program => $ret";
     return $cache->{$program} = `$dir/a.out`;
 }
 
@@ -49,7 +51,7 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("${prefix}-g++ -static -fconcepts -fpermissive --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ -static -fconcepts -fpermissive --std=gnu++1z -Iinclude $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
     # system($dir . "/a.out>/dev/null");
