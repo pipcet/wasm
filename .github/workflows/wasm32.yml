@@ -141,6 +141,10 @@ jobs:
     name: wasm32.js script
     runs-on: ubuntu-latest
     steps:
+    - name: Install cpanm
+      run: sudo apt-get install cpanminus
+    - name: Install File::Slurp
+      run: cpanm File::Slurp
     - uses: actions/checkout@v2
       with:
         submodules: true
