@@ -263,6 +263,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: wasm32.js
+      - run: mkdir js
       - name: Unpack wasm32
         run: cp wasm32.js/wasm32.js js/wasm32.js
       - name: Download hello-world.wasm artifact
