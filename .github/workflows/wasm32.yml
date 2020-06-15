@@ -26,7 +26,7 @@ jobs:
       with:
         submodules: false
     - name: check out subrepos/wabt
-      run: git submodule update --depth=1 --single-branch --init subrepos/wabt
+      run: git submodule update --depth=1 --single-branch --recursive --init subrepos/wabt
     - name: build
       run: make built/common/wabt
 
