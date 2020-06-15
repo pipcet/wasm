@@ -99,8 +99,6 @@ build/wasm32/gcc/Makefile: src/gcc.dir build/wasm32/gcc/.dir
 
 build/wasm32/gcc.make: build/wasm32/gcc/Makefile
 	test -d build/wasm32/gcc/gcc || $(MKDIR) build/wasm32/gcc/gcc
-	cp build/wasm32/gcc-preliminary/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
-	cp build/wasm32/gcc-preliminary/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
