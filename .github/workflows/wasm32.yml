@@ -137,6 +137,20 @@ jobs:
       with:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
+  wasm32-js:
+    name: wasm32.js script
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Build wasm32.js
+      run: make js/wasm32.js
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: wasm32.js
+        path: js/wasm32.js
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
@@ -190,3 +204,29 @@ jobs:
       with:
         name: jsshell-linux-x86_64.zip
         path: jsshell-linux-x86_64.zip
+  _001-hello-world-run:
+    name: Hello World (run)
+    runs-on: ubuntu-latest
+    needs:
+      - _001-hello-world-wasm
+      - jsshell
+      - wasm32-js
+    steps:
+      - name: Download jsshell artifact
+        uses: actions/download-artifact@v1
+	with:
+	  name: jsshell-linux-x86_64.zip
+      - name: Unpack jsshell
+        run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
+      - name: Download wasm32.js artifact
+        uses: actions/download-artifact@v1
+	with:
+	  name: wasm32.js
+      - name: Unpack wasm32
+        run: cp wasm32.js/wasm32.js js/wasm32.js
+      - name: Download hello-world.wasm artifact
+        uses: actions/download-artifact@v1
+	with:
+	  name: hello-world.wasm
+      - name: Run
+        run: ./bin/js ./js/wasm32.js ./hello-world.wasm/hello-world.wasm
