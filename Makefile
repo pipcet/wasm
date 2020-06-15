@@ -45,7 +45,7 @@ bin build built js lib wasm:
 build/common: | build
 	test -d $@ || $(MKDIR) $@
 
-built/common: | build
+built/common: | built
 	test -d $@ || $(MKDIR) $@
 
 build/wasm32: | build
@@ -61,7 +61,7 @@ build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
 
 build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
-	(cd build/common/binaryen; cmake ../../../src/binaryen -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
+	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
 
 built/common/binaryen: build/common/binaryen/Makefile | built/common
 	$(MAKE) -C build/common/binaryen
