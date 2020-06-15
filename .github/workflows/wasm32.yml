@@ -71,7 +71,7 @@ jobs:
     - name: build
       run: make -kj10 built/wasm32/binutils-gdb
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none built
+      run: tar cvf wasm32-unknown-none-binutils.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
