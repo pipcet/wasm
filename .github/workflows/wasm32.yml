@@ -5,6 +5,7 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
+
   jsshell:
     name: jsshell
     runs-on: ubuntu-latest
@@ -16,6 +17,7 @@ jobs:
       with:
         name: jsshell-linux-x86_64.zip
         path: jsshell-linux-x86_64.zip
+
   wasm32-js:
     name: wasm32.js
     runs-on: ubuntu-latest
@@ -34,8 +36,9 @@ jobs:
       with:
         name: wasm32.js
         path: js/wasm32.js
+
   binutils:
-    name: Binutils
+    name: binutils
     runs-on: ubuntu-latest
     steps:
     - name: install texinfo, bison, flex
@@ -43,19 +46,20 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out binutils-gdb subrepo
+    - name: Check out subrepos/binutils-gdb
       run: git submodule update --depth=1 --single-branch --init subrepos/binutils-gdb
-    - name: build binutils
-      run: make -kj5 build/wasm32/binutils-gdb.make
+    - name: build
+      run: make -kj10 built/wasm32/binutils-gdb
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none
+      run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-binutils.tar
         path: wasm32-unknown-none-binutils.tar
+
   gcc-preliminary:
-    name: GCC (preliminary)
+    name: gcc (preliminary)
     runs-on: ubuntu-latest
     needs: binutils
     steps:
@@ -66,7 +70,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out gcc subrepo
+    - name: Check out subrepos/gcc
       run: git submodule update --depth=1 --single-branch --init subrepos/gcc
     - name: Download artifact
       uses: actions/download-artifact@v1
@@ -75,14 +79,15 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
     - name: build preliminary GCC
-      run: make -kj5 build/wasm32/gcc-preliminary.make
+      run: make -kj10 built/wasm32/gcc-preliminary
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none
+      run: tar cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc-preliminary.tar
         path: wasm32-unknown-none-gcc-preliminary.tar
+
   glibc:
     name: glibc
     runs-on: ubuntu-latest
@@ -93,7 +98,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out glibc subrepo
+    - name: Check out subrepos/glibc
       run: git submodule update --depth=1 --single-branch --init subrepos/glibc
     - name: Download artifact
       uses: actions/download-artifact@v1
@@ -102,9 +107,9 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: build glibc
-      run: make -kj5 build/wasm32/glibc.make
+      run: make -kj10 built/wasm32/glibc
     - name: Create artifact
-      run: tar cvf wasm32-unknown-none-glibc.tar wasm32-unknown-none
+      run: tar cf wasm32-unknown-none-glibc.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -122,8 +127,9 @@ jobs:
       with:
         name: libc.wasm
         path: wasm/libc.wasm
+
   gcc:
-    name: GCC (final)
+    name: gcc
     runs-on: ubuntu-latest
     needs: glibc
     steps:
@@ -143,14 +149,15 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: build final GCC
-      run: make -kj5 build/wasm32/gcc.make
+      run: make -kj10 built/wasm32/gcc
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-gcc.tar wasm32-unknown-none
+      run: tar cf wasm32-unknown-none-gcc.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc.tar
         path: wasm32-unknown-none-gcc.tar
+
   ncurses:
     name: ncurses
     runs-on: ubuntu-latest
@@ -168,14 +175,15 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: build ncurses
-      run: make -kj5 build/wasm32/ncurses.make
+      run: make -kj10 built/wasm32/ncurses
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-ncurses.tar wasm32-unknown-none
+      run: tar cf wasm32-unknown-none-ncurses.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
+
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
@@ -197,6 +205,7 @@ jobs:
       with:
         name: 001-hello-world.o
         path: 001-hello-world.o
+
   _001-hello-world-exe:
     name: Hello World (preliminary C version)
     runs-on: ubuntu-latest
@@ -212,7 +221,7 @@ jobs:
       with:
         name: wasm32-unknown-none-glibc.tar
     - name: Unpack
-      run: tar xvf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+      run: tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: Compile
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/002-hello-world/hello-world.c -o 001-hello-world.exe
     - name: Upload artifact
@@ -220,6 +229,7 @@ jobs:
       with:
         name: 001-hello-world.exe
         path: 001-hello-world.exe
+
   _003-hello-world-exe:
     name: Hello World (final C version)
     runs-on: ubuntu-latest
@@ -241,6 +251,7 @@ jobs:
       with:
         name: 003-hello-world.exe
         path: 003-hello-world.exe
+
   _001-hello-world-run:
     name: Hello World (run)
     runs-on: ubuntu-latest
@@ -272,6 +283,7 @@ jobs:
           name: 001-hello-world.wasm
       - name: Run
         run: ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
+
   _001-hello-world-wasm:
     name: Hello World (WASM)
     runs-on: ubuntu-latest
@@ -303,8 +315,9 @@ jobs:
         with:
           name: 001-hello-world.wasm
           path: 001-hello-world.wasm
+
   bash:
-    name: Bash
+    name: bash
     runs-on: ubuntu-latest
     needs:
       # bash fails to compile unless ncurses is there, too.
@@ -322,11 +335,38 @@ jobs:
     - name: Unpack
       run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: Build
-      run: make -kj5 build/wasm32/bash.make
+      run: make -kj10 built/wasm32/bash
     - name: Build WASM
-      run: make -kj5 wasm/bash.wasm
+      run: make -kj10 wasm/bash.wasm
     - name: Upload WASM
       uses: actions/upload-artifact@v1
       with:
         name: bash.wasm
         path: wasm/bash.wasm
+
+  emacs:
+    name: emacs
+    runs-on: ubuntu-latest
+    needs:
+      - ncurses
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Check out emacs
+      run: git submodule update --depth=1 --single-branch --init subrepos/emacs
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-non-ncurses.tar
+    - name: Unpack
+      run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
+    - name: build
+      run: make -kj10 built/wasm32/emacs
+    - name: Build WASM
+      run: make -kj10 wasm/emacs.wasm
+    - name: Upload WASM
+      uses: actions/upload-artifact@v1
+      with:
+        name: emacs.wasm
+        path: wasm/emacs.wasm
