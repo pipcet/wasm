@@ -81,8 +81,7 @@ build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binut
 	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
 	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
 
-built/wasm32/binutils-gdb: | bin built/wasm32
-	$(MAKE) build/wasm32/binutils-gdb/Makefile
+built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	$(MAKE) -C build/wasm32/binutils-gdb
 	$(MAKE) -C build/wasm32/binutils-gdb install
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
@@ -91,8 +90,7 @@ built/wasm32/binutils-gdb: | bin built/wasm32
 build/wasm32/gcc-preliminary/Makefile: built/wasm32/binutils-gdb | build/wasm32/gcc-preliminary src/gcc
 	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
-built/wasm32/gcc-preliminary: | built/wasm32
-	$(MAKE) build/wasm32/gcc-preliminary/Makefile
+built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary install
 	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
@@ -103,8 +101,7 @@ built/wasm32/gcc-preliminary: | built/wasm32
 build/wasm32/glibc/Makefile: built/wasm32/gcc-preliminary | src/glibc build/wasm32/glibc
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O1 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
-built/wasm32/glibc: | built/wasm32
-	$(MAKE) build/wasm32/glibc/Makefile
+built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
 	touch $@
@@ -112,8 +109,7 @@ built/wasm32/glibc: | built/wasm32
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
-built/wasm32/gcc: | built/wasm32
-	$(MAKE) build/wasm32/gcc/Makefile
+built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	test -d build/wasm32/gcc/gcc || $(MKDIR) build/wasm32/gcc/gcc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
@@ -125,8 +121,7 @@ build/wasm32/ncurses/Makefile: built/wasm32/gcc | src/ncurses build/wasm32/ncurs
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
 
-built/wasm32/ncurses: | built/wasm32
-	$(MAKE) build/wasm32/ncurses/Makefile
+built/wasm32/ncurses: build/wasm32/ncurses/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
 	touch $@
@@ -135,14 +130,12 @@ build/wasm32/bash/Makefile: built/wasm32/ncurses | src/bash build/wasm32/bash
 	(cd build/wasm32/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/bash/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 	touch $@
 
-built/wasm32/bash: | built/wasm32
-	$(MAKE) build/wasm32/bash/Makefile
+built/wasm32/bash: build/wasm32/bash/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
 	touch $@
 
-built/wasm32/emacs: built/wasm32/ncurses | built/wasm32
-	$(MAKE) build/wasm32/emacs
+built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	(cd build/wasm32/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x)
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
@@ -194,3 +187,5 @@ built/common/all: built/common/binaryen built/common/wabt
 
 clean:
 	rm -rf build built src wasm32-unknown-none
+
+.SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
