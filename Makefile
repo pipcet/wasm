@@ -13,7 +13,9 @@ src/wasm32: | src
 	test -d $@ || $(MKDIR) $@
 
 src/wasm32/binutils-gdb: | src/wasm32
-	test -d $@ || (mkdir $@T && ((cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)) && mv $@T $@)
+	$(MKDIR) $@T
+	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
+	mv $@T $@
 
 src/gcc: | src
 	test -L $@ || ln -sf ../subrepos/gcc $@
