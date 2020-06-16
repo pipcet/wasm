@@ -60,7 +60,7 @@ build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
 
 build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
-	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
+	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
 
 built/common/binaryen: build/common/binaryen/Makefile | built/common
 	$(MAKE) -C build/common/binaryen
@@ -69,7 +69,7 @@ built/common/binaryen: build/common/binaryen/Makefile | built/common
 	touch $@
 
 build/common/wabt/Makefile: | src/wabt build/common/wabt
-	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common)
+	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
 
 built/common/wabt: build/common/wabt/Makefile | built/common
 	$(MAKE) -C build/common/wabt
