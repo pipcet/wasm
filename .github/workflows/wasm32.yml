@@ -306,7 +306,7 @@ jobs:
         with:
           name: 001-hello-world.wasm
       - name: Run
-        run: ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
+        run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
 
   _001-hello-world-wasm:
     name: Hello World (WASM)
