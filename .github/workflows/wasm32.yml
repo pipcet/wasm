@@ -305,6 +305,16 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: 001-hello-world.wasm
+      - name: download ld.wasm
+        uses: actions/upload-artifact@v1
+        with:
+          name: ld.wasm
+      - name: download libc.wasm
+        uses: actions/upload-artifact@v1
+        with:
+          name: libc.wasm
+      - name: copy *.wasm
+        run: cp *.wasm/*.wasm .
       - name: Run
         run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
 
