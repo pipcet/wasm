@@ -13,7 +13,7 @@ src/wasm32: | src
 	test -d $@ || $(MKDIR) $@
 
 src/wasm32/binutils-gdb: | src/wasm32
-	test -d $@ || (mkdir $@T && ((cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x))) && mv $@T $@
+	test -d $@ || (mkdir $@T && ((cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)) && mv $@T $@)
 
 src/gcc: | src
 	test -L $@ || ln -sf ../subrepos/gcc $@
@@ -105,6 +105,7 @@ built/wasm32/glibc: | built/wasm32
 	$(MAKE) build/wasm32/glibc/Makefile
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
+	touch $@
 
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
@@ -133,7 +134,7 @@ build/wasm32/bash/Makefile: built/wasm32/ncurses | src/bash build/wasm32/bash
 	touch $@
 
 built/wasm32/bash: | built/wasm32
-	$(MAKE)  build/wasm32/bash/Makefile
+	$(MAKE) build/wasm32/bash/Makefile
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
 	touch $@
