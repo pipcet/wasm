@@ -1,4 +1,4 @@
-name: WASM32
+name: wasm32
 on:
   push:
     branches: [ master ]
