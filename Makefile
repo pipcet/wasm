@@ -52,7 +52,7 @@ build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/
 	test -d $@ || $(MKDIR) $@
 
 build/wasm32/emacs: | build/wasm32
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git) | (cd $@T; tar x); mv $@T $@)
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
 build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
