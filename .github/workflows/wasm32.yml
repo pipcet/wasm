@@ -72,6 +72,8 @@ jobs:
         submodules: false
     - name: Check out subrepos/binutils-gdb
       run: git submodule update --depth=1 --single-branch --init subrepos/binutils-gdb
+    - name: artifact timestamp
+      run: touch artifact.stmp
     - name: build
       run: make -kj10 built/wasm32/binutils-gdb
     - name: Create artifact
@@ -99,9 +101,12 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-binutils.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: artifact timestamp
+      run: touch artifact.stmp
     - name: build preliminary GCC
       run: make -kj10 built/wasm32/gcc-preliminary
     - name: Create artifact
@@ -127,9 +132,13 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc-preliminary.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: artifact timestamp
+      run: touch artifact.stmp
     - name: build glibc
       run: make -kj10 built/wasm32/glibc
     - name: Create artifact
@@ -169,9 +178,14 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-glibc.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: artifact timestamp
+      run: touch artifact.stmp
     - name: build final GCC
       run: make -kj10 built/wasm32/gcc
     - name: Create artifact
@@ -195,9 +209,15 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
+        - wasm32-unknown-none-gcc.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: artifact timestamp
+      run: touch artifact.stmp
     - name: build ncurses
       run: make -kj10 built/wasm32/ncurses
     - name: Create artifact
@@ -219,7 +239,9 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc-preliminary.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: Assemble
@@ -243,7 +265,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-glibc.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: Compile
@@ -265,7 +290,11 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-gcc.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
+        - wasm32-unknown-none-gcc.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Compile
@@ -367,7 +396,12 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-ncurses.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
+        - wasm32-unknown-none-gcc.tar
+        - wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: Build
@@ -396,7 +430,12 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-none-ncurses.tar
+        name:
+        - wasm32-unknown-none-binutils.tar
+        - wasm32-unknown-none-gcc-preliminary.tar
+        - wasm32-unknown-none-glibc.tar
+        - wasm32-unknown-none-gcc.tar
+        - wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: build
