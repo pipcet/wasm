@@ -1,5 +1,4 @@
 var path = path || ((typeof (scriptArgs) === "undefined") ? process.argv[2] : scriptArgs[0]) || "";
-console.log(path);
 var remote;
 
 function CStringAt(heap, offset)
