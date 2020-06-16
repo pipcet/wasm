@@ -102,7 +102,7 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
+          wasm32-unknown-none-binutils.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -134,8 +134,12 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -182,9 +186,17 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -216,10 +228,22 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
-        - wasm32-unknown-none-gcc.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -250,8 +274,12 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -278,9 +306,17 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -306,10 +342,22 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
-        - wasm32-unknown-none-gcc.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -420,11 +468,27 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
-        - wasm32-unknown-none-gcc.tar
-        - wasm32-unknown-none-ncurses.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -459,11 +523,27 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name:
-        - wasm32-unknown-none-binutils.tar
-        - wasm32-unknown-none-gcc-preliminary.tar
-        - wasm32-unknown-none-glibc.tar
-        - wasm32-unknown-none-gcc.tar
-        - wasm32-unknown-none-ncurses.tar
+          wasm32-unknown-none-binutils.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc.tar
+    - name: Download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run:
       - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
