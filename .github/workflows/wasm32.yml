@@ -313,8 +313,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: libc.wasm
+      - name: directory shuffle
+        run: mkdir wasm-dirs && mv *.wasm wasm-dirs
       - name: copy *.wasm
-        run: cp *.wasm/*.wasm .
+        run: cp wasm-dirs/*.wasm/*.wasm .
       - name: Run
         run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
 
