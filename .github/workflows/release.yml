@@ -1,7 +1,7 @@
 on:
   release:
     types: [created]
-name: Release
+name: release
 jobs:
   generate:
     name: Release
