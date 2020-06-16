@@ -3069,7 +3069,8 @@ if (typeof(os) !== "undefined" &&
     ThinThin.access = function (ptr, mode) {
         return ThinThin.stat.call(this, ptr, 0);
     };
-    if (false) ThinThin.exit = function (code) {
+    ThinThin.exit = function (code) {
+	quit(code);
         //console.log("exiting: " + code);
         return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
 
