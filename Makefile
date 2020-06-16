@@ -54,8 +54,12 @@ build/wasm32: | build
 built/wasm32: | built
 	test -d $@ || $(MKDIR) $@
 
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/ncurses build/wasm32/bash build/wasm32/emacs: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/ncurses build/wasm32/bash: | build/wasm32
 	test -d $@ || $(MKDIR) $@
+
+build/wasm32/emacs: | build/wasm32
+	test -d $@ || $(MKDIR) $@
+	(cd subrepos/emacs; tar c --exclude .git) | (cd $@; tar x)
 
 build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
