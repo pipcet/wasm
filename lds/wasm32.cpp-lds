@@ -94,7 +94,8 @@
   *(.wasm.header.name);							\
   __wasm_##name##_payload = .;                                          \
   contents;                                                             \
-  *(.wasm.name*);							\
+  *(.wasm.name.*);							\
+  *(.wasm.name);							\
   __wasm_##name##_payload_end = .;
 
 #define SECTION_SPACE(name)					\
@@ -103,7 +104,7 @@
     __wasm_space_##name = .;					\
     *(.space.name.import);					\
     *(.space.name.*);						\
-    *(.space.name*);						\
+    *(.space.name);						\
     *(.space.name##_.plt);					\
     __wasm_space_##name##_end = .;				\
     __wasm_space_##name##_size = . - __wasm_space_##name;	\
@@ -115,13 +116,13 @@
     __wasm_space_##name##_function = .;				\
     *(.space.name.function.import);				\
     *(.space.name.function.*);					\
-    *(.space.name.function*);					\
+    *(.space.name.function);					\
     *(.space.name.function##_.plt);				\
     __wasm_space_##name##_function_end = .;			\
     __wasm_space_##name##_local = .;				\
     *(.space.name.local.import);				\
     *(.space.name.local.*);					\
-    *(.space.name.local*);					\
+    *(.space.name.local);					\
     *(.space.name.local##_.plt);				\
     __wasm_space_##name##_local_end = .;			\
     __wasm_space_##name##_size = . - __wasm_space_##name;	\
