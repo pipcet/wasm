@@ -14,4 +14,4 @@ jobs:
         submodules: true
     - run: git submodule update --init --recursive --
     - name: make all
-      run: make -kj10 all
+      run: make -j10 all
