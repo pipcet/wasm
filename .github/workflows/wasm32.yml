@@ -105,7 +105,7 @@ jobs:
           wasm32-unknown-none-binutils.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
     - name: artifact timestamp
       run: touch artifact.stmp
     - name: build preliminary GCC
@@ -142,8 +142,10 @@ jobs:
           wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: artifact timestamp
       run: touch artifact.stmp
     - name: build glibc
@@ -199,9 +201,13 @@ jobs:
           wasm32-unknown-none-glibc.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: artifact timestamp
       run: touch artifact.stmp
     - name: build final GCC
@@ -246,10 +252,16 @@ jobs:
           wasm32-unknown-none-gcc.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-      - tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: artifact timestamp
       run: touch artifact.stmp
     - name: build ncurses
@@ -282,8 +294,10 @@ jobs:
           wasm32-unknown-none-gcc-preliminary.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - name: Assemble
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
     - name: Upload artifact
@@ -319,9 +333,13 @@ jobs:
           wasm32-unknown-none-glibc.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: Compile
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/002-hello-world/hello-world.c -o 001-hello-world.exe
     - name: Upload artifact
@@ -360,10 +378,16 @@ jobs:
           wasm32-unknown-none-gcc.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-      - tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Compile
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/003-hello-world/hello-world.c -o 003-hello-world.exe
     - name: Upload artifact
@@ -432,10 +456,16 @@ jobs:
         name: wasm32-unknown-none-gcc.tar
     - name: Unpack wasm32
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-      - tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack wasm32
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack wasm32
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack wasm32
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Download 001-hello-world.exe
       uses: actions/download-artifact@v1
       with:
@@ -491,11 +521,19 @@ jobs:
           wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-      - tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-      - tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: Build
       run: make -kj10 built/wasm32/bash
 #    - name: build WASM
@@ -546,11 +584,19 @@ jobs:
           wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run:
-      - tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-      - tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-      - tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-      - tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-      - tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: Unpack
+      run:
+        tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: build
       run: make -kj10 built/wasm32/emacs
     - name: Build WASM
