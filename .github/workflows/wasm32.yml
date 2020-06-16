@@ -13,9 +13,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: check out subrepos/binaryen
+    - name: Check out subrepos/binaryen
       run: git submodule update --depth=1 --single-branch --init subrepos/binaryen
-    - name: build
+    - name: Build binaryen
       run: make built/common/binaryen
 
   wabt:
@@ -25,18 +25,18 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: check out subrepos/wabt
+    - name: Check out subrepos/wabt
       run: git submodule update --depth=1 --single-branch --recursive --init subrepos/wabt
-    - name: build
+    - name: Build wabt
       run: make built/common/wabt
 
   jsshell:
     name: jsshell
     runs-on: ubuntu-latest
     steps:
-    - name: Download
+    - name: Download jsshell
       run: wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
-    - name: Upload artifact
+    - name: Upload jsshell
       uses: actions/upload-artifact@v1
       with:
         name: jsshell-linux-x86_64.zip
@@ -55,7 +55,7 @@ jobs:
         submodules: false
     - name: Build wasm32.js
       run: make js/wasm32.js
-    - name: Upload artifact
+    - name: Upload wasm32.js
       uses: actions/upload-artifact@v1
       with:
         name: wasm32.js
@@ -65,20 +65,20 @@ jobs:
     name: binutils
     runs-on: ubuntu-latest
     steps:
-    - name: install texinfo, bison, flex
+    - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
         submodules: false
     - name: Check out subrepos/binutils-gdb
       run: git submodule update --depth=1 --single-branch --init subrepos/binutils-gdb
-    - name: artifact timestamp
+    - name: Artifact timestamp
       run: touch artifact.stmp
-    - name: build
+    - name: Build binutils
       run: make -kj10 built/wasm32/binutils-gdb
-    - name: Create artifact
+    - name: Create binutils
       run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload artifact
+    - name: Upload binutils
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-binutils.tar
@@ -89,30 +89,30 @@ jobs:
     runs-on: ubuntu-latest
     needs: binutils
     steps:
-    - name: install texinfo, bison, flex
+    - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
-    - name: install GCC dependencies
+    - name: Install GCC dependencies
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
         submodules: false
     - name: Check out subrepos/gcc
       run: git submodule update --depth=1 --single-branch --init subrepos/gcc
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: artifact timestamp
+    - name: Artifact timestamp
       run: touch artifact.stmp
-    - name: build preliminary GCC
+    - name: Build preliminary gcc
       run: make -kj10 built/wasm32/gcc-preliminary
-    - name: Create artifact
+    - name: Create gcc-preliminary
       run: tar cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload artifact
+    - name: Upload gcc-preliminary
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc-preliminary.tar
@@ -123,42 +123,44 @@ jobs:
     runs-on: ubuntu-latest
     needs: gcc-preliminary
     steps:
-    - name: install texinfo, bison, flex
+    - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
         submodules: false
     - name: Check out subrepos/glibc
       run: git submodule update --depth=1 --single-branch --init subrepos/glibc
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: artifact timestamp
+    - name: Artifact timestamp
       run: touch artifact.stmp
-    - name: build glibc
+    - name: Build glibc
       run: make -kj10 built/wasm32/glibc
-    - name: Create artifact
+    - name: Create glibc
       run: tar cf wasm32-unknown-none-glibc.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload artifact
+    - name: Upload glibc
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-glibc.tar
         path: wasm32-unknown-none-glibc.tar
-    - name: Generate WASM modules
+    - name: Generate ld.wasm
       run: make wasm/ld.wasm wasm/libc.wasm
+    - name: Generate libc.wasm
+      run: make wasm/libc.wasm
     - name: Upload ld.wasm
       uses: actions/upload-artifact@v1
       with:
@@ -175,46 +177,46 @@ jobs:
     runs-on: ubuntu-latest
     needs: glibc
     steps:
-    - name: install texinfo, bison, flex
+    - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
-    - name: install GCC dependencies
+    - name: Install gcc dependencies
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out gcc subrepo
+    - name: Check out subrepos/gcc
       run: git submodule update --depth=1 --single-branch --init subrepos/gcc
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download artifact
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: artifact timestamp
+    - name: Artifact timestamp
       run: touch artifact.stmp
-    - name: build final GCC
+    - name: Build gcc
       run: make -kj10 built/wasm32/gcc
-    - name: Create artifact
+    - name: Create gcc
       run: tar cf wasm32-unknown-none-gcc.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload artifact
+    - name: Upload gcc
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-gcc.tar
@@ -228,51 +230,58 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out ncurses
+    - name: Check out subrepos/ncurses
       run: git submodule update --depth=1 --single-branch --init subrepos/ncurses
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download artifact
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Download artifact
+    - name: Download gcc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Unpack
+    - name: Unpack gcc
       run:
         tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-    - name: artifact timestamp
+    - name: Artifact timestamp
       run: touch artifact.stmp
-    - name: build ncurses
+    - name: Build ncurses
       run: make -kj10 built/wasm32/ncurses
-    - name: Create artifact
+    - name: Create ncurses
       run: tar cf wasm32-unknown-none-ncurses.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload artifact
+    - name: Upload ncurses
       uses: actions/upload-artifact@v1
       with:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
+#    - name: Generate libncurses.wasm
+#      run: make wasm/libncurses.wasm
+#    - name: Upload libncurses.wasm
+#      uses: actions/upload-artifact@v1
+#      with:
+#        name: libncurses.wasm
+#        path: wasm/libncurses.wasm
 
   _001-hello-world-o:
     name: Hello World (assemble)
@@ -282,25 +291,25 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Assemble
+    - name: Assemble hello-world.o
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
-    - name: Upload artifact
+    - name: Upload hello-world.o
       uses: actions/upload-artifact@v1
       with:
         name: 001-hello-world.o
@@ -316,33 +325,33 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download artifact
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Compile
+    - name: Compile hello-world.exe
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/002-hello-world/hello-world.c -o 001-hello-world.exe
-    - name: Upload artifact
+    - name: Upload hello-world.exe
       uses: actions/upload-artifact@v1
       with:
         name: 001-hello-world.exe
@@ -356,41 +365,41 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download artifact
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Download artifact
+    - name: Download gcc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Unpack
+    - name: Unpack gcc
       run:
         tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-    - name: Compile
+    - name: Compile hello-world.exe
       run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/003-hello-world/hello-world.c -o 003-hello-world.exe
-    - name: Upload artifact
+    - name: Upload hello-world.exe
       uses: actions/upload-artifact@v1
       with:
         name: 003-hello-world.exe
@@ -408,34 +417,34 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: false
-      - name: Download jsshell artifact
+      - name: Download jsshell
         uses: actions/download-artifact@v1
         with:
           name: jsshell-linux-x86_64.zip
       - name: Unpack jsshell
         run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
-      - name: Download wasm32.js artifact
+      - name: Download wasm32.js
         uses: actions/download-artifact@v1
         with:
           name: wasm32.js
       - run: mkdir js
-      - name: Unpack wasm32
+      - name: Unpack wasm32.js
         run: cp wasm32.js/wasm32.js js/wasm32.js
-      - name: Download 001-hello-world.wasm artifact
+      - name: Download 001-hello-world.wasm
         uses: actions/download-artifact@v1
         with:
           name: 001-hello-world.wasm
-      - name: download ld.wasm
+      - name: Download ld.wasm
         uses: actions/download-artifact@v1
         with:
           name: ld.wasm
-      - name: download libc.wasm
+      - name: Download libc.wasm
         uses: actions/download-artifact@v1
         with:
           name: libc.wasm
-      - name: directory shuffle
+      - name: Directory shuffle
         run: mkdir wasm-dirs && mv *.wasm wasm-dirs
-      - name: copy *.wasm
+      - name: Copy *.wasm
         run: cp wasm-dirs/*.wasm/*.wasm .
       - name: Run
         run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm
@@ -462,13 +471,13 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: wasm32-unknown-none-glibc.tar
-    - name: Unpack wasm32
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack wasm32
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack wasm32
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
     - name: Download 001-hello-world.exe
@@ -479,9 +488,9 @@ jobs:
       run: make bin/wasmrewrite
     - name: Build wasmssect
       run: make bin/wasmsect
-    - name: wasmify
+    - name: Generate hello-world.wasm
       run: bash -x ./wasmify/wasmify-executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
-    - name: Upload 001-hello-world.wasm
+    - name: Upload hello-world.wasm
       uses: actions/upload-artifact@v1
       with:
         name: 001-hello-world.wasm
@@ -497,53 +506,53 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out bash
+    - name: Check out subrepos/bash
       run: git submodule update --depth=1 --single-branch --init subrepos/bash
-    - name: Download artifact
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-binutils.tar
-    - name: Download artifact
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download artifact
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Download artifact
+    - name: Download gcc
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-gcc.tar
-    - name: Download artifact
+    - name: Download ncurses
       uses: actions/download-artifact@v1
       with:
         name:
           wasm32-unknown-none-ncurses.tar
-    - name: Unpack
+    - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-    - name: Unpack
+    - name: Unpack gcc-preliminary
       run:
         tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-    - name: Unpack
+    - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Unpack
+    - name: Unpack gcc
       run:
         tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-    - name: Unpack
+    - name: Unpack ncurses
       run:
         tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
-    - name: Build
+    - name: Build bash
       run: make -kj10 built/wasm32/bash
-    - name: build WASM
+    - name: Generate bash.wasm
       run: make -kj10 wasm/bash.wasm
-    - name: Upload WASM
+    - name: Upload bash.wasm
       uses: actions/upload-artifact@v1
       with:
         name: bash.wasm
@@ -560,53 +569,53 @@ jobs:
   #   - uses: actions/checkout@v2
   #     with:
   #       submodules: false
-  #   - name: Check out emacs
+  #   - name: Check out subrepos/emacs
   #     run: git submodule update --depth=1 --single-branch --init subrepos/emacs
-  #   - name: Download artifact
+  #   - name: Download binutils
   #     uses: actions/download-artifact@v1
   #     with:
   #       name:
   #         wasm32-unknown-none-binutils.tar
-  #   - name: Download artifact
+  #   - name: Download gcc-preliminary
   #     uses: actions/download-artifact@v1
   #     with:
   #       name:
   #         wasm32-unknown-none-gcc-preliminary.tar
-  #   - name: Download artifact
+  #   - name: Download glibc
   #     uses: actions/download-artifact@v1
   #     with:
   #       name:
   #         wasm32-unknown-none-glibc.tar
-  #   - name: Download artifact
+  #   - name: Download gcc
   #     uses: actions/download-artifact@v1
   #     with:
   #       name:
   #         wasm32-unknown-none-gcc.tar
-  #   - name: Download artifact
+  #   - name: Download ncurses
   #     uses: actions/download-artifact@v1
   #     with:
   #       name:
   #         wasm32-unknown-none-ncurses.tar
-  #   - name: Unpack
+  #   - name: Unpack binutils
   #     run:
   #       tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
-  #   - name: Unpack
+  #   - name: Unpack gcc-preliminary
   #     run:
   #       tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
-  #   - name: Unpack
+  #   - name: Unpack glibc
   #     run:
   #       tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-  #   - name: Unpack
+  #   - name: Unpack gcc
   #     run:
   #       tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
-  #   - name: Unpack
+  #   - name: Unpack ncurses
   #     run:
   #       tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
-  #   - name: build
+  #   - name: Build emacs
   #     run: make -kj10 built/wasm32/emacs
-  #   - name: Build WASM
+  #   - name: Build emacs.wasm
   #     run: make -kj10 wasm/emacs.wasm
-  #   - name: Upload WASM
+  #   - name: Upload emacs.wasm
   #     uses: actions/upload-artifact@v1
   #     with:
   #       name: emacs.wasm
@@ -620,25 +629,25 @@ jobs:
       with:
         submodules: true
     - run: git submodule update --init --recursive --
-    - name: install texinfo, bison, flex
+    - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
-    - name: install GCC dependencies
+    - name: Install GCC dependencies
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
-    - name: make binutils-gdb
+    - name: Build binutils-gdb
       run: make OPT_NATIVE="-O0" -j10 built/wasm32/binutils-gdb
-    - name: make gcc-preliminary
+    - name: Build gcc-preliminary
       run: make -j10 built/wasm32/gcc-preliminary
-    - name: make glibc
+    - name: Build glibc
       run: make -j10 built/wasm32/glibc
-    - name: make gcc
+    - name: Build gcc
       run: make -j10 built/wasm32/gcc
-    - name: make ncurses
+    - name: Build ncurses
       run: make -j10 built/wasm32/ncurses
-    - name: make bash
+    - name: Build bash
       run: make -j10 built/wasm32/bash
-    - name: make wabt
+    - name: Build wabt
       run: make -j10 built/common/wabt
-    - name: make binaryen
+    - name: Build binaryen
       run: make -j10 built/common/binaryen
-    - name: make all
+    - name: Build all
       run: make -j10 all
