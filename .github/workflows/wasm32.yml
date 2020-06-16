@@ -382,7 +382,7 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: wasm32-unknown-non-ncurses.tar
+        name: wasm32-unknown-none-ncurses.tar
     - name: Unpack
       run: tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: build
