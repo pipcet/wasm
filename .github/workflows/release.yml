@@ -4,7 +4,7 @@ on:
 name: release
 jobs:
   generate:
-    name: Release
+    name: release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
