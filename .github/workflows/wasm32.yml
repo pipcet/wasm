@@ -438,7 +438,7 @@ jobs:
       - name: copy *.wasm
         run: cp wasm-dirs/*.wasm/*.wasm .
       - name: Run
-        run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm/001-hello-world.wasm
+        run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm
 
   _001-hello-world-wasm:
     name: Hello World (WASM)
