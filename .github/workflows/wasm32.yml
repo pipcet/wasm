@@ -541,13 +541,13 @@ jobs:
         tar xf wasm32-unknown-none-ncurses.tar/wasm32-unknown-none-ncurses.tar
     - name: Build
       run: make -kj10 built/wasm32/bash
-#    - name: build WASM
-#      run: make -kj10 wasm/bash.wasm
-#    - name: Upload WASM
-#      uses: actions/upload-artifact@v1
-#      with:
-#        name: bash.wasm
-#        path: wasm/bash.wasm
+    - name: build WASM
+      run: make -kj10 wasm/bash.wasm
+    - name: Upload WASM
+      uses: actions/upload-artifact@v1
+      with:
+        name: bash.wasm
+        path: wasm/bash.wasm
 
   # emacs:
   #   name: emacs
