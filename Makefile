@@ -9,37 +9,31 @@ env:
 	@echo "export WASMDIR=$(PWD)"
 	@echo "export LANG=C"
 
-bin:
-	test -d bin || $(MKDIR) bin
-
-src:
-	test -d src || $(MKDIR) src
-
 src/wasm32: | src
-	test -d src/wasm32 || $(MKDIR) src/wasm32
+	test -d $@ || $(MKDIR) $@
 
 src/wasm32/binutils-gdb: | src/wasm32
-	test -d src/wasm32/binutils-gdb || (mkdir src/wasm32/binutils-gdb && ((cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd src/wasm32/binutils-gdb; tar x)))
+	test -d $@ || (mkdir $@T && ((cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x))) && mv $@T $@
 
 src/gcc: | src
-	test -L src/gcc || ln -sf ../subrepos/gcc src/gcc
+	test -L $@ || ln -sf ../subrepos/gcc $@
 
 src/glibc: | src
-	test -L src/glibc || ln -sf ../subrepos/glibc src/glibc
+	test -L $@ || ln -sf ../subrepos/glibc $@
 
 src/ncurses: | src
-	test -L src/ncurses || ln -sf ../subrepos/ncurses src/ncurses
+	test -L $@ || ln -sf ../subrepos/ncurses $@
 
 src/bash: | src
-	test -L src/bash || ln -sf ../subrepos/bash src/bash
+	test -L $@ || ln -sf ../subrepos/bash $@
 
 src/wabt: | src
-	test -L src/wabt || ln -sf ../subrepos/wabt src/wabt
+	test -L $@ || ln -sf ../subrepos/wabt $@
 
 src/binaryen: | src
-	test -L src/binaryen || ln -sf ../subrepos/binaryen src/binaryen
+	test -L $@ || ln -sf ../subrepos/binaryen $@
 
-bin build built js lib wasm:
+bin build built js lib src wasm:
 	test -d $@ || $(MKDIR) $@
 
 build/common: | build
@@ -58,8 +52,7 @@ build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/
 	test -d $@ || $(MKDIR) $@
 
 build/wasm32/emacs: | build/wasm32
-	test -d $@ || $(MKDIR) $@
-	(cd subrepos/emacs; tar c --exclude .git) | (cd $@; tar x)
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git) | (cd $@T; tar x); mv $@T $@)
 
 build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
