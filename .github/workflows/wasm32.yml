@@ -77,7 +77,7 @@ jobs:
     - name: build
       run: make -kj10 built/wasm32/binutils-gdb
     - name: Create artifact
-      run: tar cvf wasm32-unknown-none-binutils.tar wasm32-unknown-none built
+      run: tar -N artifact.stmp cf wasm32-unknown-none-binutils.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -111,7 +111,7 @@ jobs:
     - name: build preliminary GCC
       run: make -kj10 built/wasm32/gcc-preliminary
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none built
+      run: tar -N artifact.stmp cf wasm32-unknown-none-gcc-preliminary.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -151,7 +151,7 @@ jobs:
     - name: build glibc
       run: make -kj10 built/wasm32/glibc
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-glibc.tar wasm32-unknown-none built
+      run: tar -N artifact.stmp cf wasm32-unknown-none-glibc.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -213,7 +213,7 @@ jobs:
     - name: build final GCC
       run: make -kj10 built/wasm32/gcc
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-gcc.tar wasm32-unknown-none built
+      run: tar -N artifact.stmp cf wasm32-unknown-none-gcc.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
@@ -267,7 +267,7 @@ jobs:
     - name: build ncurses
       run: make -kj10 built/wasm32/ncurses
     - name: Create artifact
-      run: tar cf wasm32-unknown-none-ncurses.tar wasm32-unknown-none built
+      run: tar -N artifact.stmp cf wasm32-unknown-none-ncurses.tar wasm32-unknown-none built
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
