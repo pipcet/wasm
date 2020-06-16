@@ -450,22 +450,18 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Download gcc
+    - name: Download binutils
       uses: actions/download-artifact@v1
       with:
         name: wasm32-unknown-none-binutils.tar
-    - name: Download gcc
+    - name: Download gcc-preliminary
       uses: actions/download-artifact@v1
       with:
         name: wasm32-unknown-none-gcc-preliminary.tar
-    - name: Download gcc
+    - name: Download glibc
       uses: actions/download-artifact@v1
       with:
         name: wasm32-unknown-none-glibc.tar
-    - name: Download gcc
-      uses: actions/download-artifact@v1
-      with:
-        name: wasm32-unknown-none-gcc.tar
     - name: Unpack wasm32
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -475,9 +471,6 @@ jobs:
     - name: Unpack wasm32
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Unpack wasm32
-      run:
-        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Download 001-hello-world.exe
       uses: actions/download-artifact@v1
       with:
@@ -631,21 +624,21 @@ jobs:
       run: sudo apt-get install texinfo bison flex
     - name: install GCC dependencies
       run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
-    - name: make all
-      run: make -j10 built/wasm32/binutils-gdb
-    - name: make all
+    - name: make binutils-gdb
+      run: make OPT_NATIVE="-O0" -j10 built/wasm32/binutils-gdb
+    - name: make gcc-preliminary
       run: make -j10 built/wasm32/gcc-preliminary
-    - name: make all
+    - name: make glibc
       run: make -j10 built/wasm32/glibc
-    - name: make all
+    - name: make gcc
       run: make -j10 built/wasm32/gcc
-    - name: make all
+    - name: make ncurses
       run: make -j10 built/wasm32/ncurses
-    - name: make all
+    - name: make bash
       run: make -j10 built/wasm32/bash
-    - name: make all
+    - name: make wabt
       run: make -j10 built/common/wabt
-    - name: make all
+    - name: make binaryen
       run: make -j10 built/common/binaryen
     - name: make all
       run: make -j10 all
