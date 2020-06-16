@@ -668,4 +668,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: 'wasm32.js *.wasm'
-	releaseId: 'latest'
+        releaseId: 'latest'
