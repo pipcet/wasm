@@ -306,13 +306,13 @@ jobs:
       with:
         name: wasm32-unknown-none-ncurses.tar
         path: wasm32-unknown-none-ncurses.tar
-#    - name: Generate libncurses.wasm
-#      run: make wasm/libncurses.wasm
-#    - name: Upload libncurses.wasm
-#      uses: actions/upload-artifact@v1
-#      with:
-#        name: libncurses.wasm
-#        path: wasm/libncurses.wasm
+    - name: Generate libncurses.wasm
+      run: make wasm/libncurses.wasm
+    - name: Upload libncurses.wasm
+      uses: actions/upload-artifact@v1
+      with:
+        name: libncurses.wasm
+        path: wasm/libncurses.wasm
 
   _001-hello-world-o:
     name: Hello World (assemble)
