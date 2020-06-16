@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ x"$JS" = x ]; then
+    JS="$(which js)";
+fi
+if [ x"$WASMDIR" = x ]; then
+    echo "WASMDIR needs to be set" > /dev/stderr
+    exit 1
+fi
+exec "$JS" "$WASMDIR/js/wasm32.js" "$@"
