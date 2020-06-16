@@ -179,7 +179,7 @@ bin/wasmsect: wasmrewrite/wasmsect.c | bin
 built/all: built/wasm32/all built/common/all
 	touch $@
 
-built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/wasm32/glibc built/wasm32/gcc built/wasm32/ncurses built/wasm32/bash built/wasm32/emacs
+built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/wasm32/glibc built/wasm32/gcc built/wasm32/ncurses built/wasm32/bash
 	touch $@
 
 built/common/all: built/common/binaryen built/common/wabt
