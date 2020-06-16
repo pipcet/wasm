@@ -453,6 +453,18 @@ jobs:
     - name: Download gcc
       uses: actions/download-artifact@v1
       with:
+        name: wasm32-unknown-none-binutils.tar
+    - name: Download gcc
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download gcc
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32-unknown-none-glibc.tar
+    - name: Download gcc
+      uses: actions/download-artifact@v1
+      with:
         name: wasm32-unknown-none-gcc.tar
     - name: Unpack wasm32
       run:
