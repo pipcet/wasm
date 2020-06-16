@@ -185,6 +185,9 @@ built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/w
 built/common/all: built/common/binaryen built/common/wabt
 	touch $@
 
+%.cpp-lds.lds: %.cpp-lds
+	cpp < $< | egrep -v '^#' > $@
+
 clean:
 	rm -rf build built src wasm32-unknown-none
 
