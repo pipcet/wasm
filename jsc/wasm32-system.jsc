@@ -711,7 +711,8 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
                 break;
             }
         }
-        throw "couldn't find " + fun;
+        console.log ("couldn't find " + fun);
+	quit(0);
     default:
         i.dont.exist++;
         throw("giving up, pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
