@@ -636,11 +636,11 @@ jobs:
     - name: Build binutils-gdb
       run: make OPT_NATIVE="-O0" -j10 built/wasm32/binutils-gdb
     - name: Build gcc-preliminary
-      run: make -j10 built/wasm32/gcc-preliminary
+      run: make OPT_NATIVE="-O0" -j10 built/wasm32/gcc-preliminary
     - name: Build glibc
-      run: make -j10 built/wasm32/glibc
+      run: make OPT_WASM="-O1" -j10 built/wasm32/glibc
     - name: Build gcc
-      run: make -j10 built/wasm32/gcc
+      run: make OPT_NATIVE="-O1" -j10 built/wasm32/gcc
     - name: Build ncurses
       run: make -j10 built/wasm32/ncurses
     - name: Build bash
