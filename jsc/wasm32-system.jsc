@@ -962,7 +962,7 @@ function Wasm32Process(system, fds)
     //this.ddroot = system.ddroot = new SparseDD(new ThinThinFetchDD(this, undefined, ".", undefined, undefined));
     this.ddcwd = system.ddroot;
 
-    system.ddroot.open();
+    //system.ddroot.open();
 
     this.functions = {};
     this.threads = [];

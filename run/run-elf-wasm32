@@ -5,6 +5,7 @@ if [ x"$WASMDIR" = x ]; then
 fi
 TMPD="$(mktemp -d --tmpdir "run-elf-wasm32.XXXXXXXXXX")"
 WASM="$TMPD/wasm"
-shift PROG
+PROG="$1"
+shift
 "$WASMDIR/wasmify/wasmify-executable" "$PROG" > "$WASM"
 exec "$WASMDIR/run/run-wasm" "$WASM" "$@"
