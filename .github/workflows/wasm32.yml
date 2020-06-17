@@ -717,8 +717,8 @@ jobs:
     - wasm32-js
     steps:
     - uses: actions/checkout@v2
-        with:
-          submodules: false
+      with:
+        submodules: false
     - name: Download jsshell
       uses: actions/download-artifact@v1
       with:
