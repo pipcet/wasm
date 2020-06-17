@@ -662,10 +662,25 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Upload wasms
+    - name: Download wasm32.js
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32.js
+    - name: Upload wasm32.js
       uses: skx/github-action-publish-binaries@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        args: 'wasm32.js *.wasm'
+        args: 'wasm32.js/wasm32.js'
+        releaseId: 'latest'
+    - name: Download ld.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: ld.wasm
+    - name: Upload ld.wasm
+      uses: skx/github-action-publish-binaries@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'ld.wasm/ld.wasm'
         releaseId: 'latest'
