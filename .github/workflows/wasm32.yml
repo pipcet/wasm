@@ -188,24 +188,14 @@ jobs:
     name: binutils
     runs-on: ubuntu-latest
     steps:
-    - name: Install texinfo, bison, flex
-      run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out subrepos/binutils-gdb
-      run: git submodule update --depth=1 --single-branch --init subrepos/binutils-gdb
-    - name: Artifact timestamp
-      run: touch artifact.stmp
-    - name: Build binutils
-      run: make -kj10 built/wasm32/binutils-gdb
-    - name: Create binutils
-      run: tar cf wasm32-unknown-none-binutils.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload binutils
-      uses: actions/upload-artifact@v1
-      with:
-        name: wasm32-unknown-none-binutils.tar
-        path: wasm32-unknown-none-binutils.tar
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 artifact-binutils
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   gcc-preliminary:
     name: gcc (preliminary)
