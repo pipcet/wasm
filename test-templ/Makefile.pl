@@ -19,7 +19,7 @@ push @frags, <<'EOF';
 	$(WASMDIR)/wasmify/wasmify-executable $< > $@
 
 %.wasm.out: %.wasm
-	$(JS) $(WASMDIR)/js/wasm32.js $< > $@ 2> $*.wasm.err || true
+	$(JS) $(WASMDIR)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
 	echo "STDOUT"
 	cat $@
 	echo "STDERR"
