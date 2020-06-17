@@ -6,7 +6,9 @@ artifacts:
 	touch $@
 
 artifacts/%: | artifacts .github-init
+	mkdir $@.new
 	bash -x github/dl-artifact $*
+	mv $@.new $@
 
 artifact-timestamp:
 	touch $@
