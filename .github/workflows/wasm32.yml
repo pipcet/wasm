@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - jsshell
-    - gcc
+    - glibc
     steps:
     - uses: actions/checkout@v2
       with:
