@@ -76,9 +76,11 @@ function Wasm32LM(vm)
     this.copy = {};
     this.dep = {};
     this.lazy = {};
+    this.symbols = new Map();
+    this.allsymbols = new Set();
 }
 
-Wasm32LM.prototype.open_dyninfo = function (dyninfo, imports, module)
+Wasm32LM.prototype.dyninfo_fixups = function (dyninfo, imports, module)
 {
     var vm = this.vm;
 
@@ -95,137 +97,126 @@ Wasm32LM.prototype.open_dyninfo = function (dyninfo, imports, module)
 
         vm.HEAPU32[addr1>>2] = addr2;
     }
+};
 
-    for (let [symbol, addr] of dyninfo.def) {
-        addr = addr - 0x4000 + imports.sys.got;
-        if (this.copy[symbol]) {
-            for (let [addr2, size] of this.copy[symbol]) {
-                for (let i = 0; i < size; i++) {
-                    vm.HEAPU8[addr2+i] = vm.HEAPU8[addr+i];
-                }
-                module.symtab[symbol] = addr2;
-            }
-
-            //delete this.copy[symbol];
-
-            //continue;
-        }
-        module.symtab[symbol] = addr;
-        if ((symbol in this.def ||
-             symbol in this.defun) &&
-            !symbol.match(/^__(start|stop)_/)) {
-            //continue;
-        }
-        this.def[symbol] = addr;
-
-        if (this.ref[symbol]) {
-            let ref = this.ref[symbol];
-            //delete this.ref[symbol];
-
-            for (let [addr2, module] of ref) {
-                vm.HEAPU32[addr2>>2] = addr;
-                module.symtab[symbol] = addr;
-            }
-        }
+Wasm32LM.prototype.dyninfo_symbol_definitions =
+    function (dyninfo, imports, module)
+{
+    let vm = this.vm;
+    let symbols = new Map();
+    for (let [name, addr] of dyninfo.def) {
+	if (!symbols.has(name))
+	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
+	if (symbols.get(name).get_addr()) {
+	    let symbol = new Wasm32Symbol(name)
+	    symbols.set(name, symbol);
+	    this.allsymbols.add(symbol);
+	}
+	symbols.get(name).add_definition(["data", addr]);
     }
-    for (let [symbol, addr] of dyninfo.defun) {
-        if (symbol in this.def ||
-            symbol in this.defun) {
-            continue;
-        }
-        addr += imports.sys.plt;
-        this.defun[symbol] = addr;
-        module.symtab[symbol] = addr;
-
-        if (this.ref[symbol]) {
-            let ref = this.ref[symbol];
-            delete this.ref[symbol];
-
-            for (let [addr2, module] of ref) {
-                vm.HEAPU32[addr2>>2] = addr;
-            }
-        }
-
-        if (this.refun[symbol]) {
-            let ref = this.refun[symbol];
-            delete this.refun[symbol];
-
-            for (let [addr2, module] of ref) {
-                //console.log("setting " + addr2 + " to " + vm.table.get(addr));
-                vm.tableset(addr2, addr);
-                module.symtab[symbol] = addr;
-            }
-        }
+    for (let [name, addr] of dyninfo.defun) {
+	if (!symbols.has(name))
+	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
+	if (symbols.get(name).get_addr()) {
+	    let symbol = new Wasm32Symbol(name)
+	    symbols.set(name, symbol);
+	    this.allsymbols.add(symbol);
+	}
+	symbols.get(name).add_definition(["code", addr]);
     }
-    for (let [symbol, addr] of dyninfo.ref) {
+    for (let [name, symbol] of symbols) {
+	this.symbols.set(name, symbol);
+	this.allsymbols.add(symbol);
+	module.symtab[symbol] = symbol.get_addr();
+    }
+};
+
+Wasm32LM.prototype.dyninfo_symbol_references =
+    function (dyninfo, imports, module)
+{
+    for (let [name, addr] of dyninfo.ref) {
         addr -= 0x4000;
         addr += imports.sys.got;
-        if (symbol in this.def) {
-            vm.HEAPU32[addr>>2] = this.def[symbol];
-        } else if (symbol in this.defun) {
-            vm.HEAPU32[addr>>2] = this.defun[symbol];
-        } else {
-            if (!this.ref[symbol])
-                this.ref[symbol] = [];
-            this.ref[symbol].push([addr, module]);
-        }
+	if (!this.symbols.has(name)) {
+	    let symbol = new Wasm32Symbol(name);
+	    this.symbols.set(name, symbol);
+	    this.allsymbols.add(symbol);
+	}
+	this.symbols.get(name).add_reference(["data", addr]);
     }
-    for (let [symbol, index] of dyninfo.refun) {
-        symbol = symbol.replace(/@@.*/, "");
-        symbol = symbol.replace(/@.*/, "");
-        if (symbol in this.defun) {
-            //console.log("setting " + (index + imports.sys.plt) + " to " + vm.table.get(this.defun[symbol]));
-            vm.tableset(index + imports.sys.plt, this.defun[symbol]);
-        } else {
-            if (!this.refun[symbol])
-                this.refun[symbol] = [];
-            this.refun[symbol].push([index + imports.sys.plt, module]);
-            //vm.tableset(index + imports.sys.plt, 0);
-        }
+    for (let [name, addr] of dyninfo.refun) {
+	addr += imports.sys.plt;
+        name = name.replace(/@@.*/, "");
+        name = name.replace(/@.*/, "");
+	if (!this.symbols.has(name)) {
+	    let symbol = new Wasm32Symbol(name);
+	    this.symbols.set(name, symbol);
+	    this.allsymbols.add(symbol);
+	}
+	this.symbols.get(name).add_reference(["code", addr]);
     }
-
-    for (let [symbol, addr, size] of dyninfo.copy) {
-	addr -= 0x4000;
-	addr += imports.sys.got;
-        if (!this.copy[symbol])
-            this.copy[symbol] = [];
-
-        this.copy[symbol].push([addr, size]);
+    for (let [name, addr, size] of dyninfo.copy) {
+        addr -= 0x4000;
+        addr += imports.sys.got;
+	if (!this.symbols.has(name)) {
+	    let symbol = new Wasm32Symbol(name);
+	    this.symbols.set(name, symbol);
+	    this.allsymbols.add(symbol);
+	}
+	this.symbols.get(name).add_reference(["copy", addr, size]);
     }
+};
 
-    for (let [symbol, addr] of dyninfo.def) {
-        addr = addr - 0x4000 + imports.sys.got;
-        if (this.copy[symbol]) {
-            for (let [addr2, size] of this.copy[symbol]) {
-                for (let i = 0; i < size; i++) {
-                    vm.HEAPU8[addr2+i] = vm.HEAPU8[addr+i];
-                }
-                module.symtab[symbol] = addr2;
-            }
-
-            //delete this.copy[symbol];
-
-            //continue;
-        }
-        module.symtab[symbol] = addr;
-        if ((symbol in this.def ||
-             symbol in this.defun) &&
-            !symbol.match(/^__(start|stop)_/)) {
-            //continue;
-        }
-        this.def[symbol] = addr;
-
-        if (this.ref[symbol]) {
-            let ref = this.ref[symbol];
-            //delete this.ref[symbol];
-
-            for (let [addr2, module] of ref) {
-                vm.HEAPU32[addr2>>2] = addr;
-                module.symtab[symbol] = addr;
-            }
-        }
+Wasm32LM.prototype.dyninfo_dump_symbols =
+    function (dyninfo, imports, module)
+{
+    for (let symbol of [...this.allsymbols].sort((a,b) => a.name > b.name)) {
+	if (symbol.references.length === 0)
+	    continue;
+	console.log(`Symbol ${symbol.name}`);
+	for (let definition of symbol.definitions) {
+	    console.log("  " + JSON.stringify(definition))
+	}
+	console.log(" references:");
+	for (let reference of symbol.references) {
+	    console.log("  " + JSON.stringify(reference))
+	}
     }
+};
 
+Wasm32LM.prototype.dyninfo_apply_symbols =
+    function (dyninfo, imports, module)
+{
+    for (let symbol of [...this.allsymbols].sort((a,b) => a.name > b.name)) {
+	for (let definition of symbol.definitions)
+	    for (let reference of symbol.references) {
+		console.log(`applied ${symbol.name} ${JSON.stringify(definition)} ${JSON.stringify(reference)}`)
+		if (definition[0] === "code" &&
+		    reference[0] === "code") {
+		    vm.tableset(reference[1], definition[1]);
+		    if (reference[1] === definition[1])
+			throw "circular ref";
+		}
+		if (definition[0] === "data" &&
+		    reference[0] === "data")
+		    vm.HEAPU32[reference[1]>>2] = definition[1];
+		if (definition[0] === "data" &&
+		    reference[0] === "copy")
+		    for (let i = 0; i < reference[2]; i++)
+			vm.HEAPU8[reference[1]+i] = vm.HEAPU8[definition[1]+i];
+		if (definition[0] === "code" &&
+		    reference[0] === "data")
+		    vm.HEAPU32[reference[1]>>2] = definition[1];
+		if (definition[0] === "data" &&
+		    reference[0] === "code")
+		    throw `impossible symbol definition: ${symbol.name}`;
+	    }
+    }
+};
+
+Wasm32LM.prototype.dyninfo_misc =
+    function (dyninfo, imports, module)
+{
     for (let lib of dyninfo.libs) {
         this.dep[lib] = -1;
     }
@@ -246,6 +237,18 @@ Wasm32LM.prototype.open_dyninfo = function (dyninfo, imports, module)
         }
     }
 };
+
+Wasm32LM.prototype.dyninfo_apply =
+    function (dyninfo, imports, module)
+{
+    this.dyninfo_symbol_definitions (dyninfo, imports, module);
+    this.dyninfo_symbol_references (dyninfo, imports, module);
+    this.dyninfo_dump_symbols (dyninfo, imports, module);
+    this.dyninfo_apply_symbols (dyninfo, imports, module);
+    this.dyninfo_fixups (dyninfo, imports, module);
+    this.dyninfo_misc (dyninfo, imports, module);
+    console.log("done applying symbols");
+}
 
 /* A virtual memory object. */
 function Wasm32VM(sizes)
@@ -508,7 +511,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
                 thread.entry = this.imports.sys.plt + this.instance.exports.entry;
             }
             this.fill_table(thread, vm, this.imports.sys.got, this.imports.sys.plt);
-            this.vm.base_lm.open_dyninfo(this.dyninfo, this.imports, this);
+            this.vm.base_lm.dyninfo_apply(this.dyninfo, this.imports, this);
             lastdonetime = this.donetime = Date.now();
 
 	    this.instance = instance;
