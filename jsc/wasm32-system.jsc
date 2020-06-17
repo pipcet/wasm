@@ -859,9 +859,9 @@ function build_sig(sigstr)
     }
 
     if (sigstr[1] == 'v') {
-        ret.push(0x00); 
+        ret.push(0x00);
     } else {
-        ret.push(0x01); 
+        ret.push(0x01);
         switch (sigstr[1]) {
         case 'i':
             ret.push(0x7f);
