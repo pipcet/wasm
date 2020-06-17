@@ -15,3 +15,4 @@ artifact-timestamp:
 
 artifact-push:
 	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash -x github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
+	echo "(Do not be confused by the size stated above; it's the compressed size)"
