@@ -707,3 +707,38 @@ jobs:
       with:
         args: 'libncurses.wasm/libncurses.wasm'
         releaseId: '27619169'
+
+  test-shipped:
+    name: test shipped binaries
+    runs-on: ubuntu-latest
+    needs:
+    - binutils
+    - jsshell
+    - wasm32-js
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+      - name: Download jsshell
+        uses: actions/download-artifact@v1
+        with:
+          name: jsshell-linux-x86_64.zip
+      - name: Unpack jsshell
+        run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
+      - name: Download wasm32.js
+        uses: actions/download-artifact@v1
+        with:
+          name: wasm32.js
+      - run: mkdir js
+      - name: Unpack wasm32.js
+        run: cp wasm32.js/wasm32.js js/wasm32.js
+    - run: wget https://github.com/pipcet/wasm/releases/download/latest/ld.wasm
+    - run: wget https://github.com/pipcet/wasm/releases/download/latest/libc.wasm
+    - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
+    - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-ld -o 001-hello-world 001-hello-world.o
+    - name: Directory shuffle
+      run: mkdir wasm-dirs && mv *.wasm wasm-dirs
+    - name: Copy *.wasm
+      run: cp wasm-dirs/*.wasm/*.wasm .
+    - name: Run
+      run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm
