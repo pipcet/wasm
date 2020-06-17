@@ -684,3 +684,25 @@ jobs:
       with:
         args: 'ld.wasm/ld.wasm'
         releaseId: 'latest'
+    - name: Download libc.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: libc.wasm
+    - name: Upload libc.wasm
+      uses: skx/github-action-publish-binaries@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'libc.wasm/libc.wasm'
+        releaseId: 'latest'
+    - name: Download libncurses.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: libncurses.wasm
+    - name: Upload libncurses.wasm
+      uses: skx/github-action-publish-binaries@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'libncurses.wasm/libncurses.wasm'
+        releaseId: 'latest'
