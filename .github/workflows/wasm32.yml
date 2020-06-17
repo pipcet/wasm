@@ -1,3 +1,4 @@
+
 name: wasm32
 on:
   push:
@@ -672,7 +673,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: 'wasm32.js/wasm32.js'
-        releaseId: 'latest'
+        releaseId: '27619169'
     - name: Download ld.wasm
       uses: actions/download-artifact@v1
       with:
@@ -683,7 +684,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: 'ld.wasm/ld.wasm'
-        releaseId: 'latest'
+        releaseId: '27619169'
     - name: Download libc.wasm
       uses: actions/download-artifact@v1
       with:
@@ -694,7 +695,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: 'libc.wasm/libc.wasm'
-        releaseId: 'latest'
+        releaseId: '27619169'
     - name: Download libncurses.wasm
       uses: actions/download-artifact@v1
       with:
@@ -705,4 +706,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: 'libncurses.wasm/libncurses.wasm'
-        releaseId: 'latest'
+        releaseId: '27619169'
