@@ -41,11 +41,18 @@ jobs:
     name: Run tests
     runs-on: ubuntu-latest
     needs:
+    - jsshell
     - gcc
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: false
+    - name: Download jsshell
+      uses: actions/download-artifact@v1
+      with:
+        name: jsshell-linux-x86_64.zip
+    - name: Unpack jsshell
+      run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
     - name: Download binutils
       uses: actions/download-artifact@v1
       with:
@@ -80,7 +87,7 @@ jobs:
         tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Run tests
       run:
-        make -kj10 all-tests
+        JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 all-tests
 
   binaryen:
     name: binaryen
