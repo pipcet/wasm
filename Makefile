@@ -244,25 +244,25 @@ artifact-wasm32.js: | install-file-slurp js/wasm32.js artifact-timestamp artifac
 artifact-binutils: | install-texinfo-bison-flex subrepos/binutils-gdb/.checkout artifact-timestamp artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/binutils-gdb
-	tar cf artifacts/binutils.tar wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
 artifact-gcc-preliminary: | install-texinfo-bison-flex install-gcc-dependencies subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
-	tar cf artifacts/gcc-preliminary.tar wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
 artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
-	tar cf artifacts/glibc.tar wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
 artifact-gcc: | install-texinfo-bison-flex install-gcc-dependencies subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
-	tar cf artifacts/gcc.tar wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
 fetch-binutils: artifacts/binutils.tar
