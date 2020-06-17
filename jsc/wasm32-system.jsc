@@ -245,7 +245,7 @@ Wasm32LM.prototype.dyninfo_apply =
 {
     this.dyninfo_symbol_definitions (dyninfo, imports, module);
     this.dyninfo_symbol_references (dyninfo, imports, module);
-    this.dyninfo_dump_symbols (dyninfo, imports, module);
+    //this.dyninfo_dump_symbols (dyninfo, imports, module);
     this.dyninfo_apply_symbols (dyninfo, imports, module);
     this.dyninfo_fixups (dyninfo, imports, module);
     this.dyninfo_misc (dyninfo, imports, module);
