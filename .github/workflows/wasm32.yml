@@ -85,6 +85,10 @@ jobs:
     - name: Unpack gcc
       run:
         tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: Build wasmrewrite
+      run: make bin/wasmrewrite
+    - name: Build wasmssect
+      run: make bin/wasmsect
     - name: Run tests
       run:
         JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 all-tests
