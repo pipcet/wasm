@@ -35,7 +35,7 @@ src/wabt: | src
 src/binaryen: | src
 	test -L $@ || ln -sf ../subrepos/binaryen $@
 
-bin build built js lib src wasm:
+bin build built js lib src test wasm:
 	test -d $@ || $(MKDIR) $@
 
 build/common: | build
@@ -48,6 +48,9 @@ build/wasm32: | build
 	test -d $@ || $(MKDIR) $@
 
 built/wasm32: | built
+	test -d $@ || $(MKDIR) $@
+
+test/wasm32: | test
 	test -d $@ || $(MKDIR) $@
 
 build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/ncurses build/wasm32/bash: | build/wasm32
@@ -192,3 +195,14 @@ clean:
 	rm -rf build built src wasm32-unknown-none
 
 .SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
+.PRECIOUS: test/wasm32/% test/wasm32/%/Makefile
+
+test/wasm32/%: | tests/% test/wasm32
+	$(MKDIR) test/wasm32/$*
+	ln -sf ../../../tests/$* test/wasm32/$*/src
+
+test/wasm32/%/Makefile: tests/%/ test-templ/Makefile.pl | test/wasm32/%
+	perl test-templ/Makefile.pl tests/$*/ tests/$*/* > $@
+
+test/wasm32/%/status: test/wasm32/%/Makefile
+	$(MAKE) WASMDIR=$(PWD) JS=$$JS -C test/wasm32/$* all
