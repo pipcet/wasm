@@ -197,7 +197,7 @@ clean:
 .SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
 .PRECIOUS: test/wasm32/% test/wasm32/%/Makefile
 
-test/wasm32/%: | tests/% test/wasm32
+test/wasm32/%: | tests/% test/wasm32 built/wasm32/glibc
 	$(MKDIR) test/wasm32/$*
 	ln -sf ../../../tests/$* test/wasm32/$*/src
 
@@ -208,3 +208,6 @@ test/wasm32/%/status: test/wasm32/%/Makefile
 	$(MAKE) WASMDIR=$(PWD) JS=$$JS -C test/wasm32/$* all
 
 all-tests: $(patsubst tests/%,test/wasm32/%/status,$(wildcard tests/*))
+
+start-over:
+	rm -rf build built src test
