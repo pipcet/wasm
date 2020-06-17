@@ -220,4 +220,8 @@ artifact-test:
 artifact-test-2: artifacts/wasm32.js
 	shasum artifacts/wasm32.js
 
+artifact-wasm32.js: | js/wasm32.js artifact-timestamp artifacts
+	cat js/wasm32.js > artifacts/wasm32.js
+	$(MAKE) artifact-push
+
 -include github/github.mk

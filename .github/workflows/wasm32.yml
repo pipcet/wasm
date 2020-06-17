@@ -175,20 +175,14 @@ jobs:
     name: wasm32.js
     runs-on: ubuntu-latest
     steps:
-    - name: Install cpanm
-      run: sudo apt-get install cpanminus
-    - name: Install File::Slurp
-      run: cpanm File::Slurp
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Build wasm32.js
-      run: make js/wasm32.js
-    - name: Upload wasm32.js
-      uses: actions/upload-artifact@v1
-      with:
-        name: wasm32.js
-        path: js/wasm32.js
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make artifact-wasm32.js
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   binutils:
     name: binutils
