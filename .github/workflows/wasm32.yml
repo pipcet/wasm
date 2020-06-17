@@ -37,6 +37,15 @@ jobs:
     - name: Build all
       run: make -j10 all
 
+  artifact-test:
+    name: artifact test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - run: make artifact-test
+
   tests:
     name: Run tests
     runs-on: ubuntu-latest

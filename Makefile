@@ -211,3 +211,8 @@ all-tests: $(patsubst tests/%,test/wasm32/%/status,$(wildcard tests/*))
 
 start-over:
 	rm -rf build built src test
+
+artifact-test:
+	bash -x github/artifact-init
+	echo bar > foo
+	bash -x github/ul-artifact foo foo
