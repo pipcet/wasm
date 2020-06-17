@@ -218,6 +218,6 @@ artifact-test:
 	bash -x github/ul-artifact foo foo
 
 artifact-test-2: artifacts/wasm32.js
-	shasum artifacts/wasm32.js/wasm32.js
+	shasum artifacts/wasm32.js
 
 -include github/github.mk
