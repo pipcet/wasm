@@ -126,6 +126,8 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	}
 	symbols.get(name).add_definition(["code", addr]);
     }
+    for (let [name] of dyninfo.copy)
+	symbols.delete(name);
     for (let [name, symbol] of symbols) {
 	this.symbols.set(name, symbol);
 	this.allsymbols.add(symbol);
