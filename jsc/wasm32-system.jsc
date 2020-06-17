@@ -44,7 +44,7 @@ Wasm32Symbol.prototype.check_definitions = function ()
 	    let key = snippet[0];
 	    if (snippet2[0] === key) {
 		if (snippet[1] !== snippet2[1])
-		    console.log(`conflicting ${key}: ${snippet[1]} vs ${snippet2[1]} for ${this.name}`);
+		    ;//console.log(`conflicting ${key}: ${snippet[1]} vs ${snippet2[1]} for ${this.name}`);
 	    }
 	}
 };
@@ -192,7 +192,6 @@ Wasm32LM.prototype.dyninfo_apply_symbols =
     for (let symbol of [...this.allsymbols].sort((a,b) => a.name > b.name)) {
 	for (let definition of symbol.definitions)
 	    for (let reference of symbol.references) {
-		console.log(`applied ${symbol.name} ${JSON.stringify(definition)} ${JSON.stringify(reference)}`)
 		if (definition[0] === "code" &&
 		    reference[0] === "code") {
 		    vm.tableset(reference[1], definition[1]);
@@ -249,7 +248,6 @@ Wasm32LM.prototype.dyninfo_apply =
     this.dyninfo_apply_symbols (dyninfo, imports, module);
     this.dyninfo_fixups (dyninfo, imports, module);
     this.dyninfo_misc (dyninfo, imports, module);
-    console.log("done applying symbols");
 }
 
 /* A virtual memory object. */
