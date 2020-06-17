@@ -1137,7 +1137,7 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
     if (this.half)
         return this.half[0].write(data);
     else {
-        console.log(data);
+        putstr(data);
 
         return data.length;
     }
