@@ -76,6 +76,16 @@ jobs:
       with:
         name:
           wasm32-unknown-none-glibc.tar
+    - name: Download libc.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          libc.wasm
+    - name: Download ld.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          ld.wasm
     - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
