@@ -216,3 +216,8 @@ artifact-test:
 	bash -x github/artifact-init
 	echo bar > foo
 	bash -x github/ul-artifact foo foo
+
+artifact-test-2: artifact/wasm32.js
+	shasum artifact/wasm32.js/wasm32.js
+
+-include github/github.mk
