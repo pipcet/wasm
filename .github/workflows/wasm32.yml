@@ -713,6 +713,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - binutils
+    - gcc-preliminary
     - jsshell
     - wasm32-js
     steps:
@@ -742,6 +743,14 @@ jobs:
     - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Download gcc-preliminary
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack gcc-preliminary
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
     - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
     - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-ld -o 001-hello-world 001-hello-world.o
     - name: Directory shuffle
