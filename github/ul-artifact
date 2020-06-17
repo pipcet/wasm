@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+nodejs github/ul-artifact.js "$@"
