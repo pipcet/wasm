@@ -13,7 +13,7 @@ for my $file (@ARGV) {
 
 push @frags, <<'EOF';
 %.c.exe: %.c
-	$(WASMDIR)/bin/wasm32-unknown-none-gcc $< -o $@
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
 %.exe.wasm: %.exe
 	$(WASMDIR)/wasmify/wasmify-executable $< > $@
@@ -31,10 +31,10 @@ if (scalar keys %{$byext{c}} == 1) {
 if (scalar keys %{$byext{c}} > 0) {
     push @frags, <<'EOF';
 %.c.s: %.c
-	$(WASMDIR)/bin/wasm32-unknown-none-gcc -S $< -o $@
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
 
 %.c.o: %.c
-	$(WASMDIR)/bin/wasm32-unknown-none-gcc -c $< -o $@
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
 EOF
     for my $file (values %{$byext{c}}) {
 	push @all, "$file.s";
