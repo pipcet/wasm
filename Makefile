@@ -206,3 +206,5 @@ test/wasm32/%/Makefile: tests/%/ test-templ/Makefile.pl | test/wasm32/%
 
 test/wasm32/%/status: test/wasm32/%/Makefile
 	$(MAKE) WASMDIR=$(PWD) JS=$$JS -C test/wasm32/$* all
+
+all-tests: $(patsubst tests/%,test/wasm32/%/status,$(wildcard tests/*))

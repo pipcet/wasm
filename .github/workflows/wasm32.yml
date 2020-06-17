@@ -37,6 +37,8 @@ jobs:
       run: make -j10 built/common/binaryen
     - name: Build all
       run: make -j10 all
+    - name: Run all tests
+      run: make -j10 all-tests
 
   binaryen:
     name: binaryen
