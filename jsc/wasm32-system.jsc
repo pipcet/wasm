@@ -24,6 +24,46 @@ var global = this;
  *         -> thread
  */
 
+function Wasm32Symbol(name)
+{
+    this.name = name;
+    this.definitions = [];
+    this.references = [];
+}
+
+Wasm32Symbol.prototype.add_definition = function (definition)
+{
+    this.definitions.push(definition);
+    this.check_definitions();
+};
+
+Wasm32Symbol.prototype.check_definitions = function ()
+{
+    for (let snippet of this.definitions)
+	for (let snippet2 of this.definitions) {
+	    let key = snippet[0];
+	    if (snippet2[0] === key) {
+		if (snippet[1] !== snippet2[1])
+		    console.log(`conflicting ${key}: ${snippet[1]} vs ${snippet2[1]} for ${this.name}`);
+	    }
+	}
+};
+
+Wasm32Symbol.prototype.get_addr = function ()
+{
+    for (let def of this.definitions)
+	if (def[0] === "code" || def[0] === "data")
+	    return def[1];
+
+    return undefined
+    throw "undefined symbol " + this.name;
+};
+
+Wasm32Symbol.prototype.add_reference = function (reference)
+{
+    this.references.push(reference);
+};
+
 /* A link-map object. */
 function Wasm32LM(vm)
 {
