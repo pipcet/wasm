@@ -1,4 +1,3 @@
-
 name: wasm32
 on:
   push:
@@ -37,8 +36,51 @@ jobs:
       run: make -j10 built/common/binaryen
     - name: Build all
       run: make -j10 all
-    - name: Run all tests
-      run: make -j10 all-tests
+
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    needs:
+    - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Download binutils
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-binutils.tar
+    - name: Download gcc-preliminary
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc-preliminary.tar
+    - name: Download glibc
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-glibc.tar
+    - name: Download gcc
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          wasm32-unknown-none-gcc.tar
+    - name: Unpack binutils
+      run:
+        tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
+    - name: Unpack gcc-preliminary
+      run:
+        tar xf wasm32-unknown-none-gcc-preliminary.tar/wasm32-unknown-none-gcc-preliminary.tar
+    - name: Unpack glibc
+      run:
+        tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
+    - name: Unpack gcc
+      run:
+        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
+    - name: Run tests
+      run:
+        make -kj10 all-tests
 
   binaryen:
     name: binaryen

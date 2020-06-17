@@ -3,5 +3,6 @@
 
 int main(void)
 {
-  fputs_unlocked (stdout, "hello world\n");
+  fprintf (stderr, "stdout %p\n", stdout);
+  fputs_unlocked ("hello world\n", stdout);
 }
