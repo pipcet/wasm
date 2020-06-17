@@ -68,11 +68,6 @@ jobs:
       with:
         name:
           wasm32-unknown-none-glibc.tar
-    - name: Download gcc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          wasm32-unknown-none-gcc.tar
     - name: Unpack binutils
       run:
         tar xf wasm32-unknown-none-binutils.tar/wasm32-unknown-none-binutils.tar
@@ -82,9 +77,6 @@ jobs:
     - name: Unpack glibc
       run:
         tar xf wasm32-unknown-none-glibc.tar/wasm32-unknown-none-glibc.tar
-    - name: Unpack gcc
-      run:
-        tar xf wasm32-unknown-none-gcc.tar/wasm32-unknown-none-gcc.tar
     - name: Build wasmrewrite
       run: make bin/wasmrewrite
     - name: Build wasmssect
