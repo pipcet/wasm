@@ -259,7 +259,7 @@ artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts 
 	tar cf artifacts/glibc.tar wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
-artifact-gcc-preliminary: | install-texinfo-bison-flex install-gcc-dependencies subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted
+artifact-gcc: | install-texinfo-bison-flex install-gcc-dependencies subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar wasm32-unknown-none -N ./artifact-timestamp
@@ -284,5 +284,8 @@ fetch-gcc: artifacts/gcc.tar | fetch-glibc
 fetch-ncurses: artifacts/ncurses.tar | fetch-gcc
 	tar xf $<
 	touch $@
+
+%.wasm.wasm-objdump: %.wasm built/common/wabt
+	./bin/wasm-objdump -dhx $< > $@
 
 -include github/github.mk
