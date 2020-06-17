@@ -220,7 +220,12 @@ artifact-test:
 artifact-test-2: artifacts/wasm32.js
 	shasum artifacts/wasm32.js
 
-artifact-wasm32.js: | js/wasm32.js artifact-timestamp artifacts
+install-file-slurp:
+	sudo apt-get install cpanminus
+	sudo cpanm File::Slurp
+	touch $@
+
+artifact-wasm32.js: | install-file-slurp js/wasm32.js artifact-timestamp artifacts
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push
 
