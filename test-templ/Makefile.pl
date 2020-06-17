@@ -19,7 +19,11 @@ push @frags, <<'EOF';
 	$(WASMDIR)/wasmify/wasmify-executable $< > $@
 
 %.wasm.out: %.wasm
-	$(JS) $(WASMDIR)/js/wasm32.js $< > $@ 2> $*.wasm.err
+	$(JS) $(WASMDIR)/js/wasm32.js $< > $@ 2> $*.wasm.err || true
+	echo "STDOUT"
+	cat $@
+	echo "STDERR"
+	cat $*.wasm.err
 EOF
 if (scalar keys %{$byext{c}} == 1) {
     for my $file (values %{$byext{c}}) {
