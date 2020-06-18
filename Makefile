@@ -327,11 +327,10 @@ check-release:
 %.wasm.{Oz}.wasm: %.wasm built/common/binaryen
 	./bin/wasm-opt -Oz $< -o $@
 
-test/wasm32/%.c.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
+cflags = $(shell ./cflags $(1) $(2))
 
-test/wasm32/%.{nostdlib}.c.exe: test/wasm32/%.{nostdlib}.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -nostdlib -Wa,-I$(dir test-src/$*) $< -o $@
+test/wasm32/%.c.exe: test/wasm32/%.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@

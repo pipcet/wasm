@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+my $arg = $ARGV[0];
+my @comps = reverse(split(/\./, $arg));
+my %flags = (
+    "nostdlib" => "-nostdlib -Wa,-I,$ARGV[1]",
+    "O" => "-O2",
+    "O1" => "-O1",
+    "O2" => "-O2",
+    "O3" => "-O3",
+    "Og" => "-Og",
+    "Os" => "-Os",
+);
+my @flags;
+while (@comps && $comps[0] !~ /^\{.*\}$/) {
+    shift @comps;
+}
+while (@comps && $comps[0] =~ /^\{(.*)\}$/) {
+    push @flags, $flags{$1};
+    shift @comps;
+}
+print join(" ", reverse @flags);
