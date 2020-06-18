@@ -210,10 +210,11 @@ $(test-dirs): test/wasm32/%: | test-src/% test/wasm32 built/wasm32/glibc
 	cp -r test-src/$*/* test/wasm32/$*/
 	ln -sf ../../../test-src/$* test/wasm32/$*/src
 
-test/wasm32/%/test.mk: test-src/%/ test-templ/Makefile.pl | test/wasm32/%
-	perl test-templ/Makefile.pl test-src/$*/ test/wasm32/$*/ test-src/$*/* > $@
+test/wasm32/%/test.mk: test-src/% test-templ/Makefile.pl
+	mkdir -p test/wasm32/$*
+	perl test-templ/Makefile.pl test-src/$*/ test/wasm32/$*/ $(patsubst test-src/$*/%,%,$(wildcard test-src/$*/*)) > $@
 
-include $(patsubst test-src/%,test/wasm32/%/test.mk,$(wildcard test-src/*))
+include $(patsubst %,%/test.mk,$(test-dirs))
 
 all-tests: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
 
@@ -327,7 +328,7 @@ check-release:
 	$(PWD)/wasmify/wasmify-executable $< > $@
 
 %.wasm.out: %.wasm
-	$(JS) $(PWD)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
+	JS=$(JS) WASMDIR=$(PWD) $(JS) $(PWD)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
 	echo "STDOUT"
 	cat $@
 	echo "STDERR"
