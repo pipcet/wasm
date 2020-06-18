@@ -247,7 +247,8 @@ artifact-binutils: | install-texinfo-bison-flex subrepos/binutils-gdb/.checkout 
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
-artifact-gcc-preliminary: | install-texinfo-bison-flex install-gcc-dependencies subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted
+artifact-gcc-preliminary: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted
+	$(MAKE) install-gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
