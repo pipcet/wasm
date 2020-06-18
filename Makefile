@@ -156,6 +156,9 @@ wasm/ld.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld
 wasm/libc.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
 	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
 
+wasm/libm.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
+	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libm.so > $@
+
 wasm/libncurses.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so | wasm
 	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
 
@@ -250,6 +253,8 @@ artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts 
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
 	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
+	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm
+	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm artifacts/
 	$(MAKE) artifact-push
 
 artifact-gcc: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted
