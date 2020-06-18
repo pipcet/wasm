@@ -290,11 +290,7 @@ ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm a
 	(cd ship; for name in *; do curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets?name=$$name" --upload-file $$name; echo; done)
 
 check-release:
-	last_release_date="$$(curl https://api.github.com/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c -11)"
-	this_release_date="$$((date --iso))"
-	if [ "$$this_release_date" != "$$last_release_date" ]; then
-	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/$$GITHUB_REPOSITORY/releases" --data "{\"tag_name\":\"$$this_release_date\",\"name\":\"$$this_release_date (automatic release)\",\"prerelease\":true}"
-	fi
+	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c -11)"; this_release_date="$$((date --iso))"; if [ "$$this_release_date" != "$$last_release_date" ]; then curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/$$GITHUB_REPOSITORY/releases" --data "{\"tag_name\":\"$$this_release_date\",\"name\":\"$$this_release_date (automatic release)\",\"prerelease\":true}"; fi; true
 	true
 
 %.wasm.wasm-objdump: %.wasm built/common/wabt
