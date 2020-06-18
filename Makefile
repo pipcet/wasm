@@ -264,6 +264,14 @@ artifact-gcc: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts arti
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
+artifact-ncurses: | subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted artifacts/gcc.tar.extracted
+	$(MAKE) install-gcc-dependencies
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/ncurses wasm/libncurses.wasm
+	tar cf artifacts/ncurses.tar built wasm32-unknown-none -N ./artifact-timestamp
+	cp wasm/libncurses.wasm artifacts/
+	$(MAKE) artifact-push
+
 fetch-binutils: artifacts/binutils.tar
 	tar xf $<
 	touch $@

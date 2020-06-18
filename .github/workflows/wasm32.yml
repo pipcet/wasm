@@ -219,58 +219,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out subrepos/ncurses
-      run: git submodule update --depth=1 --single-branch --init subrepos/ncurses
-    - name: Download binutils
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          binutils.tar
-    - name: Download gcc-preliminary
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc-preliminary.tar
-    - name: Download glibc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          glibc.tar
-    - name: Download gcc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc.tar
-    - name: Unpack binutils
-      run:
-        tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc-preliminary
-      run:
-        tar xf gcc-preliminary.tar/gcc-preliminary.tar
-    - name: Unpack glibc
-      run:
-        tar xf glibc.tar/glibc.tar
-    - name: Unpack gcc
-      run:
-        tar xf gcc.tar/gcc.tar
-    - name: Artifact timestamp
-      run: touch artifact.stmp
-    - name: Build ncurses
-      run: make -kj10 built/wasm32/ncurses
-    - name: Create ncurses
-      run: tar cf ncurses.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload ncurses
-      uses: actions/upload-artifact@v1
-      with:
-        name: ncurses.tar
-        path: ncurses.tar
-    - name: Generate libncurses.wasm
-      run: make wasm/libncurses.wasm
-    - name: Upload libncurses.wasm
-      uses: actions/upload-artifact@v1
-      with:
-        name: libncurses.wasm
-        path: wasm/libncurses.wasm
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 artifact-ncurses
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   _001-hello-world-o:
     name: Hello World (assemble)
