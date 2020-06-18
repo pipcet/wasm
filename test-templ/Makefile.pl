@@ -7,8 +7,15 @@ my $prefix = shift @ARGV;
 for my $file (@ARGV) {
     $file = substr $file, length($prefix);
     my $ext = $file;
-    $ext =~ s/.*\.//g;
-    $byext{$ext}{$file} = $file;
+    do {
+	$byext{$ext}{$file} = substr($file, 0, length($file) - length($ext) - 1);
+	$ext =~ s/.*?\././;
+    } while ($ext =~ s/^\.//);
+}
+for my $ext (sort keys %byext) {
+    for my $file (sort keys %{$byext{$ext}}) {
+	warn "$ext $file $byext{$ext}{$file}";
+    }
 }
 
 push @frags, <<'EOF';
@@ -26,7 +33,7 @@ push @frags, <<'EOF';
 	cat $*.wasm.err
 EOF
 if (scalar keys %{$byext{c}} == 1) {
-    for my $file (values %{$byext{c}}) {
+    for my $file (keys %{$byext{c}}) {
 	push @all, "$file.exe";
 	push @all, "$file.exe.wasm";
 	push @all, "$file.exe.wasm.out";
@@ -40,26 +47,31 @@ if (scalar keys %{$byext{c}} > 0) {
 %.c.o: %.c
 	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
 EOF
-    for my $file (values %{$byext{c}}) {
+    for my $file (keys %{$byext{c}}) {
 	push @all, "$file.s";
 	push @all, "$file.o";
     }
 }
 
 for my $file (keys %{$byext{exp}}) {
-    my $out = $file;
-    $out =~ s/\.ext$//;
+    my $out = $byext{exp}{$file};
     push @frags, <<'EOF';
 %.exp.cmp: %.exp %
-	diff -u $^ | tee $@
-
-%.exp.cmp: %.exp.pl %
-	perl $^ | tee $@
+	diff -u $^ > $@
 EOF
     push @all, $file . ".cmp";
 }
 
+for my $file (keys %{$byext{"exp.pl"}}) {
+    my $out = $byext{"exp.pl"}{$file};
+    push @frags, <<'EOF';
+%.exp.cmp: %.exp.pl %
+	perl $^ > $@
+EOF
+    push @all, "$out.exp.cmp";
+}
+
 unshift @frags, "all: " . join(" ", @all) . "\n";
-unshift @frags, "vpath %.c src .\nvpath %.h src .\nvpath %.S src .\nvpath %.cc src .\nvpath %.exp src\n";
+unshift @frags, "vpath %.c src .\nvpath %.h src .\nvpath %.S src .\nvpath %.cc src .\nvpath %.exp src\nvpath %.exp.pl src\n";
 print join("\n", @frags);
-print ".SUFFIXES:\n";
+print "\n.SUFFIXES:\n";
