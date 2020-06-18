@@ -7,7 +7,8 @@ artifacts: | .github-init
 
 artifacts/%: | artifacts
 	bash -x github/dl-artifact $*
-	mv $@.new $@
+	mv $@.new/$@ $@
+	rm -rf $@.new
 	ls -l $@
 
 artifact-timestamp:
