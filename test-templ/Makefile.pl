@@ -23,7 +23,7 @@ push @frags, <<'EOF';
 	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
 %.c.{static}.exe: %.c
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -static $< -o $@
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,$*.c.{static}.map -static $< -o $@
 
 %.{static}.exe.wasm.out.exp: %.exe.wasm.out.exp
 	cat $< > $@
@@ -49,7 +49,6 @@ if (scalar keys %{$byext{c}} == 1) {
 	push @all, "$file.exe.wasm.out";
 	push @all, "$file.{static}.exe";
 	push @all, "$file.{static}.exe.wasm";
-	push @all, "$file.{static}.exe.wasm.wasm-objdump";
 	push @all, "$file.{static}.exe.wasm.out";
     }
 }
