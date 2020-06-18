@@ -103,6 +103,7 @@ public:
     case JSCType::f64:
       return prefix + "F64";
     }
+    abort();
   }
 };
 
