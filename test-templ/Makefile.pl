@@ -46,11 +46,12 @@ if (scalar keys %{$byext{c}} > 0) {
 
 for my $file (keys %{$byext{exp}}) {
     my $out = $byext{exp}{$file};
-    push @frags, <<'EOF';
-%.exp.cmp: %.exp %
-	diff -u $^ > $@ || (cat $@; false)
-EOF
     push @all, $outprefix . "/" . $file . ".cmp";
+}
+
+for my $file (keys %{$byext{"c.exe.wasm.out.exp"}}) {
+    my $out = $byext{"c.exe.wasm.out.exp"}{$file};
+    push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
 }
 
 for my $file (keys %{$byext{"exp.pl"}}) {
