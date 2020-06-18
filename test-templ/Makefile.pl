@@ -4,8 +4,10 @@ my @all;
 my @frags;
 
 my $prefix = shift @ARGV;
+my $outprefix = shift @ARGV;
+$prefix =~ s/\/*$//;
 for my $file (@ARGV) {
-    $file = substr $file, length($prefix);
+    # $file = substr $file, length($prefix);
     my $ext = $file;
     do {
 	$byext{$ext}{$file} = substr($file, 0, length($file) - length($ext) - 1);
@@ -18,29 +20,14 @@ for my $ext (sort keys %byext) {
     }
 }
 
+push @frags, <<"EOF";
+${prefix}/\%: ${prefix}/src/\% \| ${prefix}
+	cat \$< > \$\@
+EOF
+
 push @frags, <<'EOF';
-%.c.exe: %.c
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
-
-%.c.{static}.exe: %.c
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,$*.c.{static}.map -static $< -o $@
-
-%.{static}.exe.wasm.out.exp: %.exe.wasm.out.exp
-	cat $< > $@
-
-%.exe.wasm: %.exe
-	$(WASMDIR)/wasmify/wasmify-executable $< > $@
-
-%.wasm.out: %.wasm
-	$(JS) $(WASMDIR)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
-	echo "STDOUT"
-	cat $@
-	echo "STDERR"
-	cat $*.wasm.err
 EOF
 push @frags, <<'EOF';
-%.cc.exe: %.cc
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 EOF
 if (scalar keys %{$byext{c}} == 1) {
     for my $file (keys %{$byext{c}}) {
@@ -61,17 +48,6 @@ if (scalar keys %{$byext{cc}} == 1) {
 }
 if (scalar keys %{$byext{c}} > 0) {
     push @frags, <<'EOF';
-%.c.s: %.c
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
-
-%.c.o: %.c
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
-
-%.cc.s: %.cc
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
-
-%.cc.o: %.cc
-	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
 EOF
     for my $file (keys %{$byext{c}}) {
 	push @all, "$file.s";
@@ -91,13 +67,11 @@ EOF
 for my $file (keys %{$byext{"exp.pl"}}) {
     my $out = $byext{"exp.pl"}{$file};
     push @frags, <<'EOF';
-%.exp.cmp: %.exp.pl %
-	perl $^ > $@
 EOF
     push @all, "$out.exp.cmp";
 }
 
-unshift @frags, "all: " . join(" ", @all) . "\n";
+unshift @frags, "\$(patsubst test-src/\%,test/wasm32/\%/status,${prefix}): " . join(" ", @all) . "\n";
 unshift @frags, "vpath %.c src .\nvpath %.h src .\nvpath %.S src .\nvpath %.cc src .\nvpath %.exp src\nvpath %.exp.pl src\n";
 print join("\n", @frags);
 print "\n.SUFFIXES:\n";

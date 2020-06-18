@@ -4,6 +4,8 @@ MKDIR ?= mkdir
 PWD ?= $(shell pwd)
 OPT_NATIVE ?= "-O0 -g3"
 OPT_WASM ?= "-O2"
+WASMDIR ?= $(PWD)
+JS ?= $$JS
 
 env:
 	@echo "export WASMDIR=$(PWD)"
@@ -200,15 +202,18 @@ clean:
 .SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
 .PRECIOUS: test/wasm32/% test/wasm32/%/Makefile
 
-test/wasm32/%: | test-src/% test/wasm32 built/wasm32/glibc
+test-src-dirs = $(wildcard test-src/*)
+test-dirs = $(patsubst test-src/%,test/wasm32/%,$(test-src-dirs))
+
+$(test-dirs): test/wasm32/%: | test-src/% test/wasm32 built/wasm32/glibc
 	$(MKDIR) test/wasm32/$*
+	cp -r test-src/$*/* test/wasm32/$*/
 	ln -sf ../../../test-src/$* test/wasm32/$*/src
 
-test/wasm32/%/Makefile: test-src/%/ test-templ/Makefile.pl | test/wasm32/%
-	perl test-templ/Makefile.pl test-src/$*/ test-src/$*/* > $@
+test/wasm32/%/test.mk: test-src/%/ test-templ/Makefile.pl | test/wasm32/%
+	perl test-templ/Makefile.pl test-src/$*/ test/wasm32/$*/ test-src/$*/* > $@
 
-test/wasm32/%/status: test/wasm32/%/Makefile
-	$(MAKE) WASMDIR=$(PWD) JS=$$JS -C test/wasm32/$* all
+include $(patsubst test-src/%,test/wasm32/%/test.mk,$(wildcard test-src/*))
 
 all-tests: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
 
@@ -309,6 +314,43 @@ check-release:
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
 
--include github/github.mk
+%.c.exe: %.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
+
+%.c.{static}.exe: %.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,$*.c.{static}.map -static $< -o $@
+
+%.{static}.exe.wasm.out.exp: %.exe.wasm.out.exp
+	cat $< > $@
+
+%.exe.wasm: %.exe
+	$(PWD)/wasmify/wasmify-executable $< > $@
+
+%.wasm.out: %.wasm
+	$(JS) $(PWD)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
+	echo "STDOUT"
+	cat $@
+	echo "STDERR"
+	cat $*.wasm.err
+
+%.cc.exe: %.cc
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
+
+%.c.s: %.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
+
+%.c.o: %.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
+
+%.cc.s: %.cc
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
+
+%.cc.o: %.cc
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
+
+%.exp.cmp: %.exp.pl %
+	perl $^ > $@
+
+include github/github.mk
 
 .SUFFIXES:
