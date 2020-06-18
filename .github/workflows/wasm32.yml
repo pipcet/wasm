@@ -67,11 +67,11 @@ jobs:
       with:
         name:
           binutils.tar
-    - name: Download gcc-preliminary
+    - name: Download gcc
       uses: actions/download-artifact@v1
       with:
         name:
-          gcc-preliminary.tar
+          gcc.tar
     - name: Download glibc
       uses: actions/download-artifact@v1
       with:
@@ -90,9 +90,9 @@ jobs:
     - name: Unpack binutils
       run:
         tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc-preliminary
+    - name: Unpack gcc
       run:
-        tar xf gcc-preliminary.tar/gcc-preliminary.tar
+        tar xf gcc.tar/gcc.tar
     - name: Unpack glibc
       run:
         tar xf glibc.tar/glibc.tar
