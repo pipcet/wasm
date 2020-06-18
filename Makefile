@@ -331,10 +331,13 @@ test/wasm32/%.c.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
 test/wasm32/%.{nostdlib}.c.exe: test/wasm32/%.{nostdlib}.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -nostdlib $< -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -nostdlib -Wa,-I$(dir test-src/$*) $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
+
+test/wasm32/%.{nostdlib}.c.{static}.exe: test/wasm32/%.{nostdlib}.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,test/wasm32/$*.c.{static}.map -static -Wa,-I$(dir test-src/$*) $< -o $@
 
 test/wasm32/%.{static}.exe.wasm.out.exp: test/wasm32/%.exe.wasm.out.exp
 	cat $< > $@
@@ -357,6 +360,9 @@ test/wasm32/%.c.s: test/wasm32/%.c
 
 test/wasm32/%.c.o: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
+
+test/wasm32/%.{nostdlib}.c.o: test/wasm32/%.{nostdlib}.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wa,-I$(dir test-src/$*) -c $< -o $@
 
 test/wasm32/%.cc.s: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
