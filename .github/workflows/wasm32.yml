@@ -629,6 +629,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - ncurses
+    - bash
     steps:
     - uses: actions/checkout@v2
       with:
