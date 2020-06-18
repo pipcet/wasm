@@ -65,7 +65,7 @@ build/common/binaryen build/common/wabt: | build/common
 build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
 	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
 
-built/common/binaryen: build/common/binaryen/Makefile | built/common
+built/common/binaryen: build/common/binaryen/Makefile | built/common bin
 	$(MAKE) -C build/common/binaryen
 	$(MAKE) -C build/common/binaryen install
 	(cd bin; ln -sf ../common/bin/* .)
@@ -74,7 +74,7 @@ built/common/binaryen: build/common/binaryen/Makefile | built/common
 build/common/wabt/Makefile: | src/wabt build/common/wabt
 	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
 
-built/common/wabt: build/common/wabt/Makefile | built/common
+built/common/wabt: build/common/wabt/Makefile | built/common bin
 	$(MAKE) -C build/common/wabt
 	$(MAKE) -C build/common/wabt install
 	(cd bin; ln -sf ../common/bin/* .)
@@ -93,7 +93,7 @@ built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 build/wasm32/gcc-preliminary/Makefile: built/wasm32/binutils-gdb | build/wasm32/gcc-preliminary src/gcc
 	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
-built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32
+built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32 bin
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary install
 	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a

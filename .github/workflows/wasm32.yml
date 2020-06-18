@@ -311,7 +311,7 @@ jobs:
       run:
         tar xf gcc-preliminary.tar/gcc-preliminary.tar
     - name: Assemble hello-world.o
-      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
+      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o test-src/001-hello-world/hello-world.S
     - name: Upload hello-world.o
       uses: actions/upload-artifact@v1
       with:
@@ -353,7 +353,7 @@ jobs:
       run:
         tar xf glibc.tar/glibc.tar
     - name: Compile hello-world.exe
-      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/002-hello-world/hello-world.c -o 001-hello-world.exe
+      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./test-src/002-hello-world/hello-world.c -o 001-hello-world.exe
     - name: Upload hello-world.exe
       uses: actions/upload-artifact@v1
       with:
@@ -401,7 +401,7 @@ jobs:
       run:
         tar xf gcc.tar/gcc.tar
     - name: Compile hello-world.exe
-      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./tests/003-hello-world/hello-world.c -o 003-hello-world.exe
+      run: ./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./test-src/003-hello-world/hello-world.c -o 003-hello-world.exe
     - name: Upload hello-world.exe
       uses: actions/upload-artifact@v1
       with:
@@ -630,6 +630,7 @@ jobs:
     needs:
     - ncurses
     - bash
+    - tests
     steps:
     - uses: actions/checkout@v2
       with:
@@ -796,7 +797,7 @@ jobs:
   #   - name: Unpack gcc-preliminary
   #     run:
   #       tar xf gcc-preliminary.tar/gcc-preliminary.tar
-  #   - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o tests/001-hello-world/hello-world.S
+  #   - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-as -Iwasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/gas-macros/ -c -o 001-hello-world.o test-src/001-hello-world/hello-world.S
   #   - run: ./wasm32-unknown-none/bin/wasm32-unknown-none-ld -o 001-hello-world 001-hello-world.o
   #   - name: Directory shuffle
   #     run: mkdir wasm-dirs && mv *.wasm wasm-dirs
