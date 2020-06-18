@@ -202,74 +202,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: binutils
     steps:
-    - name: Install texinfo, bison, flex
-      run: sudo apt-get install texinfo bison flex
-    - name: Install GCC dependencies
-      run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out subrepos/gcc
-      run: git submodule update --depth=1 --single-branch --init subrepos/gcc
-    - name: Download binutils
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          binutils.tar
-    - name: Unpack binutils
-      run:
-        tar xf binutils.tar/binutils.tar
-    - name: Artifact timestamp
-      run: touch artifact.stmp
-    - name: Build preliminary gcc
-      run: make -kj10 built/wasm32/gcc-preliminary
-    - name: Create gcc-preliminary
-      run: tar cf gcc-preliminary.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload gcc-preliminary
-      uses: actions/upload-artifact@v1
-      with:
-        name: gcc-preliminary.tar
-        path: gcc-preliminary.tar
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 artifact-gcc-preliminary
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   glibc:
     name: glibc
     runs-on: ubuntu-latest
     needs: gcc-preliminary
     steps:
-    - name: Install texinfo, bison, flex
-      run: sudo apt-get install texinfo bison flex
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out subrepos/glibc
-      run: git submodule update --depth=1 --single-branch --init subrepos/glibc
-    - name: Download binutils
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          binutils.tar
-    - name: Download gcc-preliminary
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc-preliminary.tar
-    - name: Unpack binutils
-      run:
-        tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc-preliminary
-      run:
-        tar xf gcc-preliminary.tar/gcc-preliminary.tar
-    - name: Artifact timestamp
-      run: touch artifact.stmp
-    - name: Build glibc
-      run: make -kj10 built/wasm32/glibc
-    - name: Create glibc
-      run: tar cf glibc.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload glibc
-      uses: actions/upload-artifact@v1
-      with:
-        name: glibc.tar
-        path: glibc.tar
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 artifact-glibc
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Generate ld.wasm
       run: make wasm/ld.wasm wasm/libc.wasm
     - name: Generate libc.wasm
@@ -290,50 +244,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: glibc
     steps:
-    - name: Install texinfo, bison, flex
-      run: sudo apt-get install texinfo bison flex
-    - name: Install gcc dependencies
-      run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
     - uses: actions/checkout@v2
       with:
         submodules: false
-    - name: Check out subrepos/gcc
-      run: git submodule update --depth=1 --single-branch --init subrepos/gcc
-    - name: Download binutils
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          binutils.tar
-    - name: Download gcc-preliminary
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc-preliminary.tar
-    - name: Download glibc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          glibc.tar
-    - name: Unpack binutils
-      run:
-        tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc-preliminary
-      run:
-        tar xf gcc-preliminary.tar/gcc-preliminary.tar
-    - name: Unpack glibc
-      run:
-        tar xf glibc.tar/glibc.tar
-    - name: Artifact timestamp
-      run: touch artifact.stmp
-    - name: Build gcc
-      run: make -kj10 built/wasm32/gcc
-    - name: Create gcc
-      run: tar cf gcc.tar wasm32-unknown-none built -N ./artifact.stmp
-    - name: Upload gcc
-      uses: actions/upload-artifact@v1
-      with:
-        name: gcc.tar
-        path: gcc.tar
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 artifact-gcc
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ncurses:
     name: ncurses
