@@ -72,6 +72,5 @@ EOF
 }
 
 unshift @frags, "\$(patsubst test-src/\%,test/wasm32/\%/status,${prefix}): " . join(" ", @all) . "\n";
-unshift @frags, "vpath %.c src .\nvpath %.h src .\nvpath %.S src .\nvpath %.cc src .\nvpath %.exp src\nvpath %.exp.pl src\n";
 print join("\n", @frags);
 print "\n.SUFFIXES:\n";
