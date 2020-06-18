@@ -289,6 +289,17 @@ ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm a
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(cd ship; for name in *; do curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets?name=$$name" --upload-file $$name; echo; done)
 
+release:
+	this_release_number=$$(curl https://api.github.com/$$GITHUB_REPOSITORY/releases | jq ".[] | .tag_name" | perl ./github/next-release.pl)
+	curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" https://api.github.com/$$GITHUB_REPOSITORY/releases --data "{\"tag_name\":\"$$this_release_number\",\"name\":\"$$this_release_number (automatic release)\",\"prerelease\":true}"
+
+check-release:
+	last_release_date=$$(curl https://api.github.com/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c -11)
+	if [ $$(date --iso) != $$last_release ]; then
+	    $(MAKE) release
+	fi
+	true
+
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
 
