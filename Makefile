@@ -35,7 +35,7 @@ src/wabt: | src
 src/binaryen: | src
 	test -L $@ || ln -sf ../subrepos/binaryen $@
 
-bin build built js lib src test wasm:
+bin build built js lib ship src test wasm:
 	test -d $@ || $(MKDIR) $@
 
 build/common: | build
@@ -286,6 +286,12 @@ fetch-gcc: artifacts/gcc.tar | fetch-glibc
 fetch-ncurses: artifacts/ncurses.tar | fetch-gcc
 	tar xf $<
 	touch $@
+
+ship/ld.wasm ship/libc.wasm ship/libncurses.wasm:
+	echo bar > $@
+
+ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm | ship
+	(cd ship; for name in *; do curl -vsSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name"; curl -vsSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name"; done)
 
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@

@@ -652,6 +652,18 @@ jobs:
   #       name: emacs.wasm
   #       path: wasm/emacs.wasm
 
+  ship:
+    name: ship
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - run: make -kj10 ship-packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_ID: 27619169
+
   # ship:
   #   name: ship
   #   runs-on: ubuntu-latest
