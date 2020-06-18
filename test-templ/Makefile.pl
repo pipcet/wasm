@@ -71,6 +71,6 @@ EOF
     push @all, "$out.exp.cmp";
 }
 
-unshift @frags, "\$(patsubst test-src/\%,test/wasm32/\%/status,${prefix}): " . join(" ", @all) . "\n";
+unshift @frags, "${outprefix}/status:" . (@all ? (" " . join(" ", @all)) : "") . "\n";
 print join("\n", @frags);
 print "\n.SUFFIXES:\n";
