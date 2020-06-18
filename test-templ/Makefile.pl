@@ -51,7 +51,10 @@ for my $file (keys %{$byext{exp}}) {
     $out =~ s/\.ext$//;
     push @frags, <<'EOF';
 %.exp.cmp: %.exp %
-	diff -u $^
+	diff -u $^ | tee $@
+
+%.exp.cmp: %.exp.pl %
+	perl $^ | tee $@
 EOF
     push @all, $file . ".cmp";
 }
