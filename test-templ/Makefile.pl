@@ -22,6 +22,12 @@ push @frags, <<'EOF';
 %.c.exe: %.c
 	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
+%.c.{static}.exe: %.c
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -static $< -o $@
+
+%.{static}.exe.wasm.out.exp: %.exe.wasm.out.exp
+	cat $< > $@
+
 %.exe.wasm: %.exe
 	$(WASMDIR)/wasmify/wasmify-executable $< > $@
 
@@ -32,8 +38,23 @@ push @frags, <<'EOF';
 	echo "STDERR"
 	cat $*.wasm.err
 EOF
+push @frags, <<'EOF';
+%.cc.exe: %.cc
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
+EOF
 if (scalar keys %{$byext{c}} == 1) {
     for my $file (keys %{$byext{c}}) {
+	push @all, "$file.exe";
+	push @all, "$file.exe.wasm";
+	push @all, "$file.exe.wasm.out";
+	push @all, "$file.{static}.exe";
+	push @all, "$file.{static}.exe.wasm";
+	push @all, "$file.{static}.exe.wasm.wasm-objdump";
+	push @all, "$file.{static}.exe.wasm.out";
+    }
+}
+if (scalar keys %{$byext{cc}} == 1) {
+    for my $file (keys %{$byext{cc}}) {
 	push @all, "$file.exe";
 	push @all, "$file.exe.wasm";
 	push @all, "$file.exe.wasm.out";
@@ -46,6 +67,12 @@ if (scalar keys %{$byext{c}} > 0) {
 
 %.c.o: %.c
 	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
+
+%.cc.s: %.cc
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
+
+%.cc.o: %.cc
+	$(WASMDIR)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
 EOF
     for my $file (keys %{$byext{c}}) {
 	push @all, "$file.s";
