@@ -294,7 +294,7 @@ assets.json:
 	curl -sSL -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets" > $@
 
 ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm assets.json | ship
-	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets.json); do [ id != "0"] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
+	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(cd ship; for name in *; do curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets?name=$$name" --upload-file $$name; echo; done)
 
 %.wasm.wasm-objdump: %.wasm built/common/wabt
