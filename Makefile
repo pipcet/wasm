@@ -287,7 +287,7 @@ fetch-ncurses: artifacts/ncurses.tar | fetch-gcc
 	tar xf $<
 	touch $@
 
-ship/ld.wasm ship/libc.wasm ship/libncurses.wasm:
+ship/ld.wasm ship/libc.wasm ship/libncurses.wasm: | ship
 	echo bar > $@
 
 ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm | ship
