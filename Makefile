@@ -318,8 +318,20 @@ check-release:
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
 
+%.wasm.{O}.wasm: %.wasm built/common/binaryen
+	./bin/wasm-opt $< -o $@
+
+%.wasm.{O4}.wasm: %.wasm built/common/binaryen
+	./bin/wasm-opt -O4 $< -o $@
+
+%.wasm.{Oz}.wasm: %.wasm built/common/binaryen
+	./bin/wasm-opt -Oz $< -o $@
+
 test/wasm32/%.c.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
+
+test/wasm32/%.{nostdlib}.c.exe: test/wasm32/%.{nostdlib}.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -nostdlib $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
