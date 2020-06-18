@@ -108,7 +108,7 @@ for my $file (@ARGV) {
 	    #die "absolute relocation in dynamic object!"
 	} elsif (/^00000000 R_WASM32_NONE /) {
 	} else {
-	    warn("unhandled dynreloc " . $_);
+	    # warn("unhandled dynreloc " . $_);
 	}
     }
 
@@ -124,7 +124,6 @@ for my $file (@ARGV) {
                 if ($symbol eq ".wasm.plt_bias") {
                     $plt_bias = $value;
                 } elsif ($symbol eq ".wasm.plt_end") {
-		    warn "plt_end is $value";
                     $plt_end = $value;
                 } elsif ($symbol eq ".wasm.data") {
                     $data = $value;
