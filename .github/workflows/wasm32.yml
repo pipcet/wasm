@@ -43,6 +43,7 @@ jobs:
     needs:
     - jsshell
     - glibc
+    - gcc
     - wasm32-js
     steps:
     - uses: actions/checkout@v2
