@@ -287,8 +287,8 @@ fetch-ncurses: artifacts/ncurses.tar | fetch-gcc
 	tar xf $<
 	touch $@
 
-ship/ld.wasm ship/libc.wasm ship/libncurses.wasm: | ship
-	echo bar > $@
+ship/%.wasm: artifacts/%.wasm | ship
+	cat $< > $@
 
 assets.json:
 	curl -sSL -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets" > $@
