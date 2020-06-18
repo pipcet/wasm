@@ -291,7 +291,7 @@ ship/ld.wasm ship/libc.wasm ship/libncurses.wasm: | ship
 	echo bar > $@
 
 ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm | ship
-	(cd ship; for name in *; do curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" --header "Content-Length: 0" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name"; echo; curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name" --upload-file ship/$$name; echo; done)
+	(cd ship; for name in *; do curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" --header "Content-Length: 0" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name"; echo; curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$$name" --upload-file $$name; echo; done)
 
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
