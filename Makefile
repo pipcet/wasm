@@ -291,7 +291,7 @@ ship/ld.wasm ship/libc.wasm ship/libncurses.wasm: | ship
 	echo bar > $@
 
 assets.json:
-	curl -sSL -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets" > $@
+	curl -sSL -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets" | tee $@
 
 ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm assets.json | ship
 	jq ".[].id" < assets.json | while read; do curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets/$$REPLY"; echo; done
