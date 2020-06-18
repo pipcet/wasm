@@ -15,7 +15,7 @@ while (@comps && $comps[0] !~ /^\{.*\}$/) {
     shift @comps;
 }
 while (@comps && $comps[0] =~ /^\{(.*)\}$/) {
-    push @flags, $flags{$1};
+    push @flags, $flags{$1} || $1;
     shift @comps;
 }
 print join(" ", reverse @flags);
