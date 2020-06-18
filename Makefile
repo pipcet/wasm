@@ -273,7 +273,8 @@ artifact-gcc: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts arti
 artifact-ncurses: | subrepos/ncurses/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted artifacts/gcc.tar.extracted
 	$(MAKE) install-gcc-dependencies
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/ncurses wasm/libncurses.wasm
+	$(MAKE) built/wasm32/ncurses
+	$(MAKE) wasm/libncurses.wasm
 	tar cf artifacts/ncurses.tar built wasm32-unknown-none -N ./artifact-timestamp
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push
@@ -315,41 +316,41 @@ check-release:
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
 
-%.c.exe: %.c
+test/wasm32/%.c.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
-%.c.{static}.exe: %.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,$*.c.{static}.map -static $< -o $@
+test/wasm32/%.c.{static}.exe: test/wasm32/%.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
 
-%.{static}.exe.wasm.out.exp: %.exe.wasm.out.exp
+test/wasm32/%.{static}.exe.wasm.out.exp: test/wasm32/%.exe.wasm.out.exp
 	cat $< > $@
 
-%.exe.wasm: %.exe
+test/wasm32/%.exe.wasm: test/wasm32/%.exe
 	$(PWD)/wasmify/wasmify-executable $< > $@
 
-%.wasm.out: %.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(JS) $(PWD)/js/wasm32.js $< | tee $@ 2> $*.wasm.err || true
-	echo "STDOUT"
-	cat $@
-	echo "STDERR"
-	cat $*.wasm.err
+test/wasm32/%.wasm.out: test/wasm32/%.wasm
+	JS=$(JS) WASMDIR=$(PWD) $(JS) $(PWD)/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
+	@echo "STDOUT"
+	@cat $@
+	@echo "STDERR"
+	@cat test/wasm32/$*.wasm.err
 
-%.cc.exe: %.cc
+test/wasm32/%.cc.exe: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 
-%.c.s: %.c
+test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
 
-%.c.o: %.c
+test/wasm32/%.c.o: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -c $< -o $@
 
-%.cc.s: %.cc
+test/wasm32/%.cc.s: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
 
-%.cc.o: %.cc
+test/wasm32/%.cc.o: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
 
-%.exp.cmp: %.exp.pl %
+test/wasm32/%.exp.cmp: test/wasm32/%.exp.pl test/wasm32/%
 	perl $^ > $@
 
 include github/github.mk
