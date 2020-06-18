@@ -212,14 +212,6 @@ all-tests: $(patsubst tests/%,test/wasm32/%/status,$(wildcard tests/*))
 start-over:
 	rm -rf build built src test
 
-artifact-test:
-	bash -x github/artifact-init
-	echo bar > foo
-	bash -x github/ul-artifact foo foo
-
-artifact-test-2: artifacts/wasm32.js
-	shasum artifacts/wasm32.js
-
 subrepos/%/.checkout:
 	git submodule update --depth=1 --single-branch --init subrepos/$*
 
