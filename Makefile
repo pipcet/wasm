@@ -221,7 +221,7 @@ artifact-test-2: artifacts/wasm32.js
 	shasum artifacts/wasm32.js
 
 subrepos/%/.checkout:
-	git submodule update --init subrepos/$*
+	git submodule update --depth=1 --single-branch --init subrepos/$*
 
 install-file-slurp:
 	sudo apt-get install cpanminus

@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: true
-    - run: git submodule update --init --recursive --
+    - run: git submodule update --depth=1 --single-branch --init --recursive --
     - name: Install texinfo, bison, flex
       run: sudo apt-get install texinfo bison flex
     - name: Install GCC dependencies
