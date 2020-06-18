@@ -293,3 +293,5 @@ ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm assets.json | sh
 	./bin/wasm-objdump -dhx $< > $@
 
 -include github/github.mk
+
+.SUFFIXES:

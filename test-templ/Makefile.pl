@@ -59,3 +59,4 @@ EOF
 unshift @frags, "all: " . join(" ", @all) . "\n";
 unshift @frags, "vpath %.c src .\nvpath %.h src .\nvpath %.S src .\nvpath %.cc src .\nvpath %.exp src\n";
 print join("\n", @frags);
+print ".SUFFIXES:\n";
