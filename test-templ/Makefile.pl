@@ -51,7 +51,12 @@ for my $file (keys %{$byext{exp}}) {
 
 for my $file (keys %{$byext{"c.exe.wasm.out.exp"}}) {
     my $out = $byext{"c.exe.wasm.out.exp"}{$file};
-    push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
+    #push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
+}
+
+for my $file (keys %{$byext{"c.exe.wasm.out.exp.pl"}}) {
+    my $out = $byext{"c.exe.wasm.out.exp.pl"}{$file};
+    #push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
 }
 
 for my $file (keys %{$byext{"exp.pl"}}) {
