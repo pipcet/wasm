@@ -141,15 +141,17 @@ bin/wasmsect: wasmrewrite/wasmsect.c | bin
 
 # wasm/ targets.
 wasm/ld.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 | wasm
-	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
+	bash -x $^ > $@
 wasm/libc.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
-	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
+	bash -x $^ > $@
 wasm/libm.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
-	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libm.so > $@
+	bash -x $^ > $@
+wasm/libstdc++.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so | wasm
+	bash -x $^ > $@
 wasm/libncurses.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so | wasm built/wasm32/ncurses
-	bash -x bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
-wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash bin/wasmify-executable | wasm
-	bash -x bin/wasmify-executable $< > $@
+	bash -x $^ > $@
+wasm/bash.wasm: bin/wasmify-executable wasm32-unknown-none/wasm32-unknown-none/bin/bash | wasm
+	bash -x $^ > $@
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32-%.jsc | js
@@ -249,6 +251,8 @@ artifact-gcc!: | install-texinfo-bison-flex! subrepos/gcc/checkout! artifacts ar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
+	$(MAKE) wasm/libstdc++.wasm
+	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
 artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted!
 	$(MAKE) install-gcc-dependencies!
