@@ -20,23 +20,10 @@ src/wasm32/binutils-gdb: | src/wasm32
 	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
 	mv $@T $@
 
-src/gcc: | src
-	test -L $@ || ln -sf ../subrepos/gcc $@
+good-repos = gcc glibc ncurses bash wabt binaryen
 
-src/glibc: | src
-	test -L $@ || ln -sf ../subrepos/glibc $@
-
-src/ncurses: | src
-	test -L $@ || ln -sf ../subrepos/ncurses $@
-
-src/bash: | src
-	test -L $@ || ln -sf ../subrepos/bash $@
-
-src/wabt: | src
-	test -L $@ || ln -sf ../subrepos/wabt $@
-
-src/binaryen: | src
-	test -L $@ || ln -sf ../subrepos/binaryen $@
+$(patsubst %,src/%,$(good-repos)): src/%: | src
+	test -L $@ || ln -sf ../subrepos/$* $@
 
 bin build built github/assets github/release js lib ship src stamp test wasm:
 	test -d $@ || $(MKDIR) $@
