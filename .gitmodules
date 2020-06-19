@@ -30,3 +30,7 @@
 	path = subrepos/wabt
 	url = https://github.com/pipcet/wabt
 	branch = wasm
+[submodule "subrepos/libtool"]
+	path = subrepos/libtool
+	url = https://github.com/pipcet/libtool
+	branch = wasm
