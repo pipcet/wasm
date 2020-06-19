@@ -316,7 +316,7 @@ release/list!: | release
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > release/$$tag; done
 
 check-release!:
-	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c -11)"; \
+	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c 2-11)"; \
 	this_release_date="$$(date --iso)"; \
 	if [ "$$this_release_date" != "$$last_release_date" ]; then \
 	    node ./github/release.js "$$this_release_date" "$$last_release_date" > release.json; \
