@@ -585,10 +585,9 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-packages!
+    - run: make -kj10 ship-latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RELEASE_ID: 27619169
 
   release:
     name: release
