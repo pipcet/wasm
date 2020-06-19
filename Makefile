@@ -299,8 +299,8 @@ github/assets/%.json: | github/release/list!
 	    echo "[]" > $@; \
 	fi
 
-ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets-%.json | ship github/release/list!
-	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets-$*.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
+ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github/release/list!
+	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
 github/release/list!: | github/release
