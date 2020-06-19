@@ -1,4 +1,4 @@
-all: built/all
+all!: built/all
 
 MKDIR ?= mkdir
 PWD ?= $(shell pwd)
@@ -198,7 +198,7 @@ built/common/all: built/common/binaryen built/common/wabt
 %.cpp-lds.lds: %.cpp-lds
 	cpp < $< | egrep -v '^#' > $@
 
-clean:
+clean!:
 	rm -rf build built src wasm32-unknown-none
 
 .SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
@@ -218,11 +218,7 @@ test/wasm32/%/test.mk: test-src/% test-templ/Makefile.pl
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
-all-tests: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
-
-all-tests!:
-	rm -rf test
-	$(MAKE) all-tests
+run-all-tests!: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
 
 start-over:
 	rm -rf build built src test
@@ -241,7 +237,7 @@ install-texinfo-bison-flex:
 install-gcc-dependencies:
 	sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 
-artifacts/%.tar.extracted: artifacts/%.tar
+artifacts/%.tar.extracted!: artifacts/%.tar
 	tar xf artifacts/$*.tar
 
 artifact-wasm32.js: | install-file-slurp js/wasm32.js artifact-timestamp artifacts
@@ -254,14 +250,14 @@ artifact-binutils: | install-texinfo-bison-flex subrepos/binutils-gdb/.checkout 
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
-artifact-gcc-preliminary: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted
+artifact-gcc-preliminary: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted!
 	$(MAKE) install-gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
-artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted
+artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted!
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
 	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
@@ -269,14 +265,14 @@ artifact-glibc: | install-texinfo-bison-flex subrepos/glibc/.checkout artifacts 
 	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm artifacts/
 	$(MAKE) artifact-push
 
-artifact-gcc: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted
+artifact-gcc: | install-texinfo-bison-flex subrepos/gcc/.checkout artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted!
 	$(MAKE) install-gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push
 
-artifact-ncurses: | subrepos/ncurses/.checkout artifacts artifacts/binutils.tar.extracted artifacts/gcc-preliminary.tar.extracted artifacts/glibc.tar.extracted artifacts/gcc.tar.extracted
+artifact-ncurses: | subrepos/ncurses/.checkout artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted!
 	$(MAKE) install-gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/ncurses
@@ -285,23 +281,23 @@ artifact-ncurses: | subrepos/ncurses/.checkout artifacts artifacts/binutils.tar.
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push
 
-fetch-binutils: artifacts/binutils.tar
+fetch-binutils!: artifacts/binutils.tar
 	tar xf $<
 	touch $@
 
-fetch-gcc-preliminary: artifacts/gcc-preliminary.tar | fetch-binutils
+fetch-gcc-preliminary!: artifacts/gcc-preliminary.tar | fetch-binutils
 	tar xf $<
 	touch $@
 
-fetch-glibc: artifacts/glibc.tar | fetch-gcc-preliminary
+fetch-glibc!: artifacts/glibc.tar | fetch-gcc-preliminary
 	tar xf $<
 	touch $@
 
-fetch-gcc: artifacts/gcc.tar | fetch-glibc
+fetch-gcc!: artifacts/gcc.tar | fetch-glibc
 	tar xf $<
 	touch $@
 
-fetch-ncurses: artifacts/ncurses.tar | fetch-gcc
+fetch-ncurses!: artifacts/ncurses.tar | fetch-gcc
 	tar xf $<
 	touch $@
 
@@ -311,11 +307,11 @@ ship/%.wasm: artifacts/%.wasm | ship
 assets.json:
 	curl -sSL -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets" > $@
 
-ship-packages: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets.json | ship
+ship-packages!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets.json | ship
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(cd ship; for name in *; do curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$RELEASE_ID/assets?name=$$name" --upload-file $$name; echo; done)
 
-check-release:
+check-release!:
 	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c -11)"; this_release_date="$$(date --iso)"; if [ "$$this_release_date" != "$$last_release_date" ]; then curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data "{\"tag_name\":\"$$this_release_date\",\"name\":\"$$this_release_date (automatic release)\",\"prerelease\":true}"; fi; true
 	true
 
@@ -383,4 +379,7 @@ include github/github.mk
 
 .SUFFIXES:
 
-.PHONY: %!
+clean: clean!
+all: all!
+
+.PHONY: %! clean all
