@@ -306,6 +306,9 @@ github/check-release!:
 	fi; \
 	true
 
+github/latest: | github
+	$(MKDIR) $@
+
 # objdump debug rule
 %.wasm.wasm-objdump: %.wasm built/common/wabt
 	./bin/wasm-objdump -dhx $< > $@
