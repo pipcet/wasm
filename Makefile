@@ -323,7 +323,7 @@ check-release!:
 	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c 2-11)"; \
 	this_release_date="$$(date --iso)"; \
 	if [ "$$this_release_date" != "$$last_release_date" ]; then \
-	    node ./github/release.js "$$this_release_date" "$$last_release_date" > release.json; \
+	    node ./github/release.js $$this_release_date $$last_release_date > release.json; \
 	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@release.json'; \
 	    $(MAKE) ship-$$this_release_date!; \
 	fi; \

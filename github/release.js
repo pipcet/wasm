@@ -1,7 +1,7 @@
 let this_release_date = process.argv[2];
-this_release_date = this_release_date.substr(1, this_release_date.length - 2)
+//this_release_date = this_release_date.substr(1, this_release_date.length - 2)
 let last_release_date = process.argv[3];
-last_release_date = last_release_date.substr(1, this_release_date.length - 2)
+//last_release_date = last_release_date.substr(1, this_release_date.length - 2)
 let child_process = require("child_process");
 let log = child_process.execSync(`git log ${last_release_date}..HEAD --pretty=format:'%H %s%b'`).toString() || "no changes";
 let last_hash = child_process.execSync(`git rev-parse ${last_release_date}`).toString();
