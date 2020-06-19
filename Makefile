@@ -284,7 +284,7 @@ fetch-ncurses!: artifacts/ncurses.tar | fetch-gcc
 ship/%.wasm: artifacts/%.wasm | ship
 	cat $< > $@
 # Retrieve asset list (and cache it)
-github/assets/%.json: | github/release/list!
+github/assets/%.json: | github/release/list! github/assets
 	if [ -e "github/release/\"$*\"" ]; then \
 	    curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets" > $@; \
 	else \
