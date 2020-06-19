@@ -220,6 +220,10 @@ include $(patsubst %,%/test.mk,$(test-dirs))
 
 all-tests: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
 
+all-tests!:
+	rm -rf test
+	$(MAKE) all-tests
+
 start-over:
 	rm -rf build built src test
 
@@ -339,7 +343,7 @@ test/wasm32/%.{static}.exe.wasm.out.exp: test/wasm32/%.exe.wasm.out.exp
 	cat $< > $@
 
 test/wasm32/%.exe.wasm: test/wasm32/%.exe
-	$(PWD)/wasmify/wasmify-executable $< > $@
+	bash -x $(PWD)/wasmify/wasmify-executable $< > $@
 
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(JS) $(PWD)/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
@@ -378,3 +382,5 @@ test/%.exp.cmp: test/%.exp test/%
 include github/github.mk
 
 .SUFFIXES:
+
+.PHONY: %!
