@@ -1,0 +1,10 @@
+const this_release_date = process.argv[2];
+const last_release_date = process.argv[3];
+const child_process = require("child_process");
+const log = child_process.execSync(`git log ${last_release_date}..HEAD --pretty=format:'%H %s%b'`).toString();
+let json = {};
+json.tag_name = this_release_date;
+json.name = `this_release_date (automatic release)`;
+json.prelease = true;
+json.body = log;
+console.log(JSON.stringify(json));
