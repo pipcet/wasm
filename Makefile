@@ -1,4 +1,5 @@
-all!: built/all run-all-tests!
+all!: built/all run-all-tests! js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasmify/wasmify-executable wasmify/wasmify-library wasmrewrite/wasmrewrite wasmrewrite/wasmsect bin/wasmrewrite bin/wasmsect
+	cp wasm/* .
 
 MKDIR ?= mkdir
 PWD ?= $(shell pwd)
