@@ -306,8 +306,11 @@ ship/%.wasm: artifacts/%.wasm | ship
 	cat $< > $@
 
 assets-%.json: | release/list!
-	@echo "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets"
-	curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets" > $@
+	if [ -e "release/\"$*\"" ]; then \
+	    curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets" > $@; \
+	else \
+	    echo "[]" > $@; \
+	fi
 
 ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets-%.json | ship release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets-$*.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
