@@ -38,11 +38,11 @@ src/wabt: | src
 src/binaryen: | src
 	test -L $@ || ln -sf ../subrepos/binaryen $@
 
-bin build built github/assets github/release js lib ship src test wasm:
+bin build built github/assets github/release js lib ship src stamp test wasm:
 	test -d $@ || $(MKDIR) $@
 
 start-over!:
-	rm -rf bin build built github/assets github/release js lib ship src test wasm wasm32-unknown-none
+	rm -rf bin build built github/assets github/release js lib ship src stamp test wasm wasm32-unknown-none
 
 build/common: | build
 	test -d $@ || $(MKDIR) $@
