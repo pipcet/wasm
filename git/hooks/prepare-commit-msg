@@ -32,7 +32,7 @@ EOF
     }
     if (@subrepos > 1) {
 	$msg = <<"EOF" . $msg;
-Update subrepos ($subrepo_list)
+Update subrepos ($subrepos)
 
 EOF
     } else {
