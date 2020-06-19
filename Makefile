@@ -312,6 +312,7 @@ github/check-release!:
 	if [ "$$this_release_date" != "$$last_release_date" ]; then \
 	    node ./github/release.js $$this_release_date $$last_release_date > github/release.json; \
 	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@github/release.json'; \
+	    sleep 1m; \
 	    $(MAKE) ship-$$this_release_date!; \
 	fi; \
 	true

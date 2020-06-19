@@ -5,6 +5,8 @@ let last_release_date = process.argv[3];
 let child_process = require("child_process");
 let log = child_process.execSync(`git log ${last_release_date}..HEAD --pretty=format:'%H %s%b'`).toString() || "no changes";
 let last_hash = child_process.execSync(`git rev-parse ${last_release_date}`).toString();
+while (last_hash[last_hash.length-1] === "\n")
+    last_hash = last_hash.substr(last_hash.length-1);
 let json = {};
 json.tag_name = this_release_date;
 json.name = `${this_release_date} (automatic release)`;
