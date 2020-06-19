@@ -1,4 +1,4 @@
-all!: built/all
+all!: built/all run-all-tests!
 
 MKDIR ?= mkdir
 PWD ?= $(shell pwd)
