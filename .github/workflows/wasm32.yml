@@ -72,6 +72,11 @@ jobs:
       with:
         name:
           gcc.tar
+    - name: Download gcc-preliminary
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          gcc-preliminary.tar
     - name: Download glibc
       uses: actions/download-artifact@v1
       with:
@@ -90,12 +95,15 @@ jobs:
     - name: Unpack binutils
       run:
         tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc
+    - name: Unpack gcc-preliminary
       run:
-        tar xf gcc.tar/gcc.tar
+        tar xf gcc-preliminary.tar/gcc-preliminary.tar
     - name: Unpack glibc
       run:
         tar xf glibc.tar/glibc.tar
+    - name: Unpack gcc
+      run:
+        tar xf gcc.tar/gcc.tar
     - name: Build wasmrewrite
       run: make bin/wasmrewrite
     - name: Build wasmssect
