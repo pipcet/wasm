@@ -42,7 +42,7 @@ bin build built js lib release ship src test wasm:
 	test -d $@ || $(MKDIR) $@
 
 start-over!:
-	rm -rf bin build built js lib release ship src test wasm
+	rm -rf bin build built js lib release ship src test wasm wasm32-unknown-none
 
 build/common: | build
 	test -d $@ || $(MKDIR) $@
