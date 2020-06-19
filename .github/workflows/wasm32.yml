@@ -161,7 +161,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make artifact-wasm32.js
+    - run: make artifact-wasm32.js!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -174,7 +174,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-binutils
+    - run: make -kj10 artifact-binutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -188,7 +188,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-gcc-preliminary
+    - run: make -kj10 artifact-gcc-preliminary!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -202,7 +202,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-glibc
+    - run: make -kj10 artifact-glibc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -216,7 +216,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-gcc
+    - run: make -kj10 artifact-gcc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -230,7 +230,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-ncurses
+    - run: make -kj10 artifact-ncurses!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
