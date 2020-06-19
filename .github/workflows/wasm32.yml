@@ -601,7 +601,7 @@ jobs:
         fetch-depth: 0
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 check-release!
+    - run: make -kj10 github/check-release!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         RELEASE_ID: 27619169

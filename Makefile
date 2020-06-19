@@ -38,11 +38,11 @@ src/wabt: | src
 src/binaryen: | src
 	test -L $@ || ln -sf ../subrepos/binaryen $@
 
-bin build built js lib release ship src test wasm:
+bin build built github/assets github/release js lib ship src test wasm:
 	test -d $@ || $(MKDIR) $@
 
 start-over!:
-	rm -rf bin build built js lib release ship src test wasm wasm32-unknown-none
+	rm -rf bin build built github/assets github/release js lib ship src test wasm wasm32-unknown-none
 
 build/common: | build
 	test -d $@ || $(MKDIR) $@
@@ -305,27 +305,26 @@ fetch-ncurses!: artifacts/ncurses.tar | fetch-gcc
 ship/%.wasm: artifacts/%.wasm | ship
 	cat $< > $@
 
-assets-%.json: | release/list!
-	if [ -e "release/\"$*\"" ]; then \
-	    curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets" > $@; \
+github/assets/%.json: | github/release/list!
+	if [ -e "github/release/\"$*\"" ]; then \
+	    curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets" > $@; \
 	else \
 	    echo "[]" > $@; \
 	fi
 
-ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets-%.json | ship release/list!
+ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm assets-%.json | ship github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < assets-$*.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-release/list!: | release
-	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > release/$$tag; done
-	ls -l release
+github/release/list!: | github/release
+	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
 
-check-release!:
+github/check-release!:
 	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c 2-11)"; \
 	this_release_date="$$(date --iso)"; \
 	if [ "$$this_release_date" != "$$last_release_date" ]; then \
-	    node ./github/release.js $$this_release_date $$last_release_date > release.json; \
-	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@release.json'; \
+	    node ./github/release.js $$this_release_date $$last_release_date > github/release.json; \
+	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@github/release.json'; \
 	    $(MAKE) ship-$$this_release_date!; \
 	fi; \
 	true
