@@ -393,6 +393,6 @@ include github/github.mk
 .SUFFIXES:
 
 clean: clean!
-all: all!
+all: built/all
 
 .PHONY: %! clean all
