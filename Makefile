@@ -342,6 +342,15 @@ test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
 test/wasm32/%.c.{static}.exe.wasm.out.exp.pl: test/wasm32/%.c.exe.wasm.out.exp.pl
 	cat $< > $@
 
+test/wasm32/%.cc.{static}.exe: test/wasm32/%.cc
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
+
+test/wasm32/%.cc.{static}.exe.wasm.out.exp: test/wasm32/%.cc.exe.wasm.out.exp
+	cat $< > $@
+
+test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp.pl
+	cat $< > $@
+
 # exe -> wasm rule
 test/wasm32/%.exe.wasm: test/wasm32/%.exe
 	bash -x $(PWD)/wasmify/wasmify-executable $< > $@
