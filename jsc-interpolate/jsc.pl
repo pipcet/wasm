@@ -64,7 +64,7 @@ int main(void) {
 
 $prefix = $ARGV[0] // "wasm32-unknown-none";
 
-if (-e "cache/interpolate-cache-${prefix}.pl") {
+if (-e "cache/jsc/${prefix}.pl") {
     $cache = eval(read_file("cache/jsc/${prefix}.pl")) // {};
 } else {
     $cache = {};
