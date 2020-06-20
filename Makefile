@@ -411,19 +411,18 @@ artifact-push!:
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
 gcc-testsuite!:
-	$(MAKE) subrepos/binutils-gdb/checkout!
-	$(MAKE) subrepos/gcc/checkout!
-	$(MAKE) subrepos/glibc/checkout!
-	$(MAKE) github/install/file-slurp
-	$(MAKE) github/install/texinfo-bison-flex
-	$(MAKE) github/install/gcc-dependencies
-	$(MAKE) built/wasm32/binutils-gdb
-	$(MAKE) built/wasm32/gcc-preliminary
-	$(MAKE) built/wasm32/glibc
-	$(MAKE) built/wasm32/gcc
+	$(MAKE) subrepos/binutils-gdb/checkout! > /dev/null
+	$(MAKE) subrepos/gcc/checkout! > /dev/null
+	$(MAKE) subrepos/glibc/checkout! > /dev/null
+	$(MAKE) github/install/file-slurp > /dev/null
+	$(MAKE) github/install/texinfo-bison-flex > /dev/null
+	$(MAKE) github/install/gcc-dependencies > /dev/null
+	$(MAKE) built/wasm32/binutils-gdb > /dev/null
+	$(MAKE) built/wasm32/gcc-preliminary > /dev/null
+	$(MAKE) built/wasm32/glibc > /dev/null
 	$(MAKE) artifact-timestamp
-	(cd build/wasm32/gcc/gcc; make check) | tee gcc-out.log || true
-	cp gcc-out.log build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/
+	(cd build/wasm32/gcc-preliminary/gcc; make check) | tee gcc-out.log || true
+	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
 	$(MAKE) artifact-push!
 
 .SUFFIXES:
