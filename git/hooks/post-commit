@@ -1,0 +1,12 @@
+#!/bin/bash
+# find -name hooks | while read; do ln -sf ../../../../../git/hooks/post-commit "$REPLY"/post-commit; done
+toplevel="$(git rev-parse --show-toplevel)"
+super_toplevel="$(git rev-parse --show-superproject-working-tree)"
+if [ "$toplevel" == "$super_toplevel" ]; then
+    exit 0;
+fi
+subrepo="$(echo $toplevel | cut -c $((2 + $(echo -n "$super_toplevel" | wc -c)))-)"
+echo "subrepo $subrepo" > /dev/stderr
+msg="$(git log -1 --pretty='%s (%H)'; git log -1 --pretty='%b')"
+cd "$super_toplevel"
+(unset GIT_DIR; unset GIT_INDEX_FILE; git commit --allow-empty -m "$subrepo: $msg" -- $subrepo)
