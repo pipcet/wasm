@@ -456,6 +456,11 @@ artifact-push!:
 	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
 	$(MAKE) artifact-push!
 
+binutils-test!:
+	$(MAKE) subrepos/binutils-gdb/checkout!
+	$(MAKE) built/wasm32/binutils-gdb
+	$(MAKE) -C build/wasm32/binutils-gdb check
+
 .SUFFIXES:
 
 clean: clean!

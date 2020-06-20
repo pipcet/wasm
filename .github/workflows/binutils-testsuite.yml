@@ -1,0 +1,15 @@
+name: binutils-testsuite
+on:
+  push:
+    branches: [ master ]
+jobs:
+  binutils-check:
+    name: make check (binutils)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 binutils-test!
