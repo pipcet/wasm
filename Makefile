@@ -217,10 +217,28 @@ github/install/file-slurp: | github/install
 	touch $@
 github/install/texinfo-bison-flex: | github/install
 	sudo apt-get install texinfo bison flex
+	touch $@
 github/install/gcc-dependencies: | github/install
 	sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+	touch $@
 github/install/dejagnu: | github/install
 	sudo apt-get install dejagnu
+	touch $@
+github/install/binfmt_misc : | github/install
+	$(MKDIR) $@
+github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
+	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
+	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/bin/interpret/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
+	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
+	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/bin/interpret/wasm"':' > /proc/sys/fs/binfmt_misc/register
+
+bin/interpret: | bin
+	$(MKDIR) $@
+bin/interpret/wasm: interpret/wasm
+	cp $< $@
+bin/interpret/elf32-wasm32: interpret/elf32-wasm32
+	cp $< $@
 
 # Extract an artifact
 artifacts/%.tar.extracted!: artifacts/%.tar
