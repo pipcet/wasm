@@ -457,7 +457,7 @@ artifact-push!:
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) > $(notdir $*).out || true
-	cp $(notdir $*).out build/wasm32/gcc-preliminary/gcc/testsuite/gcc/$*.log artifacts/
+	cp $(notdir $*).out build/wasm32/gcc-preliminary/gcc/testsuite/gcc/$(patsubst %.exp,%.log,$*) artifacts/
 	$(MAKE) artifact-push!
 
 binutils-test!:
