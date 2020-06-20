@@ -418,7 +418,7 @@ jobs:
       - name: Install binfmt_misc
         run: make github/install/binfmt_misc/wasm
       - name: chmod
-        run: chmod u+x 001-hello-world.wasm
+        run: chmod a+x 001-hello-world.wasm
       - name: ls -l
         run: ls -l 001-hello-world.wasm
       - name: Run
