@@ -1,2 +1,2 @@
 #!/bin/bash
-exit 1
+exec node $(dirname "$0")/../js/wasm32.js "$@"
