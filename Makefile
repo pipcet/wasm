@@ -422,8 +422,8 @@ gcc-testsuite!:
 	$(MAKE) github/install/gcc-dependencies > /dev/null
 	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) built/wasm32/binutils-gdb > /dev/null
-	$(MAKE) built/wasm32/gcc-preliminary > /dev/null
-	$(MAKE) built/wasm32/glibc > /dev/null
+	$(MAKE) built/wasm32/gcc-preliminary
+	$(MAKE) built/wasm32/glibc
 	$(MAKE) artifact-timestamp
 	(cd build/wasm32/gcc-preliminary/gcc; make check) | tee gcc-out.log || true
 	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
