@@ -153,10 +153,10 @@ wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-t
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
-	perl ./jsc-interpolate/jsc.pl wasm32-unknown-none < $< > $@
+	tools/bin/jsc wasm32-unknown-none < $< > $@
 # asm- is the common prefix
 js/wasm32-%.jsc.js: jsc/common/%.jsc | js
-	perl ./jsc-interpolate/jsc.pl wasm32-unknown-none < $< > $@
+	tools/bin/jsc wasm32-unknown-none < $< > $@
 
 # fixme: don't use a wildcard here.
 jsc = $(wildcard jsc/wasm32/*.jsc) $(wildcard jsc/common/*.jsc)

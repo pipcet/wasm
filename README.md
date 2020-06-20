@@ -14,16 +14,12 @@ Directories:
   To go away.
 1. jsc
   JavaScript files with C++ substitution
-1. jsc-interpolate
-  To go away.
 1. lds
   Linker scripts
 1. run
   To go away.
 1. subrepos
   The external subrepositories
-1. test-src
-  To go away.
 1. test-templ
   To go away.
 1. testsuite
