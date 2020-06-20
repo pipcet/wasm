@@ -135,20 +135,20 @@ bin/wasmsect: wasmrewrite/wasmsect.c | bin
 	gcc -g3 $< -o $@
 
 # wasm/ targets.
-wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm | wasm
+wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
 	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm | wasm
+wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
 	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm | wasm
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-	bash $^ > $@
-wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm | wasm
+wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
 	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
 	bash $^ > $@
-wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm | wasm built/wasm32/ncurses
+wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
 	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
 	bash $^ > $@
-wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm | wasm
+wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm built/wasm32/ncurses
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
+	bash $^ > $@
+wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
 	bash tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
