@@ -187,21 +187,21 @@ clean!:
 .PRECIOUS: test/wasm32/%
 
 # Test framework
-test-src-dirs = $(wildcard test-src/*)
-test-dirs = $(patsubst test-src/%,test/wasm32/%,$(test-src-dirs))
+testsuite-dirs = $(wildcard testsuite/*)
+test-dirs = $(patsubst testsuite/%,test/wasm32/%,$(testsuite-dirs))
 
-$(test-dirs): test/wasm32/%: | test-src/% test/wasm32 built/wasm32/glibc
+$(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 built/wasm32/glibc
 	$(MKDIR) test/wasm32/$*
-	cp -r test-src/$*/* test/wasm32/$*/
-	ln -sf ../../../test-src/$* test/wasm32/$*/src
+	cp -r testsuite/$*/* test/wasm32/$*/
+	ln -sf ../../../testsuite/$* test/wasm32/$*/src
 
-test/wasm32/%/test.mk: test-src/% test-templ/Makefile.pl
+test/wasm32/%/test.mk: testsuite/% test-templ/Makefile.pl
 	mkdir -p test/wasm32/$*
-	perl test-templ/Makefile.pl test-src/$*/ test/wasm32/$*/ $(patsubst test-src/$*/%,%,$(wildcard test-src/$*/*)) > $@
+	perl test-templ/Makefile.pl testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
-run-all-tests!: $(patsubst test-src/%,test/wasm32/%/status,$(wildcard test-src/*))
+run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*))
 
 # GitHub support
 # Check out a subrepo
@@ -362,10 +362,10 @@ github/latest: | github
 cflags = $(shell tools/bin/cflags $(1) $(2))
 
 test/wasm32/%.c.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) $< -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
 
 test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
 	cat $< > $@
@@ -374,7 +374,7 @@ test/wasm32/%.c.{static}.exe.wasm.out.exp.pl: test/wasm32/%.c.exe.wasm.out.exp.p
 	cat $< > $@
 
 test/wasm32/%.cc.{static}.exe: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
 
 test/wasm32/%.cc.{static}.exe.wasm.out.exp: test/wasm32/%.cc.exe.wasm.out.exp
 	cat $< > $@
@@ -401,7 +401,7 @@ test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
 
 test/wasm32/%.c.o: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir test-src/$*)) -c $< -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.cc.s: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
