@@ -7,13 +7,16 @@ use File::Slurp qw(write_file read_file);
 
 my $non_subrepos = 0;
 my $subrepos = 0;
+my %subrepos;
+my %paths;
 my $msg = "";
 for my $line (`git status -s`) {
     chomp $line;
-    if ($line =~ /^M  subrepos\/([^\/]*)$/) {
+    if ($line =~ /^M. subrepos\/([^\/]*)$/) {
         $subrepos{$1} = 1;
 	$subrepos = 1;
-    } elsif ($line =~ /^[ADM]/) {
+    } elsif ($line =~ /^[ADM]. (.*)$/) {
+	$paths{$1} = 1;
         $non_subrepos = 1;
     }
 }
@@ -38,6 +41,8 @@ EOF
     } else {
 	$msg = "Update " . $msg;
     }
+} elsif (scalar keys %paths == 1) {
+    $msg = join(", ", sort keys %paths) . ": " . $msg;
 }
 
 write_file($commit_msg_file, "$msg" . read_file($commit_msg_file));
