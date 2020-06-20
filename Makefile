@@ -361,7 +361,7 @@ github/latest: | github
 # C -> exe/o/s rules. These take special flags as part of the filename:
 #  foo.{nostdlib}.c: a C file to be compiled without stdlibs
 #  foo.c.{static}.exe: an executable compiled statically, from foo.c
-cflags = $(shell ./cflags $(1) $(2))
+cflags = $(shell tools/bin/cflags $(1) $(2))
 
 test/wasm32/%.c.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir test-src/$*)) $< -o $@
