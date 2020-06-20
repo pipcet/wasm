@@ -231,14 +231,16 @@ github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_
 	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/bin/interpret/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/bin/interpret/wasm"':' > /proc/sys/fs/binfmt_misc/register
+	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/bin/interpret/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 
 bin/interpret: | bin
 	$(MKDIR) $@
 bin/interpret/wasm: interpret/wasm
 	cp $< $@
+	chmod u+x $@
 bin/interpret/elf32-wasm32: interpret/elf32-wasm32
 	cp $< $@
+	chmod u+x $@
 
 # Extract an artifact
 artifacts/%.tar.extracted!: artifacts/%.tar
@@ -283,7 +285,8 @@ artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extrated! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! artifacts/ncurses.tar.extracted!
+artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! artifacts/ncurses.tar.extracted!
+	$(MAKE) github/install/texinfo-bison-flex
 	$(MAKE) github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
@@ -452,9 +455,15 @@ artifact-push!:
 	$(MAKE) artifacts
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
-	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee gcc-out.log || true
-	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
+	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) > $(notdir $*).out || true
+	cp $(notdir $*).out build/wasm32/gcc-preliminary/gcc/testsuite/gcc/$(notdir $*).log artifacts/
 	$(MAKE) artifact-push!
+
+binutils-test!:
+	$(MAKE) github/install/texinfo-bison-flex
+	$(MAKE) subrepos/binutils-gdb/checkout!
+	$(MAKE) built/wasm32/binutils-gdb
+	$(MAKE) -C build/wasm32/binutils-gdb check
 
 .SUFFIXES:
 

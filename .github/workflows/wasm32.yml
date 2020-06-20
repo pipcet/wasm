@@ -246,7 +246,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-bash!
+    - run: make -k artifact-bash!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -419,8 +419,10 @@ jobs:
         run: make github/install/binfmt_misc/wasm
       - name: chmod
         run: chmod u+x 001-hello-world.wasm
+      - name: ls -l
+        run: ls -l 001-hello-world.wasm
       - name: Run
-        run: WASMDIR=. ./001-hello-world.wasm
+        run: WASMDIR=. JS=`pwd`/bin/js `pwd`/001-hello-world.wasm
 
   _001-hello-world-run:
     name: Hello World (run)
