@@ -154,14 +154,14 @@ wasm/bash.wasm: bin/wasmify-executable wasm32-unknown-none/wasm32-unknown-none/b
 	bash -x $^ > $@
 
 # JSC->js substitution
-js/wasm32-%.jsc.js: jsc/wasm32-%.jsc | js
+js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
 	perl ./jsc-interpolate/jsc.pl wasm32-unknown-none < $< > $@
 # asm- is the common prefix
-js/wasm32-%.jsc.js: jsc/asm-%.jsc | js
+js/wasm32-%.jsc.js: jsc/common/%.jsc | js
 	perl ./jsc-interpolate/jsc.pl wasm32-unknown-none < $< > $@
 
 # fixme: don't use a wildcard here.
-jsc = $(wildcard jsc/wasm32-*.jsc) $(wildcard jsc/asm-*.jsc)
+jsc = $(wildcard jsc/wasm32/*.jsc) $(wildcard jsc/common/*.jsc)
 
 # build the runtime JS
 js/wasm32.js: js/wasm32-main.jsc.js js/wasm32-range.jsc.js js/wasm32-system.jsc.js js/wasm32-thinthin.jsc.js js/wasm32-boot.jsc.js
