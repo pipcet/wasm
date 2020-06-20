@@ -425,6 +425,7 @@ artifact-push!:
 	$(MAKE) built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
 	$(MAKE) artifact-timestamp
+	$(MAKE) artifacts
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee gcc-out.log || true
