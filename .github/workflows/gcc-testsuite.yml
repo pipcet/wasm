@@ -3,8 +3,8 @@ on:
   push:
     branches: [ master ]
 jobs:
-  gcc:
-    name: gcc
+  gcc-c-torture-compile:
+    name: gcc.c-torture/compile
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -12,4 +12,24 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 gcc-testsuite!
+    - run: make -kj10 gcc-testsuite-gcc.c-torture/compile/compile.exp!
+  gcc-c-torture-execute:
+    name: gcc.c-torture/execute
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 gcc-testsuite-gcc.c-torture/execute/execute.exp!
+  gcc-dg-dg:
+    name: gcc.dg/dg.exp
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 gcc-testsuite-gcc.dg/dg.exp!
