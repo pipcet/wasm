@@ -1,9 +1,9 @@
 name: wasm32
 on:
   push:
-    branches: [ master wasm ]
+    branches: [ master, wasm ]
   pull_request:
-    branches: [ master wasm ]
+    branches: [ master, wasm ]
 jobs:
 
   # all:
