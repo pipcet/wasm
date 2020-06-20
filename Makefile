@@ -452,8 +452,8 @@ artifact-push!:
 	$(MAKE) artifacts
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
-	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee gcc-out.log || true
-	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
+	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee $(notdir $*).out || true
+	cp $(notdir $*).out build/wasm32/gcc-preliminary/gcc/testsuite/gcc/$(notdir $*).log artifacts/
 	$(MAKE) artifact-push!
 
 binutils-test!:
