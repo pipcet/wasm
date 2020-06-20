@@ -3,57 +3,30 @@
 Directories:
 
 1. cache
-
-Cached files; in the git repository, only those needed to generate themselves.
-
+  Cached files; in the git repository, only those needed to generate themselves.
 1. git
-
-Git hooks
-
+  Git hooks
 1. github
-
-GitHub integration
-
+  GitHub integration
 1. include
-
-To go away.
-
+  To go away.
 1. interpret
-
-To go away.
-
+  To go away.
 1. jsc
-
-JavaScript files with C++ substitution
-
+  JavaScript files with C++ substitution
 1. jsc-interpolate
-
-To go away.
-
+  To go away.
 1. lds
-
-Linker scripts
-
+  Linker scripts
 1. run
-
-To go away.
-
+  To go away.
 1. subrepos
-
-The external subrepositories
-
+  The external subrepositories
 1. test-src
-
-To go away.
-
+  To go away.
 1. test-templ
-
-To go away.
-
+  To go away.
 1. testsuite
-
-Source code for tests
-
+  Source code for tests
 1. tools
-
-The actual code in this repository
+  The actual code in this repository
