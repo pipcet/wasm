@@ -219,6 +219,8 @@ github/install/texinfo-bison-flex: | github/install
 	sudo apt-get install texinfo bison flex
 github/install/gcc-dependencies: | github/install
 	sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+github/install/dejagnu: | github/install
+	sudo apt-get install dejagnu
 
 # Extract an artifact
 artifacts/%.tar.extracted!: artifacts/%.tar
@@ -418,6 +420,7 @@ gcc-testsuite!:
 	$(MAKE) github/install/file-slurp > /dev/null
 	$(MAKE) github/install/texinfo-bison-flex > /dev/null
 	$(MAKE) github/install/gcc-dependencies > /dev/null
+	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) built/wasm32/binutils-gdb > /dev/null
 	$(MAKE) built/wasm32/gcc-preliminary > /dev/null
 	$(MAKE) built/wasm32/glibc > /dev/null
