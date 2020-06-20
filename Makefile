@@ -141,17 +141,17 @@ bin/wasmsect: wasmrewrite/wasmsect.c | bin
 
 # wasm/ targets.
 wasm/ld.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 | wasm
-	bash -x $^ > $@
+	bash $^ > $@
 wasm/libc.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
-	bash -x $^ > $@
+	bash $^ > $@
 wasm/libm.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
-	bash -x $^ > $@
+	bash $^ > $@
 wasm/libstdc++.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so | wasm
-	bash -x $^ > $@
+	bash $^ > $@
 wasm/libncurses.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so | wasm built/wasm32/ncurses
-	bash -x $^ > $@
+	bash $^ > $@
 wasm/bash.wasm: bin/wasmify-executable wasm32-unknown-none/wasm32-unknown-none/bin/bash | wasm
-	bash -x $^ > $@
+	bash $^ > $@
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
@@ -380,7 +380,7 @@ test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp
 
 # exe -> wasm rule
 test/wasm32/%.exe.wasm: test/wasm32/%.exe
-	bash -x $(PWD)/wasmify/wasmify-executable $< > $@
+	bash $(PWD)/wasmify/wasmify-executable $< > $@
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
@@ -421,11 +421,11 @@ artifacts: | .github-init
 	$(MKDIR) $@
 
 .github-init:
-	bash -x github/artifact-init
+	bash github/artifact-init
 	touch $@
 
 artifacts/%: | artifacts
-	bash -x github/dl-artifact $*
+	bash github/dl-artifact $*
 	mv $@.new/$* $@
 	rm -rf $@.new
 	ls -l $@
@@ -434,7 +434,7 @@ artifact-timestamp:
 	touch $@
 
 artifact-push!:
-	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash -x github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
+	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
 %.{dejagnu}!:
