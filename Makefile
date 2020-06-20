@@ -224,6 +224,8 @@ github/install/gcc-dependencies: | github/install
 github/install/dejagnu: | github/install
 	sudo apt-get install dejagnu
 	touch $@
+github/install/gettext: | github/install
+	sudo apt-get install gettext
 github/install/binfmt_misc : | github/install
 	$(MKDIR) $@
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
@@ -288,6 +290,7 @@ artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar
 artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! artifacts/ncurses.tar.extracted!
 	$(MAKE) github/install/texinfo-bison-flex
 	$(MAKE) github/install/gcc-dependencies
+	$(MAKE) github/install/gettext
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
 	cp wasm/libncurses.wasm artifacts/
