@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 # find .git -name hooks | while read; do ln -sf -r git/hooks/pre-push "$REPLY"/pre-push; done
-git submodule foreach --recursive sh -c '! (git remote | egrep '^pipcet$') || [ "$(git rev-parse 'pipcet/wasm')" = "$(git rev-parse 'HEAD')" ]'
+git submodule foreach --recursive sh -c '! (git remote | egrep '^pipcet$') || [ "$(git rev-parse 'pipcet/wasm')" = "$(git rev-parse 'HEAD')" ] || (git push pipcet wasm; [ "$(git rev-parse 'pipcet/wasm')" = "$(git rev-parse 'HEAD')" ])'
