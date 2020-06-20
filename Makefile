@@ -458,6 +458,7 @@ artifact-push!:
 	$(MAKE) artifact-push!
 
 binutils-test!:
+	$(MAKE) github/install/texinfo-bison-flex
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) -C build/wasm32/binutils-gdb check
