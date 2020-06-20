@@ -9,7 +9,7 @@ JS ?= $$JS
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasmify/wasmify-executable wasmify/wasmify-library wasmrewrite/wasmrewrite wasmrewrite/wasmsect bin/wasmrewrite bin/wasmsect
+all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasmrewrite/wasmrewrite wasmrewrite/wasmsect bin/wasmrewrite bin/wasmsect
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 bin build built github/assets github/release github/install js lib ship src stamp test wasm:
@@ -129,29 +129,27 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
 
-# delete me
-bin/wasmify-library: wasmify/wasmify-library bin/wasmrewrite bin/wasmsect | bin
-	ln -sf ../$< $@
-bin/wasmify-executable: wasmify/wasmify-executable bin/wasmrewrite bin/wasmsect | bin
-	ln -sf ../$< $@
 bin/wasmrewrite: wasmrewrite/wasmrewrite.c | bin
 	gcc -g3 $< -o $@
 bin/wasmsect: wasmrewrite/wasmsect.c | bin
 	gcc -g3 $< -o $@
 
 # wasm/ targets.
-wasm/ld.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 | wasm
+wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm | wasm
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
+wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm | wasm
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
+wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm | wasm
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
 	bash $^ > $@
-wasm/libc.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
+wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm | wasm
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
 	bash $^ > $@
-wasm/libm.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libc.so | wasm
+wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm | wasm built/wasm32/ncurses
+	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
 	bash $^ > $@
-wasm/libstdc++.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so | wasm
-	bash $^ > $@
-wasm/libncurses.wasm: bin/wasmify-library wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so | wasm built/wasm32/ncurses
-	bash $^ > $@
-wasm/bash.wasm: bin/wasmify-executable wasm32-unknown-none/wasm32-unknown-none/bin/bash | wasm
-	bash $^ > $@
+wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm | wasm
+	bash tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
@@ -386,7 +384,7 @@ test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp
 
 # exe -> wasm rule
 test/wasm32/%.exe.wasm: test/wasm32/%.exe
-	bash $(PWD)/wasmify/wasmify-executable $< > $@
+	tools/bin/elf-to-wasm --executable $< > $@
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
