@@ -1,0 +1,44 @@
+#!/bin/bash
+set -o pipefail
+set -o errexit
+TMPD=$(mktemp -d --tmpdir wasmify.XXXXXXXXXX);
+TYPE=executable
+DYNAMIC=1
+while true; do
+    if [ x"$1" = x"--library" ]; then
+	TYPE=library
+	shift
+    elif [ x"$1" = x"--executable" ]; then
+	TYPE=executable
+	shift;
+    elif [ x"$1" = x"--static" ]; then
+	DYNAMIC=
+	shift
+    elif [ x"$1" = x"--dynamic" ]; then
+	DYNAMIC=1
+	shift
+    else
+	break
+    fi
+done
+if [ x"$WASMDIR" = x ]; then
+    WASMDIR=.
+    export WASMDIR
+fi
+if [ x"$DELAY" = x ]; then
+    DELAY=1
+fi
+cp "$1" $TMPD/elf
+chmod u+rw $TMPD/elf
+if [ x"$DYNAMIC" = x1 ]; then
+    perl $WASMDIR/dyninfo/dyninfo.pl $TMPD/elf > $TMPD/dyninfo.json
+else
+    echo "{}" > $TMPD/dyninfo.json
+fi
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-elfedit $TMPD/elf --output-type=rel
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -Map $TMPD/map1 -T $WASMDIR/lds/wasm32.cpp-lds.lds $TMPD/elf -o $TMPD/intermediate -N --warn-unresolved-symbols --no-check-sections 2>/dev/null
+$WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -Map $TMPD/map2 -E -T $WASMDIR/lds/wasm32-wasmify.lds $TMPD/intermediate -o $TMPD/longwasm 2> /dev/null
+$WASMDIR/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
+$WASMDIR/bin/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
+cat $TMPD/dyninfo.json.wass >> $TMPD/wasm
+cat $TMPD/wasm
