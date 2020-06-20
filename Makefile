@@ -410,7 +410,7 @@ artifact-push!:
 	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash -x github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-gcc-testsuite!: | subrepos/binutils-gdb/checkout! subrepos/gcc/checkout! subrepos/glibc/checkout!
+gcc-testsuite!: | subrepos/binutils-gdb/checkout! subrepos/gcc/checkout! subrepos/glibc/checkout! install-file-slurp! install-texinfo-bison-flex! install-gcc-dependencies!
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
