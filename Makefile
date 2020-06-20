@@ -292,14 +292,14 @@ github/assets/%.json: | github/release/list! github/assets
 	fi
 
 # Ship assets
-ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github/release/list!
+ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
 github/release/list!: | github/release
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
 
-github/check-release!:
+github/check-release!: | github
 	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c 2-11)"; \
 	this_release_date="$$(date --iso)"; \
 	if [ "$$this_release_date" != "$$last_release_date" ]; then \
