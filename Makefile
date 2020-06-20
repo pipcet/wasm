@@ -425,7 +425,8 @@ gcc-testsuite!:
 	$(MAKE) built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
 	$(MAKE) artifact-timestamp
-	(cd build/wasm32/gcc-preliminary/gcc; make check) | tee gcc-out.log || true
+	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp gcc/testsuite)
+	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc gcc.c-torture/compile/compile.exp) | tee gcc-out.log || true
 	cp gcc-out.log build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/
 	$(MAKE) artifact-push!
 
