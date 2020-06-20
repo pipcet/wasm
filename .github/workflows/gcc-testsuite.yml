@@ -1,4 +1,4 @@
-name: wasm32
+name: gcc-testsuite
 on:
   push:
     branches: [ master ]
