@@ -226,14 +226,14 @@ github/install/dejagnu: | github/install
 	touch $@
 github/install/gettext: | github/install
 	sudo apt-get install gettext
-github/install/binfmt_misc : | github/install
+github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/bin/interpret/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/interpret/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/bin/interpret/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/interpret/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 
 bin/interpret: | bin
 	$(MKDIR) $@
