@@ -237,8 +237,10 @@ bin/interpret: | bin
 	$(MKDIR) $@
 bin/interpret/wasm: interpret/wasm
 	cp $< $@
+	chmod u+x $@
 bin/interpret/elf32-wasm32: interpret/elf32-wasm32
 	cp $< $@
+	chmod u+x $@
 
 # Extract an artifact
 artifacts/%.tar.extracted!: artifacts/%.tar
