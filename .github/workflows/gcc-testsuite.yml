@@ -1,0 +1,17 @@
+name: wasm32
+on:
+  push:
+    branches: [ master ]
+jobs:
+  gcc:
+    name: gcc
+    runs-on: ubuntu-latest
+    needs: glibc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 built/wasm32/gcc-preliminary
+    - run: make -kj10 gcc-testsuite!

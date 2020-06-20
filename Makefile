@@ -410,6 +410,12 @@ artifact-push!:
 	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash -x github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
+gcc-testsuite!:
+	$(MAKE) artifact-timestamp
+	(cd build/wasm32/gcc/gcc; make check) | tee gcc-out.log || true
+	cp gcc-out.log build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/
+	$(MAKE) artifact-push!
+
 .SUFFIXES:
 
 clean: clean!
