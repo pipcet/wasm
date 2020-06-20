@@ -420,7 +420,7 @@ jobs:
       - name: chmod
         run: chmod u+x 001-hello-world.wasm
       - name: Run
-        run: WASMDIR=. ./001-hello-world.wasm
+        run: WASMDIR=. JS=bin/js ./001-hello-world.wasm
 
   _001-hello-world-run:
     name: Hello World (run)
