@@ -12,5 +12,4 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 built/wasm32/gcc-preliminary
     - run: make -kj10 gcc-testsuite!
