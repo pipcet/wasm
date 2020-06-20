@@ -246,7 +246,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-bash!
+    - run: make -k artifact-bash!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
