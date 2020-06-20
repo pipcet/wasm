@@ -211,13 +211,13 @@ subrepos/%/checkout!:
 	git submodule update --depth=1 --single-branch --init subrepos/$*
 
 # install various packages on the GitHub VM:
-github/install/file-slurp:
+github/install/file-slurp: | github/install
 	sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
-github/install/texinfo-bison-flex:
+github/install/texinfo-bison-flex: | github/install
 	sudo apt-get install texinfo bison flex
-github/install/gcc-dependencies:
+github/install/gcc-dependencies: | github/install
 	sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 
 # Extract an artifact
