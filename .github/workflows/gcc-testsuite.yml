@@ -1,7 +1,7 @@
 name: gcc-testsuite
 on:
   push:
-    branches: [ master ]
+    branches: [ master wasm ]
 jobs:
   gcc-c-torture-compile:
     name: gcc.c-torture/compile
