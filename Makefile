@@ -291,7 +291,7 @@ artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extra
 	$(MAKE) github/install/gettext
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
-	cp wasm/libncurses.wasm artifacts/
+	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 # delete me
 fetch-binutils!: artifacts/binutils.tar
