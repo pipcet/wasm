@@ -2,7 +2,7 @@
 # find -name hooks | while read; do ln -sf ../../../../../git/hooks/post-commit "$REPLY"/post-commit; done
 toplevel="$(git rev-parse --show-toplevel)"
 super_toplevel="$(git rev-parse --show-superproject-working-tree)"
-if [ "$toplevel" == "$super_toplevel" ]; then
+if [ "$toplevel" = "$super_toplevel" ]; then
     exit 0;
 fi
 subrepo="$(echo $toplevel | cut -c $((2 + $(echo -n "$super_toplevel" | wc -c)))-)"
