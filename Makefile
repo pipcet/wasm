@@ -141,7 +141,7 @@ wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/el
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm built/wasm32/ncurses
+wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/ncurses
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@

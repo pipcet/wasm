@@ -105,9 +105,9 @@ jobs:
       run:
         tar xf gcc.tar/gcc.tar
     - name: Build wasmrewrite
-      run: make bin/wasmrewrite
+      run: make tools/bin/wasmrewrite
     - name: Build wasmssect
-      run: make bin/wasmsect
+      run: make tools/bin/wasmsect
     - name: Directory shuffle
       run: mkdir wasm-dirs && mv *.wasm wasm-dirs
     - name: Copy *.wasm
@@ -504,9 +504,9 @@ jobs:
       with:
         name: 001-hello-world.exe
     - name: Build wasmrewrite
-      run: make bin/wasmrewrite
+      run: make tools/bin/wasmrewrite
     - name: Build wasmssect
-      run: make bin/wasmsect
+      run: make tools/bin/wasmsect
     - name: Generate hello-world.wasm
       run: tools/bin/elf-to-wasm --executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
     - name: Upload hello-world.wasm
