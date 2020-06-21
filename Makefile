@@ -190,9 +190,9 @@ $(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 built/wasm32/glibc
 	cp -r testsuite/$*/* test/wasm32/$*/
 	ln -sf ../../../testsuite/$* test/wasm32/$*/src
 
-test/wasm32/%/test.mk: testsuite/% tools/testsuite-make-fragment
+test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
 	mkdir -p test/wasm32/$*
-	tools/testsuite-make-fragment testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
+	tools/bin/testsuite-make-fragment testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
