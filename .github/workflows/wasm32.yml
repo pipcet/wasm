@@ -436,6 +436,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: false
+      - name: Download binutils
+        uses: actions/download-artifact@v1
+        with:
+          name:
+            binutils.tar
+      - name: Unpack binutils
+        run:
+          tar xf binutils.tar/binutils.tar
       - name: Download jsshell
         uses: actions/download-artifact@v1
         with:
