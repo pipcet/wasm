@@ -462,17 +462,17 @@ jobs:
         with:
           name: libc.wasm
       - name: Directory shuffle
-        run: mkdir wasm-dirs && mv *.wasm wasm-dirs
+        run: mkdir wasm-dirs && mv *.wasm *.exe wasm-dirs
       - name: Copy *.wasm
-        run: cp wasm-dirs/*.wasm/*.wasm .
+        run: cp wasm-dirs/*/* .
       - name: Set env variables
         uses: ./github/env/
       - name: Install binfmt_misc
         run: make github/install/binfmt_misc/elf32-wasm32
       - name: chmod
-        run: chmod a+x 001-hello-world.wasm
+        run: chmod a+x 001-hello-world.exe
       - name: ls -l
-        run: ls -l 001-hello-world.wasm
+        run: ls -l 001-hello-world.exe
       - name: Run
         run: WASMDIR=. JS=`pwd`/bin/js `pwd`/001-hello-world.exe
 
