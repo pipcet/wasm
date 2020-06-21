@@ -2,8 +2,6 @@
 
 Directories:
 
-1. cache
-  Cached files; in the git repository, only those needed to generate themselves.
 1. git
   Git hooks
 1. github
