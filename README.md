@@ -8,8 +8,6 @@ Directories:
   Git hooks
 1. github
   GitHub integration
-1. include
-  To go away.
 1. interpret
   To go away.
 1. jsc
