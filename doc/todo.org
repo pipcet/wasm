@@ -1,0 +1,2 @@
+* TODO NULL pointers
+* TODO DWARF errors
