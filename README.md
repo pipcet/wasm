@@ -16,8 +16,6 @@ Directories:
   JavaScript files with C++ substitution
 1. lds
   Linker scripts
-1. run
-  To go away.
 1. subrepos
   The external subrepositories
 1. test-templ
