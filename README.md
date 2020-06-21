@@ -16,8 +16,6 @@ Directories:
   Linker scripts
 1. subrepos
   The external subrepositories
-1. test-templ
-  To go away.
 1. testsuite
   Source code for tests
 1. tools
