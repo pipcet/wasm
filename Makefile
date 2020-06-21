@@ -9,7 +9,7 @@ JS ?= $$JS
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasmrewrite/wasmrewrite wasmrewrite/wasmsect bin/wasmrewrite bin/wasmsect
+all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm tools/bin/wasmrewrite tools/bin/wasmsect
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 bin build built github/assets github/release github/install js lib ship src stamp test wasm:
@@ -129,23 +129,21 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
 
-bin/wasmrewrite: wasmrewrite/wasmrewrite.c | bin
-	gcc -g3 $< -o $@
-bin/wasmsect: wasmrewrite/wasmsect.c | bin
+tools/bin/%: tools/src/% | bin
 	gcc -g3 $< -o $@
 
 # wasm/ targets.
-wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
+wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
+wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
+wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
+wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm built/wasm32/ncurses
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
+wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution

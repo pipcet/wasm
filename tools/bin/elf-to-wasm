@@ -45,7 +45,7 @@ else
 fi
 $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -nostdlibs -Map $TMPD/map1 -T $WASMDIR/lds/wasm32.cpp-lds.lds $TMPD/elf3 -o $TMPD/intermediate -N --warn-unresolved-symbols --no-check-sections 2>/dev/null
 $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-ld -Map $TMPD/map2 -E -T $WASMDIR/lds/wasm32-wasmify.lds $TMPD/intermediate -o $TMPD/longwasm 2> /dev/null
-$WASMDIR/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
-$WASMDIR/bin/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
+$WASMDIR/tools/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
+$WASMDIR/tools/bin/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
 cat $TMPD/dyninfo.json.wass >> $TMPD/wasm
 cat $TMPD/wasm
