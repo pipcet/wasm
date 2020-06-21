@@ -315,6 +315,7 @@ ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/
 
 github/release/list!: | github/release
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
+	ls -l github/release/
 
 github/check-release!: | github
 	last_release_date="$$(curl https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq "[.[] | .created_at] | sort[-1]" | cut -c 2-11)"; \
