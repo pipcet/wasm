@@ -1,2 +1,2 @@
 #!/bin/bash
-exec $JS $(dirname "$0")/../js/wasm32.js "$@"
+exec $JS $(dirname "$0")/../../js/wasm32.js "$@"
