@@ -468,7 +468,7 @@ jobs:
       - name: Set env variables
         uses: ./github/env/
       - name: Install binfmt_misc
-        run: make github/install/binfmt_misc/wasm
+        run: make github/install/binfmt_misc/elf32-wasm32
       - name: chmod
         run: chmod a+x 001-hello-world.wasm
       - name: ls -l
