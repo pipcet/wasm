@@ -3,4 +3,5 @@ set -o pipefail
 set -o errexit
 TMPD=$(mktemp -d --tmpdir elf-wasm.XXXXXXXXXXX);
 $(dirname "$0")/elf-to-wasm --executable --dynamic "$1" > $TMPD/wasm
-exec $(dirname "$0")/wasm "$@"
+shift;
+exec $(dirname "$0")/wasm "$TMPD/wasm" "$@"
