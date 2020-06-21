@@ -136,20 +136,17 @@ bin/wasmsect: wasmrewrite/wasmsect.c | bin
 
 # wasm/ targets.
 wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-	bash $^ > $@
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-	bash $^ > $@
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm built/wasm32/ncurses
-	bash tools/bin/elf-to-wasm --library --dynamic $< > $@
-	bash $^ > $@
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm bin/wasmrewrite bin/wasmsect | wasm
-	bash tools/bin/elf-to-wasm --executable --dynamic $< > $@
+	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
