@@ -31,7 +31,7 @@ fi
 cp "$1" $TMPD/elf
 chmod u+rw $TMPD/elf
 if [ x"$DYNAMIC" = x1 ]; then
-    perl $WASMDIR/dyninfo/dyninfo.pl $TMPD/elf > $TMPD/dyninfo.json
+    perl $WASMDIR/tools/bin/dyninfo $TMPD/elf > $TMPD/dyninfo.json
 else
     echo "{}" > $TMPD/dyninfo.json
 fi

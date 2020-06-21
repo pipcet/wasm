@@ -508,7 +508,7 @@ jobs:
     - name: Build wasmssect
       run: make bin/wasmsect
     - name: Generate hello-world.wasm
-      run: bash -x ./wasmify/wasmify-executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
+      run: tools/bin/elf-to-wasm --executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
     - name: Upload hello-world.wasm
       uses: actions/upload-artifact@v1
       with:
