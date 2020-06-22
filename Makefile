@@ -442,6 +442,9 @@ artifact-push!:
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
+	rm built/wasm32/gcc-preliminary
+	$(MAKE) subrepos/gcc/checkout!
+	$(MAKE) built/wasm32/gcc-preliminary
 	unzip artifacts/jsshell-linux-x86_64.zip
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
