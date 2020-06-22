@@ -3,9 +3,31 @@ on:
   push:
     branches: [ master, wasm ]
 jobs:
+  jsshell:
+    name: jsshell
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download jsshell
+      run: wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
+    - name: Upload jsshell
+      uses: actions/upload-artifact@v1
+      with:
+        name: jsshell-linux-x86_64.zip
+        path: jsshell-linux-x86_64.zip
+  testenv:
+    name: Test Environment
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
   gcc-c-torture-compile:
     name: gcc.c-torture/compile
     runs-on: ubuntu-latest
+    needs:
+    - jsshell
     steps:
     - uses: actions/checkout@v2
       with:
@@ -16,6 +38,8 @@ jobs:
   gcc-c-torture-execute:
     name: gcc.c-torture/execute
     runs-on: ubuntu-latest
+    needs:
+    - jsshell
     steps:
     - uses: actions/checkout@v2
       with:
@@ -26,6 +50,8 @@ jobs:
   gcc-dg-dg:
     name: gcc.dg/dg.exp
     runs-on: ubuntu-latest
+    needs:
+    - jsshell
     steps:
     - uses: actions/checkout@v2
       with:
