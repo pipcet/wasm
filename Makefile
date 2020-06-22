@@ -433,6 +433,7 @@ artifact-push!:
 	$(MAKE) artifacts/binutils.tar.extracted!
 	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
 	$(MAKE) artifacts/glibc.tar.extracted!
+	$(MAKE) artifacts/build-gcc-preliminary.tar.extracted!
 	$(MAKE) github/install/file-slurp > /dev/null
 	$(MAKE) github/install/texinfo-bison-flex > /dev/null
 	$(MAKE) github/install/gcc-dependencies > /dev/null
@@ -443,9 +444,6 @@ artifact-push!:
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
-	rm built/wasm32/gcc-preliminary
-	$(MAKE) subrepos/gcc/checkout!
-	$(MAKE) built/wasm32/gcc-preliminary
 	unzip artifacts/jsshell-linux-x86_64.zip
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
