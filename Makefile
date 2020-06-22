@@ -433,7 +433,8 @@ artifact-push!:
 	$(MAKE) artifacts/binutils.tar.extracted!
 	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
 	$(MAKE) artifacts/glibc.tar.extracted!
-	$(MAKE) artifacts/build-gcc-preliminary.tar.extracted!
+	$(MAKE) artifacts/build-gcc-preliminary.tar
+	tar vf artifacts/build-gcc-preliminary.tar
 	$(MAKE) github/install/file-slurp > /dev/null
 	$(MAKE) github/install/texinfo-bison-flex > /dev/null
 	$(MAKE) github/install/gcc-dependencies > /dev/null
