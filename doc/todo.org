@@ -2,3 +2,13 @@
 * TODO DWARF errors
 * DONE release assets
 * DONE elf32-wasm32
+* TODO glibc stub warnings
+** TODO high priority
+*** TODO writev
+** TODO low priority
+*** TODO kill
+*** TODO setitimer
+*** TODO getrlimit
+*** TODO mmap
+*** TODO mprotect
+* TODO elf-to-wasm: detect dynamicness automatically
