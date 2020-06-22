@@ -245,7 +245,7 @@ artifact-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/chec
 	$(MAKE) github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
-	tar cf artifacts/build-gcc-preliminary.tar build/wasm32/gcc-preliminary
+	tar cf artifacts/build-gcc-preliminary.tar build/wasm32/gcc-preliminary src/gcc subrepos/gcc
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 artifact-glibc!: | github/install/texinfo-bison-flex subrepos/glibc/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted!
