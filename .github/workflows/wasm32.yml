@@ -833,6 +833,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - jsshell
+    - gcc-preliminary
+    - glibc
     steps:
     - uses: actions/checkout@v2
       with:
@@ -845,6 +847,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - jsshell
+    - gcc-preliminary
+    - glibc
     steps:
     - uses: actions/checkout@v2
       with:
@@ -857,6 +861,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - jsshell
+    - gcc-preliminary
+    - glibc
     steps:
     - uses: actions/checkout@v2
       with:
