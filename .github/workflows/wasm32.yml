@@ -841,7 +841,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=00 make -kj10 gcc.c-torture/compile/compile.exp.{dejagnu}!
+    - run: PREFIX=ff make -kj10 gcc.c-torture/compile/compile.exp.{dejagnu}!
   gcc-c-torture-execute:
     name: gcc.c-torture/execute
     runs-on: ubuntu-latest
