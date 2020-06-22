@@ -443,10 +443,12 @@ artifact-push!:
 	$(MAKE) built/wasm32/glibc
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
+	$(MAKE) artifacts/jsshell.zip
+	unzip artifacts/jsshell.zip
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
-	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) > $(notdir $*).out || true
+	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/
 	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*).log
 	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-short.log || true
