@@ -1,4 +1,4 @@
 * TODO NULL pointers
 * TODO DWARF errors
 * DONE release assets
-* DONE elf-wasm
+* DONE elf32-wasm32
