@@ -437,6 +437,8 @@ artifact-push!:
 	$(MAKE) github/install/gcc-dependencies > /dev/null
 	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) built/wasm32/binutils-gdb > /dev/null
+	$(MAKE) tools/bin/wasmrewrite > /dev/null
+	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
 	$(MAKE) artifact-timestamp
