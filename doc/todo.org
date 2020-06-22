@@ -1,4 +1,4 @@
 * TODO NULL pointers
 * TODO DWARF errors
-* TODO release assets
-* TODO elf-wasm
+* DONE release assets
+* DONE elf-wasm
