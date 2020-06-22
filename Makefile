@@ -447,7 +447,7 @@ artifact-push!:
 	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) > $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/
 	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*).log
-	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-short.log
+	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-short.log || true
 	$(MAKE) artifact-push!
 
 binutils-test!:
