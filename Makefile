@@ -389,13 +389,22 @@ cdr = $(wordlist 2,$(words $(1)),$(1))
 multideps = $(addprefix $(2)$(call car,$(1)),$(subst $(comma), ,$(call cdr,$(1))))
 
 test/wasm32/%].exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $^ -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) $^ -o $@
+
+test/wasm32/%].{static}.exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) -static $^ -o $@
+
+test/wasm32/%.o.exe: test/wasm32/%.o
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
 test/wasm32/%.cc.exe: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 
 test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
+
+test/wasm32/%.S.o: test/wasm32/%.S
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.c.o: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
@@ -458,7 +467,7 @@ artifact-push!:
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
-	(cd src/gcc/gcc/testsuite; find -type f | egrep -v '\.exp$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
+	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisS]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
 	(cd src/gcc/gcc/testsuite; find -type f)
 	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
