@@ -7,6 +7,8 @@
 #define xmalloc malloc
 #define xrealloc realloc
 
+#define ABORT() abort() // used to be for(;;);
+
 typedef unsigned char u8;
 
 u8 *gbuf;
@@ -395,21 +397,21 @@ long ast(unsigned long len, unsigned long index)
         break;
       default:
         fprintf(stderr, "unknown pseudo-br code!\n");
-        for(;;);
+        ABORT();
       }
       delta += msynch();
       break;
 
     default:
       fprintf(stderr, "ast %02x %lx\n", (int)c, roff);
-      for(;;);
+      ABORT();
       abort();
     }
   }
 
   if (block != -1) {
     fprintf(stderr, "unbalanced %ld %lx %lx\n", block, roff, index);
-    for(;;);
+    ABORT();
   }
 
   return delta;
@@ -920,14 +922,14 @@ long init_expr()
 
     default:
       fprintf(stderr, "ast %02x %lx\n", (int)c, roff);
-      for(;;);
+      ABORT();
       abort();
     }
   }
  out:
   if (block != -1) {
     fprintf(stderr, "unbalanced %ld %lx %lx\n", block, roff, index);
-    for(;;);
+    ABORT();
   }
 
   return delta;
