@@ -242,8 +242,7 @@ artifact-binutils!: | github/install/texinfo-bison-flex subrepos/binutils-gdb/ch
 	$(MAKE) built/wasm32/binutils-gdb
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
-artifact-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts artifacts/binutils.tar.extracted!
-	$(MAKE) github/install/gcc-dependencies
+artifact-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts artifacts/binutils.tar.extracted! github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
 	tar cf artifacts/build-gcc-preliminary.tar build/wasm32/gcc-preliminary src/gcc subrepos/gcc
@@ -256,16 +255,14 @@ artifact-glibc!: | github/install/texinfo-bison-flex subrepos/glibc/checkout! ar
 	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm
 	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm artifacts/
 	$(MAKE) artifact-push!
-artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted!
-	$(MAKE) github/install/gcc-dependencies
+artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
 # $(MAKE) wasm/libstdc++.wasm
 # cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
-artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted!
-	$(MAKE) github/install/gcc-dependencies
+artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/ncurses
 	$(MAKE) wasm/libncurses.wasm
@@ -273,10 +270,7 @@ artifact-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/binutils.tar
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! artifacts/ncurses.tar.extracted!
-	$(MAKE) github/install/texinfo-bison-flex
-	$(MAKE) github/install/gcc-dependencies
-	$(MAKE) github/install/gettext
+artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted! artifacts/glibc.tar.extracted! artifacts/gcc.tar.extracted! artifacts/ncurses.tar.extracted! github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
@@ -447,16 +441,12 @@ artifact-push!:
 	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-%.{dejagnu}!:
+%.{dejagnu}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu
 	$(MAKE) artifacts/binutils.tar.extracted!
 	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
 	$(MAKE) artifacts/glibc.tar.extracted!
 	$(MAKE) artifacts/build-gcc-preliminary.tar
 	tar xf artifacts/build-gcc-preliminary.tar
-	$(MAKE) github/install/file-slurp > /dev/null
-	$(MAKE) github/install/texinfo-bison-flex > /dev/null
-	$(MAKE) github/install/gcc-dependencies > /dev/null
-	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
@@ -475,9 +465,7 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-binutils-test!:
-	$(MAKE) github/install/texinfo-bison-flex
-	$(MAKE) github/install/dejagnu
+binutils-test!: github/install/texinfo-bison-flex github/install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) artifacts
