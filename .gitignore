@@ -12,3 +12,5 @@
 /wasm32-unknown-none/
 /tools/bin/wasmrewrite
 /tools/bin/wasmsect
+/hot
+/cold
