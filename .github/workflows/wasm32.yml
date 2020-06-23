@@ -819,15 +819,6 @@ jobs:
   #     run: cp wasm-dirs/*.wasm/*.wasm .
   #   - name: Run
   #     run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm
-  testenv:
-    name: Test Environment
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
   gcc-c-torture-compile:
     name: gcc.c-torture/compile (${{ matrix.prefix }})
     runs-on: ubuntu-latest
