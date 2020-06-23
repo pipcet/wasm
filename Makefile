@@ -7,6 +7,7 @@ OPT_WASM ?= "-O2"
 WASMDIR ?= $(PWD)
 JS ?= $$JS
 
+.SECONDEXPANSION:
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
 all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm tools/bin/wasmrewrite tools/bin/wasmsect
@@ -382,6 +383,14 @@ test/wasm32/%.wasm.out: test/wasm32/%.wasm
 	@echo "STDERR"
 	@cat test/wasm32/$*.wasm.err
 
+comma = ,
+car = $(firstword $(1))
+cdr = $(wordlist 2,$(words $(1)),$(1))
+multideps = $(addprefix $(2)$(call car,$(1)),$(subst $(comma), ,$(call cdr,$(1))))
+
+test/wasm32/%].exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $^ -o $@
+
 test/wasm32/%.cc.exe: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 
@@ -473,4 +482,3 @@ all: built/all
 
 .PHONY: %! clean all
 .SUFFIXES:
-.SECONDEXPANSION:
