@@ -870,6 +870,20 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: PREFIX=8 make -kj10 gcc.dg/dg.exp.{dejagnu}!
+  gcc-dg-dg-0:
+    name: gcc.dg/dg.exp
+    runs-on: ubuntu-latest
+    needs:
+    - jsshell
+    - gcc-preliminary
+    - glibc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: PREFIX=0 make -kj10 gcc.dg/dg.exp.{dejagnu}!
   binutils-check:
     name: make check (binutils)
     runs-on: ubuntu-latest
