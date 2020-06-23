@@ -206,20 +206,20 @@ subrepos/%/checkout!:
 
 # install various packages on the GitHub VM:
 github/install/file-slurp: | github/install
-	sudo apt-get install cpanminus
+	tools/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
 github/install/texinfo-bison-flex: | github/install
-	sudo apt-get install texinfo bison flex
+	tools/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
 github/install/gcc-dependencies: | github/install
-	sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+	tools/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 	touch $@
 github/install/dejagnu: | github/install
-	sudo apt-get install dejagnu
+	tools/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
 github/install/gettext: | github/install
-	sudo apt-get install gettext
+	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
 github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
