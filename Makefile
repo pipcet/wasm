@@ -441,11 +441,11 @@ artifact-push!:
 	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip -d bin
+	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
-	unzip artifacts/jsshell-linux-x86_64.zip
+	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
