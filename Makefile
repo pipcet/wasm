@@ -441,7 +441,7 @@ artifact-push!:
 	$(MAKE) github/install/dejagnu > /dev/null
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
+	$(MAKE) artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
@@ -452,20 +452,21 @@ artifact-push!:
 	(cd src/gcc/gcc/testsuite; find -type f | egrep -v '\.exp$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
 	(cd src/gcc/gcc/testsuite; find -type f)
 	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee $(notdir $*).out || true
-	cp $(notdir $*).out artifacts/
-	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*).log
-	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-short.log || true
+	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
+	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
+	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
 binutils-test!:
 	$(MAKE) github/install/texinfo-bison-flex
+	$(MAKE) github/install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) -C build/wasm32/binutils-gdb check
-
-.SUFFIXES:
 
 clean: clean!
 all: built/all
 
 .PHONY: %! clean all
+.SUFFIXES:
+.SECONDEXPANSION:
