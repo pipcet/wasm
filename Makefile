@@ -468,7 +468,7 @@ artifact-push!:
 	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
 	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisS]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
-	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest --tool gcc $*) | tee $(notdir $*).out || true
+	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest -a --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
 	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
 	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
