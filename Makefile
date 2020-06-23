@@ -452,6 +452,9 @@ artifact-push!:
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) js/wasm32.js
+	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
+	mkdir -p wasm
+	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
