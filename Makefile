@@ -464,7 +464,7 @@ binutils-test!:
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) artifacts
 	$(MAKE) artifact-timestamp
-	$(MAKE) -k -C build/wasm32/binutils-gdb check || cat build/wasm32/binutils-gdb
+	$(MAKE) -k -C build/wasm32/binutils-gdb check || true
 	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read; do cp $REPLY artifacts/; done
 	$(MAKE) artifact-push!
 
