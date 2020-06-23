@@ -423,7 +423,7 @@ Wasm32Module.prototype.check_libs = function (thread)
                 }
 
                 if (typeof os !== "undefined") {
-                    var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/" + lib, "binary"));
+                    var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib, "binary"));
                     return module.load(thread, this.vm).then(() => {
                         var mem = this.vm.%{zp[&zeropage::top_of_sbrk]};
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
