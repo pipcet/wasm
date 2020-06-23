@@ -462,7 +462,11 @@ binutils-test!:
 	$(MAKE) github/install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
-	$(MAKE) -C build/wasm32/binutils-gdb check
+	$(MAKE) artifacts
+	$(MAKE) artifact-timestamp
+	$(MAKE) -k -C build/wasm32/binutils-gdb check || cat build/wasm32/binutils-gdb
+	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read; do cp $REPLY artifacts/; done
+	$(MAKE) artifact-push!
 
 clean: clean!
 all: built/all
