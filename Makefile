@@ -438,7 +438,7 @@ artifact-timestamp:
 	touch $@
 
 artifact-push!:
-	(cd artifacts; for dir in *; do if [ "$$dir" -nt ../artifact-timestamp ]; then name=$$(basename "$$dir"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
+	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
 %.{dejagnu}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu
