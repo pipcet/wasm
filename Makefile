@@ -245,7 +245,6 @@ artifact-binutils!: | github/install/texinfo-bison-flex subrepos/binutils-gdb/ch
 artifact-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts artifacts/binutils.tar.extracted! github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
-	tar cf artifacts/build-gcc-preliminary.tar build/wasm32/gcc-preliminary src/gcc subrepos/gcc
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 artifact-glibc!: | github/install/texinfo-bison-flex subrepos/glibc/checkout! artifacts artifacts/binutils.tar.extracted! artifacts/gcc-preliminary.tar.extracted!
@@ -259,6 +258,7 @@ artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifa
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/build-gcc.tar build/wasm32/gcc src/gcc subrepos/gcc
 # $(MAKE) wasm/libstdc++.wasm
 # cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
@@ -444,9 +444,10 @@ artifact-push!:
 %.{dejagnu}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu
 	$(MAKE) artifacts/binutils.tar.extracted!
 	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
+	$(MAKE) artifacts/gcc.tar.extracted!
 	$(MAKE) artifacts/glibc.tar.extracted!
-	$(MAKE) artifacts/build-gcc-preliminary.tar
-	tar xf artifacts/build-gcc-preliminary.tar
+	$(MAKE) artifacts/build-gcc.tar
+	tar xf artifacts/build-gcc.tar
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
@@ -458,14 +459,14 @@ artifact-push!:
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
-	mkdir -p build/wasm32/gcc-preliminary/gcc/testsuite/gcc
-	(cd build/wasm32/gcc-preliminary/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
+	mkdir -p build/wasm32/gcc/gcc/testsuite/gcc
+	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
 	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisS]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
-	(cd build/wasm32/gcc-preliminary/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest -a --tool gcc $*) | tee $(notdir $*).out || true
+	(cd build/wasm32/gcc/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest -a --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
-	cp build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
-	grep FAIL build/wasm32/gcc-preliminary/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
+	cp build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
+	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
 binutils-test!: github/install/texinfo-bison-flex github/install/dejagnu
