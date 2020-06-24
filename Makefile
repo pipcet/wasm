@@ -38,7 +38,7 @@ built/wasm32: | built
 	test -d $@ || $(MKDIR) $@
 test/wasm32: | test
 	test -d $@ || $(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/ncurses build/wasm32/bash: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
 	test -d $@ || $(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
 	test -d $@ || $(MKDIR) $@
@@ -74,6 +74,47 @@ build/wasm32/glibc/Makefile: built/wasm32/gcc-preliminary | src/glibc build/wasm
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O1 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os -g0" CXXFLAGS="-Os -g0" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+build/wasm32/gcc-testsuite/site.exp:
+	> $@
+	echo 'set rootme "$(PWD)/build/wasm32/gcc-testsuite/"' >> $@
+	echo 'set srcdir "$(PWD)/src/gcc/gcc"' >> $@
+	echo 'set host_triplet x86_64-pc-linux-gnu' >> $@
+	echo 'set build_triplet x86_64-pc-linux-gnu' >> $@
+	echo 'set target_triplet wasm32-unknown-none' >> $@
+	echo 'set target_alias wasm32-unknown-none' >> $@
+	echo 'set libiconv ""' >> $@
+	echo 'set CFLAGS ""' >> $@
+	echo 'set CXXFLAGS ""' >> $@
+	echo 'set HOSTCC "gcc"' >> $@
+	echo 'set HOSTCXX "g++"' >> $@
+	echo 'set HOSTCFLAGS "-g "' >> $@
+	echo 'set HOSTCXXFLAGS "-g  "' >> $@
+	echo 'set TEST_ALWAYS_FLAGS ""' >> $@
+	echo 'set TEST_GCC_EXEC_PREFIX "$(PWD)/wasm32-unknown-none/lib/gcc/"' >> $@
+	echo 'set TESTING_IN_BUILD_TREE 0' >> $@
+	echo 'set HAVE_LIBSTDCXX_V3 1' >> $@
+	echo 'set ENABLE_PLUGIN 1' >> $@
+	echo 'set PLUGINCC "g++"' >> $@
+	echo 'set PLUGINCFLAGS "-g  "' >> $@
+	echo 'set GMPINC ""' >> $@
+	echo 'set tmpdir /home/pip/g/wasm/build/wasm32/gcc-testsuite' >> $@
+	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
+
+build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc
+	mkdir -p $(dir $@)
+	> $@
+	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.[cSi]$$' | sed -e 's/^\.\///g'); do \
+	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}:" >> $@; \
+	    echo "\t(cd build/wasm32/gcc-testsuite; mkdir -p $(dir $*)$$file.{dejagnu}.log/; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}.log/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo >> $@; \
+	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}"; \
+	done; \
+        echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
+
+build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
+	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all
+	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
+
 build/wasm32/ncurses/Makefile: built/wasm32/gcc | src/ncurses build/wasm32/ncurses
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
@@ -467,6 +508,26 @@ artifact-push!:
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
 	cp build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
+	$(MAKE) artifact-push!
+
+%.{dejanew}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu
+	$(MAKE) artifacts/binutils.tar.extracted!
+	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
+	$(MAKE) artifacts/gcc.tar.extracted!
+	$(MAKE) artifacts/glibc.tar.extracted!
+	$(MAKE) tools/bin/wasmrewrite > /dev/null
+	$(MAKE) tools/bin/wasmsect > /dev/null
+	$(MAKE) artifacts/jsshell-linux-x86_64.zip
+	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
+	$(MAKE) js/wasm32.js
+	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
+	mkdir -p wasm
+	cp artifacts/*.wasm wasm
+	$(MAKE) artifact-timestamp
+	$(MAKE) artifacts
+	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
+	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
 	$(MAKE) artifact-push!
 
 binutils-test!: github/install/texinfo-bison-flex github/install/dejagnu
