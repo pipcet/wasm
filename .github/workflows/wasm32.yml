@@ -112,6 +112,8 @@ jobs:
       run: mkdir wasm-dirs && mv *.wasm wasm-dirs
     - name: Copy *.wasm
       run: cp wasm-dirs/*.wasm/*.wasm .
+    - name: Copy *.wasm to wasm/
+      run: mkdir wasm; cp *.wasm wasm
     - name: Run tests
       run:
         JS=$(pwd)/bin/js WASMDIR=$(pwd) make -k run-all-tests!
