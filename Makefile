@@ -1,5 +1,5 @@
 # $(MKDIR) command
-MKDIR ?= mkdir
+MKDIR ?= mkdir -p
 # $(PWD) is the top-level directory. No recursion here (except for subrepos).
 PWD ?= $(shell pwd)
 OPT_NATIVE ?= "-O0 -g3"
@@ -75,7 +75,7 @@ build/wasm32/glibc/Makefile: built/wasm32/gcc-preliminary | src/glibc build/wasm
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os -g0" CXXFLAGS="-Os -g0" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 build/wasm32/gcc-testsuite/site.exp: | build
-	mkdir -p $(dir $@)
+	$(MKDIR) $(dir $@)
 	> $@
 	echo 'set rootme "$(PWD)/build/wasm32/gcc-testsuite/"' >> $@
 	echo 'set srcdir "$(PWD)/src/gcc/gcc"' >> $@
@@ -102,7 +102,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
 build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc
-	mkdir -p $(dir $@)
+	$(MKDIR) $(dir $@)
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.[cSi]$$' | sed -e 's/^\.\///g'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}:" >> $@; \
@@ -234,7 +234,7 @@ $(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 built/wasm32/glibc
 	ln -sf ../../../testsuite/$* test/wasm32/$*/src
 
 test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
-	mkdir -p test/wasm32/$*
+	$(MKDIR) test/wasm32/$*
 	tools/bin/testsuite-make-fragment testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
 
 include $(patsubst %,%/test.mk,$(test-dirs))
@@ -499,12 +499,12 @@ artifact-push!:
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
-	mkdir -p wasm
+	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
-	mkdir -p build/wasm32/gcc/gcc/testsuite/gcc
+	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
 	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisS]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
@@ -526,7 +526,7 @@ artifact-push!:
 	$(MAKE) github/install/binfmt_misc/wasm github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
-	mkdir -p wasm
+	$(MKDIR) wasm
 	$(MAKE) subrepos/gcc/checkout!
 	$(MAKE) src/gcc
 	cp artifacts/*.wasm wasm
