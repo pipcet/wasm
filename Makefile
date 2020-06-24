@@ -197,7 +197,7 @@ test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
-run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*))
+run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm
 
 # GitHub support
 # Check out a subrepo
