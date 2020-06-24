@@ -731,9 +731,6 @@ jobs:
   gcc-c-torture-compile:
     name: gcc.c-torture/compile (${{ matrix.prefix }})
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        prefix: [0]
     needs:
     - jsshell
     - gcc
@@ -744,13 +741,10 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
+    - run: make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
   gcc-c-torture-execute:
     name: gcc.c-torture/execute (${{ matrix.prefix }})
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        prefix: [0]
     needs:
     - jsshell
     - gcc
@@ -761,13 +755,10 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
+    - run: make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
   gcc-dg-dg:
     name: gcc.dg/dg.exp (${{ matrix.prefix }})
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        prefix: [0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f]
     needs:
     - jsshell
     - gcc
@@ -778,7 +769,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.dg/dg.exp.{dejagnu}!
+    - run: make -kj10 gcc.dg/dg.exp.{dejanew}!
   binutils-check:
     name: make check (binutils)
     runs-on: ubuntu-latest
