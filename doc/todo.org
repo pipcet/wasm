@@ -13,3 +13,4 @@
 *** TODO mprotect
 * TODO elf-to-wasm: detect dynamicness automatically
 * TODO work out why glibc is rebuilt in a loop
+* TODO isprint('a') is 0
