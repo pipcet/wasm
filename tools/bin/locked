@@ -16,9 +16,8 @@ while true; do
 done
 
 $@
-RETVAL=$!
+RETVAL=$?
 
-echo -n "!" > $FIFO
 rm $FIFO
 
-exit $!
+exit $RETVAL
