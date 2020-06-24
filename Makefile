@@ -444,6 +444,9 @@ test/wasm32/%.S.o: test/wasm32/%.S
 test/wasm32/%.c.o: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
+test/wasm32/%.c.i: test/wasm32/%.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
+
 test/wasm32/%.cc.s: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
 
