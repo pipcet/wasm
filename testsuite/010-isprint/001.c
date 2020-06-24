@@ -4,5 +4,5 @@
 
 int main(void)
 {
-  printf ("%d\n", isprint('a'));
+  printf ("%d\n", !!isprint('a'));
 }
