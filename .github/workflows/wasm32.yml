@@ -744,7 +744,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/compile/compile.exp.{dejagnu}!
+    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
   gcc-c-torture-execute:
     name: gcc.c-torture/execute (${{ matrix.prefix }})
     runs-on: ubuntu-latest
@@ -761,7 +761,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/execute/execute.exp.{dejagnu}!
+    - run: PREFIX=${{ matrix.prefix }} make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
   gcc-dg-dg:
     name: gcc.dg/dg.exp (${{ matrix.prefix }})
     runs-on: ubuntu-latest
