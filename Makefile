@@ -75,7 +75,7 @@ build/wasm32/glibc/Makefile: built/wasm32/gcc-preliminary | src/glibc build/wasm
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os -g0" CXXFLAGS="-Os -g0" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 build/wasm32/gcc-testsuite/site.exp:
-	> $@
+	mkdir -p $(dir $@) > $@
 	echo 'set rootme "$(PWD)/build/wasm32/gcc-testsuite/"' >> $@
 	echo 'set srcdir "$(PWD)/src/gcc/gcc"' >> $@
 	echo 'set host_triplet x86_64-pc-linux-gnu' >> $@
