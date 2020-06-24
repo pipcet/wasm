@@ -477,6 +477,8 @@ jobs:
         uses: ./github/env/
       - name: Install binfmt_misc
         run: make github/install/binfmt_misc/elf32-wasm32
+      - name: Build utilities
+        run: make tools/bin/wasmrewrite tools/bin/wasmsect
       - name: chmod
         run: chmod a+x 001-hello-world.exe
       - name: ls -l
