@@ -74,7 +74,7 @@ build/wasm32/glibc/Makefile: built/wasm32/gcc-preliminary | src/glibc build/wasm
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O1 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 build/wasm32/gcc/Makefile: built/wasm32/glibc | src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os -g0" CXXFLAGS="-Os -g0" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
-build/wasm32/gcc-testsuite/site.exp:
+build/wasm32/gcc-testsuite/site.exp: | build
 	mkdir -p $(dir $@)
 	> $@
 	echo 'set rootme "$(PWD)/build/wasm32/gcc-testsuite/"' >> $@
@@ -486,7 +486,7 @@ artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-%.{dejagnu}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu
+%.{dejagnu}!: github/install/file-slurp github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/dejagnu build
 	$(MAKE) artifacts/binutils.tar.extracted!
 	$(MAKE) artifacts/gcc-preliminary.tar.extracted!
 	$(MAKE) artifacts/gcc.tar.extracted!
@@ -527,7 +527,8 @@ artifact-push!:
 	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
 	mkdir -p wasm
-	make src/gcc
+	$(MAKE) subrepos/gcc/checkout!
+	$(MAKE) src/gcc
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
