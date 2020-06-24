@@ -4,4 +4,7 @@ set -o errexit
 TMPD=$(mktemp -d --tmpdir elf-wasm.XXXXXXXXXXX);
 $(dirname "$0")/elf-to-wasm --executable --dynamic "$1" > $TMPD/wasm
 shift;
-exec $(dirname "$0")/wasm "$TMPD/wasm" "$@"
+$(dirname "$0")/wasm "$TMPD/wasm" "$@"
+EXIT=$?
+rm -rf $TMPD
+exit $EXIT
