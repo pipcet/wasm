@@ -180,7 +180,7 @@ wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libm.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
