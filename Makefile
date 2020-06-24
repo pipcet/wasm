@@ -524,7 +524,7 @@ artifact-push!:
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
 	mkdir -p wasm
 	make src/gcc
- 	cp artifacts/*.wasm wasm
+	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
