@@ -15,7 +15,7 @@ sub do_subst {
     # we deliberately cache values independently of the preamble.
     my $program = qq{
 int main(void) {
-    printf("$format", $c);
+    printf("$format\n", $c);
 
     return 0;
 }
@@ -26,10 +26,11 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("./${prefix}/bin/${prefix}-g++ --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ -fPIC --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
     my $ret = `$dir/a.out`;
+    chomp $ret;
     warn "$program => $ret";
     return $cache->{$program} = `$dir/a.out`;
 }
@@ -40,7 +41,7 @@ sub do_cpp_subst {
     # we deliberately cache values independently of the preamble.
     my $program = qq{
 int main(void) {
-    std::cout << to_string($c);
+    std::cout << to_string($c) << std::endl;
 
     return 0;
 }
@@ -51,11 +52,12 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("./${prefix}/bin/${prefix}-g++ -static -fconcepts -fpermissive --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ -fPIC -fconcepts -fpermissive --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
     # system($dir . "/a.out>/dev/null");
     $cache->{$c} = `$dir/a.out`;
+    chomp $cache->{$c};
 
     print STDERR "$c => " . $cache->{$c} . "\n";
 
