@@ -366,6 +366,7 @@ Wasm32Module.prototype.reload_at = function (thread, vm, clonedesc)
     this.imports.sys = {};
 
     this.imports.sys.call = thread.extcall.bind(thread);
+    this.imports.sys.debug = thread.debug.bind(thread);
     this.imports.sys.eh_return = thread.eh_return.bind(thread);
     this.imports.sys.indcall = thread.indcall.bind(thread);
     this.imports.sys.trace = thread.trace.bind(thread);
@@ -494,6 +495,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
     this.imports.sys = {};
 
     this.imports.sys.call = thread.extcall.bind(thread);
+    this.imports.sys.debug = thread.debug.bind(thread);
     this.imports.sys.eh_return = thread.eh_return.bind(thread);
     this.imports.sys.indcall = thread.indcall.bind(thread);
     this.imports.sys.trace = thread.trace.bind(thread);
@@ -700,6 +702,11 @@ Wasm32Thread.prototype.errorToCode = function (e)
         return e;
 
     return -%{EIO};
+};
+
+Wasm32Thread.prototype.debug = function (dpc)
+{
+    return 0;
 };
 
 Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
