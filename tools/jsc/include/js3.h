@@ -627,6 +627,9 @@ template<typename T>
 requires(__is_class(T))
 class JSV<T*> : public BaseJSV<T*> {
 public:
+  /* value is deliberately not defined -- all references to it should
+   * disappear during optimization. */
+  static T value;
   JSV(Value<T*>* v)
     : BaseJSV<T*>(v)
   {
@@ -655,6 +658,12 @@ public:
     return this->v->operator_plus_bytes(off.off.v, (I*)nullptr);
   }
 
+  T*
+  operator->()
+  {
+    return &value;
+  }
+
   JSV<T>
   operator[](JSV<size_t> n)
   {
@@ -680,6 +689,22 @@ public:
   }
 
   template<typename I>
+  JSV<I*>
+  operator+(I* x)
+  {
+    size_t s = ((size_t)x - (size_t)&value);
+
+    Value<size_t>* v = new ImmValue<size_t>(s);
+    return this->v->operator_plus_bytes(v, x);
+  }
+
+  template<typename I>
+  JSV<I>
+  operator[](I *x)
+  {
+    return *(*this + x);
+  }
+  template<typename I>
   JSV<I>
   operator[](I T::* x)
   {
@@ -698,6 +723,7 @@ public:
     return this->v->operator_deref();
   }
 
+  T* type();
   T deref_type();
 };
 
@@ -889,4 +915,7 @@ void clear(long long T::*x)
   std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << ">>2] = 0;\n";
 }
 
+#if 0
 #define REF(a,f) (a)[&decltype(a.deref_type())::(f)]
+#define REF(a,f) (a)[&(a)->(f)]
+#endif
