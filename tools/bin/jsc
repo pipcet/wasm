@@ -26,7 +26,7 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("./${prefix}/bin/${prefix}-g++ -fPIC --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ -O3 -fPIC --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
     my $ret = `$dir/a.out`;
@@ -52,7 +52,7 @@ int main(void) {
     return $ret if defined($ret);
 
     write_file("$dir/tmp.cc", $preamble . "\n\n" . $program);
-    system("./${prefix}/bin/${prefix}-g++ -fPIC -fconcepts -fpermissive --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
+    system("./${prefix}/bin/${prefix}-g++ -O3 -fPIC -fconcepts -fpermissive --std=gnu++1z -Itools/jsc/include $dir/tmp.cc -o $dir/a.out") and die;
 
     $cache_changed = 1;
     # system($dir . "/a.out>/dev/null");
