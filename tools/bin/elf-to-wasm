@@ -3,7 +3,7 @@ set -o pipefail
 set -o errexit
 TMPD=$(mktemp -d --tmpdir wasmify.XXXXXXXXXX);
 TYPE=executable
-DYNAMIC=1
+DYNAMIC=unknown
 while true; do
     if [ x"$1" = x"--library" ]; then
 	TYPE=library
@@ -21,6 +21,13 @@ while true; do
 	break
     fi
 done
+if [ x"$DYNAMIC" = xunknown ]; then
+    if $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d | grep -q "There is no dynamic section"; then
+	DYNAMIC=
+    else
+	DYNAMIC=1;
+    fi
+fi
 if [ x"$WASMDIR" = x ]; then
     WASMDIR=.
     export WASMDIR
