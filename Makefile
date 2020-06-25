@@ -317,22 +317,6 @@ artifact-bash!: | subrepos/bash/checkout! artifacts artifacts/binutils.tar.extra
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
-# delete me
-fetch-binutils!: artifacts/binutils.tar
-	tar xf $<
-	touch $@
-fetch-gcc-preliminary!: artifacts/gcc-preliminary.tar | fetch-binutils
-	tar xf $<
-	touch $@
-fetch-glibc!: artifacts/glibc.tar | fetch-gcc-preliminary
-	tar xf $<
-	touch $@
-fetch-gcc!: artifacts/gcc.tar | fetch-glibc
-	tar xf $<
-	touch $@
-fetch-ncurses!: artifacts/ncurses.tar | fetch-gcc
-	tar xf $<
-	touch $@
 
 # Create a file to be shipped
 ship/%.wasm: artifacts/%.wasm | ship
