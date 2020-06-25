@@ -458,6 +458,7 @@ artifacts: | .github-init
 
 # Extract an artifact
 extracted/%.tar: %.tar | extracted
+	$(MKDIR) $(dir extracted/$*)
 	tar xf $*.tar
 	touch $@
 
