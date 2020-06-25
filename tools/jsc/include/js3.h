@@ -588,6 +588,8 @@ public:
   {
     return *v;
   }
+
+  T type();
 };
 
 template<typename T>
@@ -695,6 +697,8 @@ public:
   {
     return this->v->operator_deref();
   }
+
+  T deref_type();
 };
 
 template<typename T>
@@ -884,3 +888,5 @@ void clear(long long T::*x)
   int status;
   std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << ">>2] = 0;\n";
 }
+
+#define REF(a,f) (a)[&decltype(a.deref_type())::(f)]
