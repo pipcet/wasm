@@ -18,3 +18,5 @@
 ** avoiding them entirely with -fPIC helps
 currently have a workaround: a recopy() syscall that we call very often, including just before starting main.
 * TODO disable building gdb again in the initial binutils build
+* TODO rename .asmjs.header to .wasm.something
+* TODO rename other "asmjs" leftovers
