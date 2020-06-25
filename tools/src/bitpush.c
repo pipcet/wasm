@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {
@@ -24,20 +25,25 @@ int main(int argc, char **argv)
     };
 
     poll (pfd, 2, -1);
+    if (pfd[0].revents & POLLERR)
+      exit (1);
+    if (pfd[1].revents & POLLERR)
+      exit (1);
     if (pfd[0].revents & POLLIN) {
       char buf[512];
       ssize_t n = read (0, buf, sizeof buf);
-      fprintf (stderr, "read %.*s\n", n, buf);
-      int fd = open (outname, O_CREAT|O_EXCL|O_RDWR, 0660);
-      if (fd > 0) {
-	write (fd, buf, n);
-	close (fd);
-      }
+      int fd;
+      do {
+	fd = open (outname, O_CREAT|O_EXCL|O_RDWR, 0660);
+	if (fd > 0) {
+	  write (fd, buf, n);
+	  close (fd);
+	}
+      } while (fd < 0);
     }
     if (pfd[1].revents & POLLIN) {
       char buf[512];
       ssize_t n = read (ofd, buf, sizeof buf);
-      fprintf (stderr, "write %.*s\n", n, buf);
       write (1, buf, n);
     }
   }
