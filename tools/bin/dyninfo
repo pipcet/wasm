@@ -231,7 +231,6 @@ print "    ],\n";
 print "    \"copy\": [\n";
 my @l;
 for my $symbol (sort { $a cmp $b } keys %copy) {
-    warn "copying $symbol";
     for my $addr (sort { $a <=> $b } keys %{$copy{$symbol}}) {
         push @l, "\t[\"$symbol\", $addr, $copy{$symbol}{$addr}]";
     }
