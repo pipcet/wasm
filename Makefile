@@ -406,6 +406,9 @@ test/wasm32/%.wasm.out: test/wasm32/%.wasm
 	@echo "STDERR"
 	@cat test/wasm32/$*.wasm.err
 
+test/wasm32/%.gdb.out: test/wasm32/%.gdb
+	JS=$(JS) WASMDIR=$(PWD) $(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gdb --command=$< --batch > $@
+
 comma = ,
 car = $(firstword $(1))
 cdr = $(wordlist 2,$(words $(1)),$(1))
