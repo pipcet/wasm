@@ -769,7 +769,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 gcc.dg/dg.exp.{dejanew}!
+    - run: make gcc.dg/dg.exp.{dejanew}!
   binutils-check:
     name: make check (binutils)
     runs-on: ubuntu-latest
