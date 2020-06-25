@@ -87,6 +87,11 @@ jobs:
       with:
         name:
           libc.wasm
+    - name: Download libstdc++.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name:
+          libstdc++.wasm
     - name: Download ld.wasm
       uses: actions/download-artifact@v1
       with:
