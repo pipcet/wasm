@@ -303,7 +303,6 @@ artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifa
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
-	tar cf artifacts/build-gcc.tar build/wasm32/gcc src/gcc subrepos/gcc
 # $(MAKE) wasm/libstdc++.wasm
 # cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
@@ -490,8 +489,6 @@ artifact-push!:
 	$(MAKE) extracted/artifacts/gcc-preliminary.tar
 	$(MAKE) extracted/artifacts/gcc.tar
 	$(MAKE) extracted/artifacts/glibc.tar
-	$(MAKE) artifacts/build-gcc.tar
-	tar xf artifacts/build-gcc.tar
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
