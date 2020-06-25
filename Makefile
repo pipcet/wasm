@@ -434,7 +434,7 @@ test/wasm32/%.o.exe: test/wasm32/%.o
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
 
 test/wasm32/%.cc.exe: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -fPIC $< -o $@
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 
 test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
