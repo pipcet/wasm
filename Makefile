@@ -14,7 +14,7 @@ all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm tools/bin/wasmrewrite t
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 bin build built github/assets github/release github/install js lib ship src stamp test wasm:
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 
 start-over!:
 	rm -rf bin build built github/assets github/release github/install js lib ship src stamp test wasm wasm32-unknown-none
@@ -27,21 +27,21 @@ env:
 
 # subsidiary directories. Nothing interesting here.
 src/wasm32: | src
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 build/common: | build
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 built/common: | built
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 build/wasm32: | build
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 built/wasm32: | built
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 test/wasm32: | test
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
-	test -d $@ || $(MKDIR) $@
+	$(MKDIR) $@
 
 # binutils-gdb requires source tree modification, so we copy the source.
 src/wasm32/binutils-gdb: | src/wasm32
@@ -151,7 +151,7 @@ built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
 	touch $@
 built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
-	test -d build/wasm32/gcc/gcc || $(MKDIR) build/wasm32/gcc/gcc
+	$(MKDIR) build/wasm32/gcc/gcc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
