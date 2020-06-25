@@ -38,7 +38,7 @@ built/wasm32: | built
 	$(MKDIR) $@
 test/wasm32: | test
 	$(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
 	$(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
 	$(MKDIR) $@
@@ -66,7 +66,9 @@ build/common/wabt/Makefile: | src/wabt build/common/wabt
 	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
 build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binutils-gdb
 	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
-	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE) --without-gdb)
+build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
+	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE) --with-gdb)
 # Note that src/gcc is shared between the gcc-preliminary and gcc targets.
 build/wasm32/gcc-preliminary/Makefile: built/wasm32/binutils-gdb | build/wasm32/gcc-preliminary src/gcc
 	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
@@ -139,6 +141,11 @@ built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	$(MAKE) -C build/wasm32/binutils-gdb install
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+built/wasm32/gdb: build/wasm32/gdb/Makefile built/wasm32/gcc | bin built/wasm32
+	$(MAKE) -C build/wasm32/gdb
+	$(MAKE) -C build/wasm32/gdb install
+	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
+	touch $@
 built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32 bin
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary install
@@ -208,7 +215,7 @@ js/wasm32.js: js/wasm32-main.jsc.js js/wasm32-range.jsc.js js/wasm32-system.jsc.
 # build-everything rules
 built/all: built/wasm32/all built/common/all
 	touch $@
-built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/wasm32/glibc built/wasm32/gcc built/wasm32/ncurses built/wasm32/bash
+built/wasm32/all: built/wasm32/binutils-gdb built/wasm32/gcc-preliminary built/wasm32/glibc built/wasm32/gcc built/wasm32/ncurses built/wasm32/bash built/wasm32/gdb
 	touch $@
 built/common/all: built/common/binaryen built/common/wabt
 	touch $@
@@ -221,7 +228,7 @@ built/common/all: built/common/binaryen built/common/wabt
 clean!:
 	rm -rf build built src wasm32-unknown-none
 
-.SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
+.SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
 .PRECIOUS: test/wasm32/%
 
 # Test framework
