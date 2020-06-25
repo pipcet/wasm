@@ -271,10 +271,6 @@ github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/tools/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 
-# Extract an artifact
-artifacts/%.tar.extracted!: artifacts/%.tar
-	tar xf artifacts/$*.tar
-
 # Build the various artifacts
 artifact-wasm32.js!: | github/install/file-slurp js/wasm32.js artifact-timestamp artifacts
 	cat js/wasm32.js > artifacts/wasm32.js
@@ -459,6 +455,10 @@ artifacts: | .github-init
 .github-init:
 	bash github/artifact-init
 	touch $@
+
+# Extract an artifact
+artifacts/%.extracted!: artifacts/%
+	tar xf artifacts/$*
 
 artifacts/%: | artifacts
 	bash github/dl-artifact $*
