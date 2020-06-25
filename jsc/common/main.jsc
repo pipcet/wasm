@@ -1,4 +1,13 @@
-var path = path || ((typeof (scriptArgs) === "undefined") ? process.argv[2] : scriptArgs[0]) || "";
+var args = (typeof (scriptArgs) === "undefined") ? process.argv.slice(2) : scriptArgs.slice(0);
+
+var gdbpipes;
+if (args[0] === "--gdbpipes") {
+    gdbpipes = args[1];
+    args.shift();
+    args.shift();
+}
+
+var path = args.shift();
 var remote;
 
 function CStringAt(heap, offset)
