@@ -84,14 +84,14 @@ Wasm32LM.prototype.dyninfo_fixups = function (dyninfo, imports, module)
 {
     var vm = this.vm;
 
-    for (let [addr1, addr2] of dyninfo.fixup) {
+    for (let [addr1, addr2] of dyninfo.fixup || []) {
         addr1 = addr1 - 0x4000 + imports.sys.got;
         addr2 = addr2 - 0x4000 + imports.sys.got;
 
         vm.HEAPU32[addr1>>2] = addr2;
     }
 
-    for (let [addr1, addr2] of dyninfo.fixupfun) {
+    for (let [addr1, addr2] of dyninfo.fixupfun || []) {
         addr1 = addr1 - 0x4000 + imports.sys.got;
         addr2 = addr2 + imports.sys.plt;
 
@@ -115,7 +115,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	}
 	symbols.get(name).add_definition(["data", addr]);
     }
-    for (let [name, addr] of dyninfo.defun) {
+    for (let [name, addr] of dyninfo.defun || []) {
 	addr += imports.sys.plt;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
@@ -126,7 +126,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	}
 	symbols.get(name).add_definition(["code", addr]);
     }
-    for (let [name] of dyninfo.copy)
+    for (let [name] of dyninfo.copy || [])
 	symbols.delete(name);
     for (let [name, symbol] of symbols) {
 	this.symbols.set(name, symbol);
@@ -138,7 +138,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 Wasm32LM.prototype.dyninfo_symbol_references =
     function (dyninfo, imports, module)
 {
-    for (let [name, addr] of dyninfo.ref) {
+    for (let [name, addr] of dyninfo.ref || []) {
         addr -= 0x4000;
         addr += imports.sys.got;
 	if (!this.symbols.has(name)) {
@@ -148,7 +148,7 @@ Wasm32LM.prototype.dyninfo_symbol_references =
 	}
 	this.symbols.get(name).add_reference(["data", addr]);
     }
-    for (let [name, addr] of dyninfo.refun) {
+    for (let [name, addr] of dyninfo.refun || []) {
 	addr += imports.sys.plt;
         name = name.replace(/@@.*/, "");
         name = name.replace(/@.*/, "");
@@ -159,7 +159,7 @@ Wasm32LM.prototype.dyninfo_symbol_references =
 	}
 	this.symbols.get(name).add_reference(["code", addr]);
     }
-    for (let [name, addr, size] of dyninfo.copy) {
+    for (let [name, addr, size] of dyninfo.copy || []) {
         addr -= 0x4000;
         addr += imports.sys.got;
 	if (!this.symbols.has(name)) {
@@ -222,12 +222,12 @@ Wasm32LM.prototype.dyninfo_apply_symbols =
 Wasm32LM.prototype.dyninfo_misc =
     function (dyninfo, imports, module)
 {
-    for (let lib of dyninfo.libs) {
+    for (let lib of dyninfo.libs || []) {
         this.dep[lib] = -1;
     }
 
     if ("lazy" in dyninfo) {
-        for (let [symbol, addr, version] of dyninfo.lazy) {
+        for (let [symbol, addr, version] of dyninfo.lazy || []) {
             if (version === "libc.so") {
                 console.log("libc can't be lazy!");
                 continue;
