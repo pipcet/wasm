@@ -709,6 +709,39 @@ Wasm32Thread.prototype.debug = function (dpc)
     return 0;
 };
 
+Wasm32Thread.prototype.check_debug = function ()
+{
+    console.log("check_debug");
+    return 1;
+};
+
+Wasm32Thread.prototype.write_debug = function (chp)
+{
+    //console.log(String.fromCharCode(this.vm.HEAPU8[chp]));
+    let r = redirect(`${gdbpipes}/out`);
+    putstr(String.fromCharCode(this.vm.HEAPU8[chp]));
+    redirect(r);
+    return 1;
+};
+
+let gdb_debug_string = "";
+
+Wasm32Thread.prototype.read_debug = function (chp)
+{
+    while (gdb_debug_string === "") {
+	try {
+	    gdb_debug_string = os.file.readFile(`${gdbpipes}/in`);
+	    if (gdb_debug_string !== "") {
+		os.system(`rm -f ${gdbpipes}/in`);
+	    }
+	} catch (e) {
+	}
+    }
+    this.vm.HEAPU8[chp] = gdb_debug_string.charCodeAt(0);
+    gdb_debug_string = gdb_debug_string.substr(1);
+    return 1;
+};
+
 Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 {
     var sp = sp1 - 56 - 16 + 16;
@@ -755,6 +788,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
         }
     }
 
+    outer:
     switch (mod) {
     case "thinthin":
         if (ThinThin[fun]) {
@@ -768,6 +802,21 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
         }
         console.log ("couldn't find " + fun);
 	quit(0);
+    case "debug": {
+	switch (fun) {
+	case "check_debug":
+	case "write_debug":
+	case "read_debug":
+	    //console.log(fun);
+            try {
+                retv = this[fun].apply(this, args);
+                break outer;
+            } catch (e) {
+                retv = this.errorToCode(e);
+                break outer;
+            }
+	}
+    }
     default:
         i.dont.exist++;
         throw("giving up, pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
