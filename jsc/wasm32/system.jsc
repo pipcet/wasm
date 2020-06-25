@@ -204,9 +204,11 @@ Wasm32LM.prototype.dyninfo_apply_symbols =
 		    reference[0] === "data")
 		    vm.HEAPU32[reference[1]>>2] = definition[1];
 		if (definition[0] === "data" &&
-		    reference[0] === "copy")
+		    reference[0] === "copy") {
 		    for (let i = 0; i < reference[2]; i++)
 			vm.HEAPU8[reference[1]+i] = vm.HEAPU8[definition[1]+i];
+		    vm.copies.push([reference[1],definition[1],reference[2],symbol.name]);
+		}
 		if (definition[0] === "code" &&
 		    reference[0] === "data")
 		    vm.HEAPU32[reference[1]>>2] = definition[1];
@@ -277,6 +279,7 @@ function Wasm32VM(sizes)
 
     this.space_functions = new RangeAllocator(this.grow_functions.bind(this));
     this.space_pcs = new RangeAllocator(this.grow_pcs.bind(this));
+    this.copies = [];
 }
 
 Wasm32VM.prototype.clonedesc = function ()
