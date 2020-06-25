@@ -10,7 +10,7 @@ JS ?= $$JS
 .SECONDEXPANSION:
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect
+all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 bin build built extracted github/assets github/release github/install js lib ship src stamp test wasm:
