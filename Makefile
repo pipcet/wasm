@@ -303,8 +303,8 @@ artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifa
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
-# $(MAKE) wasm/libstdc++.wasm
-# cp wasm/libstdc++.wasm artifacts/
+	$(MAKE) wasm/libstdc++.wasm
+	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
 artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
