@@ -14,5 +14,6 @@
 * TODO elf-to-wasm: detect dynamicness automatically
 * TODO work out why glibc is rebuilt in a loop
 * DONE isprint('a') is 0
-* TODO C++ copy relocations don't work, get called before constructors run
+* DONE C++ copy relocations don't work, get called before constructors run
 ** avoiding them entirely with -fPIC helps
+currently have a workaround: a recopy() syscall that we call very often, including just before starting main.
