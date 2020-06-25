@@ -21,16 +21,16 @@ while true; do
 	break
     fi
 done
+if [ x"$WASMDIR" = x ]; then
+    WASMDIR=.
+    export WASMDIR
+fi
 if [ x"$DYNAMIC" = xunknown ]; then
     if $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d "$1" | grep -q "There is no dynamic section"; then
 	DYNAMIC=
     else
 	DYNAMIC=1;
     fi
-fi
-if [ x"$WASMDIR" = x ]; then
-    WASMDIR=.
-    export WASMDIR
 fi
 if [ x"$DELAY" = x ]; then
     DELAY=1
