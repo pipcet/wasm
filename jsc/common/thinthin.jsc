@@ -33,7 +33,19 @@
 
 //* globals
 var ThinThin = {};
-//** ThinThin.sbrk (unused)
+
+ThinThin.recopy = function ()
+{
+    let vm = this.vm;
+
+    for (let [dst, src, size, symbol] of vm.copies) {
+	for (let i = 0; i < size; i++)
+	    vm.HEAPU8[dst+i] = vm.HEAPU8[src+i];
+    }
+
+    return 0;
+};
+
 ThinThin.sbrk = function (size)
 {
     size = (size + 4095) & -4096;
