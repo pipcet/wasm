@@ -37,11 +37,11 @@ var ThinThin = {};
 ThinThin.sbrk = function (size)
 {
     size = (size + 4095) & -4096;
-    var ret = this.%{zp[&zeropage::top_of_sbrk]};
+    var ret = this.%{zp[&zp->top_of_sbrk]};
 
-    this.%{zp[&zeropage::top_of_sbrk]} += size;
+    this.%{zp[&zp->top_of_sbrk]} += size;
 
-    if (this.%{zp[&zeropage::top_of_sbrk]} > this.%{zp[&zeropage::top_of_memory]}) {
+    if (this.%{zp[&zp->top_of_sbrk]} > this.%{zp[&zp->top_of_memory]}) {
         throw "OOM";
     }
 
@@ -3212,7 +3212,7 @@ if (typeof(os) !== "undefined" &&
                 var ret = module.instantiate(thread, vm, 0x4000, true);
                 var tos = (module.dyninfo.data_end + 4095) & -4096;
 
-                vm.%{zp[&zeropage::top_of_sbrk] = "tos"}
+                vm.%{zp[&zp->top_of_sbrk] = "tos"}
 
                 return ret;
             }).then(() => {
@@ -3228,22 +3228,22 @@ if (typeof(os) !== "undefined" &&
                 thread.heap = vm.heap;
                 var HEAP32 = vm.HEAP32;
 
-                %{zp[&zeropage::top_of_memory] = "module.top_of_memory"}
-                %{zp[&zeropage::thread_list]} = %{tp1};
-                %{zp[&zeropage::bottom_of_sbrk] = "module.start_of_sbrk"}
+                %{zp[&zp->top_of_memory] = "module.top_of_memory"}
+                %{zp[&zp->thread_list]} = %{tp1};
+                %{zp[&zp->bottom_of_sbrk] = "module.start_of_sbrk"}
 
-                %{tp1[&threadpage::next]} = %{tp1};
-                %{tp1[&threadpage::prev]} = %{tp1};
-                %{tp1[&threadpage::id] = "1"}
-                %{tp1[&threadpage::bottom_of_stack] = "module.bottom_of_stack"}
+                %{tp1[&tp1->next]} = %{tp1};
+                %{tp1[&tp1->prev]} = %{tp1};
+                %{tp1[&tp1->id] = "1"}
+                %{tp1[&tp1->bottom_of_stack] = "module.bottom_of_stack"}
                 module.top_of_stack = sizes.stackbottom + sizes.stacksize;
-                %{tp1[&threadpage::top_of_stack] = "module.top_of_stack"}
+                %{tp1[&tp1->top_of_stack] = "module.top_of_stack"}
 
                 var sp = this.process.system.init_sp(vm, module.top_of_stack, args, env);
-                %{tp1[&threadpage::sp] = "sp"}
-                %{tp1[&threadpage::initsp] = -1}
+                %{tp1[&tp1->sp] = "sp"}
+                %{tp1[&tp1->initsp] = -1}
 
-                %{tp1[&threadpage::pc] = "process.entry"}
+                %{tp1[&tp1->pc] = "process.entry"}
                 thread.first = true;
             }).then(() => {
                 this.process.system.threads[0] = thread;
