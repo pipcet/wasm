@@ -17,8 +17,8 @@ int main(int argc, char **argv)
   char *inname;
   asprintf (&inname, "%s/out", argv[1]);
   char *pidname;
-  asprintf (&inname, "%s/pid", argv[1]);
-  int ofd = open (inname, O_RDONLY | O_NONBLOCK);
+  asprintf (&pidname, "%s/pid", argv[1]);
+  int ofd = open (inname, O_RDONLY|O_NONBLOCK);
 
   while (1) {
     struct pollfd pfd[2] = {
@@ -30,6 +30,7 @@ int main(int argc, char **argv)
     if ((pfd[0].revents & POLLERR)
 	|| (pfd[1].revents & POLLERR))
       {
+      end:
 	fprintf (stderr, "ouch, dying\n");
 	int fd;
 	fd = open (pidname, O_RDONLY);
@@ -45,6 +46,8 @@ int main(int argc, char **argv)
     if (pfd[0].revents & POLLIN) {
       char buf[512];
       ssize_t n = read (0, buf, sizeof buf);
+      if (n == 0)
+	goto end;
       int fd;
       do {
 	fd = open (outname, O_CREAT|O_EXCL|O_RDWR, 0660);
@@ -57,6 +60,11 @@ int main(int argc, char **argv)
     if (pfd[1].revents & POLLIN) {
       char buf[512];
       ssize_t n = read (ofd, buf, sizeof buf);
+      if (n == 0) {
+	close (ofd);
+	ofd = open (inname, O_RDONLY|O_NONBLOCK);
+	continue;
+      }
       write (1, buf, n);
     }
   }
