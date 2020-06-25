@@ -104,7 +104,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 {
     let vm = this.vm;
     let symbols = new Map();
-    for (let [name, addr] of dyninfo.def) {
+    for (let [name, addr] of dyninfo.def || []) {
 	addr += imports.sys.got - 0x4000;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
