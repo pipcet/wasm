@@ -935,8 +935,7 @@ Wasm32Thread.prototype.truncdfsi = function (v)
 Wasm32Thread.prototype.null_called = function ()
 {
     console.log("NULL called!");
-    while (1);
-    throw "NULL called!";
+    quit(1);
 };
 
 function build_sig(sigstr)
