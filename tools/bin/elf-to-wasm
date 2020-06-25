@@ -22,7 +22,7 @@ while true; do
     fi
 done
 if [ x"$DYNAMIC" = xunknown ]; then
-    if $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d | grep -q "There is no dynamic section"; then
+    if $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d "$1" | grep -q "There is no dynamic section"; then
 	DYNAMIC=
     else
 	DYNAMIC=1;
