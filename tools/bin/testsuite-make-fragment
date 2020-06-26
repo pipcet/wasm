@@ -35,6 +35,9 @@ if (scalar keys %{$byext{cc}} == 1) {
 	push @all, "${outprefix}/$file.exe";
 	push @all, "${outprefix}/$file.exe.wasm";
 	push @all, "${outprefix}/$file.exe.wasm.out";
+	push @all, "${outprefix}/$file.{static}.exe";
+	push @all, "${outprefix}/$file.{static}.exe.wasm";
+	push @all, "${outprefix}/$file.{static}.exe.wasm.out";
     }
 }
 if (scalar keys %{$byext{c}} > 0) {
@@ -51,12 +54,22 @@ for my $file (keys %{$byext{exp}}) {
 
 for my $file (keys %{$byext{"c.exe.wasm.out.exp"}}) {
     my $out = $byext{"c.exe.wasm.out.exp"}{$file};
-    #push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
+    push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
 }
 
 for my $file (keys %{$byext{"c.exe.wasm.out.exp.pl"}}) {
     my $out = $byext{"c.exe.wasm.out.exp.pl"}{$file};
-    #push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
+    push @all, $outprefix . "/" . $out . ".c.{static}.exe.wasm.out.exp.cmp";
+}
+
+for my $file (keys %{$byext{"cc.exe.wasm.out.exp"}}) {
+    my $out = $byext{"cc.exe.wasm.out.exp"}{$file};
+    push @all, $outprefix . "/" . $out . ".cc.{static}.exe.wasm.out.exp.cmp";
+}
+
+for my $file (keys %{$byext{"cc.exe.wasm.out.exp.pl"}}) {
+    my $out = $byext{"cc.exe.wasm.out.exp.pl"}{$file};
+    push @all, $outprefix . "/" . $out . ".cc.{static}.exe.wasm.out.exp.cmp";
 }
 
 for my $file (keys %{$byext{"exp.pl"}}) {
