@@ -17,7 +17,7 @@ bin build built extracted github/assets github/release github/install js lib shi
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf bin build built extracted github/assets github/release github/install js lib ship src stamp test wasm wasm32-unknown-none
+	rm -rf bin build built extracted github/assets github/release github/install js lib ship src stamp test wasm wasm32-unknown-none lds/*.cpp-lds.lds
 
 # environment for bash shells
 env:
@@ -180,7 +180,7 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
 
-tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds| bin
+tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds | bin
 	gcc -g3 $< -o $@
 
 # wasm/ targets.
@@ -395,7 +395,7 @@ test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp
 	cat $< > $@
 
 # exe -> wasm rule
-test/wasm32/%.exe.wasm: test/wasm32/%.exe
+test/wasm32/%.exe.wasm: test/wasm32/%.exe tools/bin/elf-to-wasm
 	tools/bin/elf-to-wasm --executable $< > $@
 
 # wasm output rule
