@@ -131,7 +131,7 @@
 ENTRY(_start)
 SECTIONS
 {
-  .output (INFO) : {
+  .output (INFO) : SUBALIGN (1) {
     LONG(0x6d736100)
     LONG(1) /* MVP: see https://lists.w3.org/Archives/Public/public-webassembly/2017Feb/0002.html */
     SECTION_SIZED(type)
@@ -152,7 +152,7 @@ SECTIONS
     __wasm_data_segment = .;
     *(.header);
   }
-  .data :
+  .data : SUBALIGN (1)
   {
      __data_start = .;
      *(.got*)
@@ -182,7 +182,7 @@ SECTIONS
     KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
     PROVIDE_HIDDEN (__fini_array_end = .);
   }
-  .bss :
+  .bss : SUBALIGN (1)
   {
      *(COMMON)
      *(.tbss*)
