@@ -20,7 +20,7 @@ currently have a workaround: a recopy() syscall that we call very often, includi
 * TODO disable building gdb again in the initial binutils build
 * TODO rename .asmjs.header to .wasm.something
 * TODO rename other "asmjs" leftovers
-* TODO don't produce invalid wasm for impossible alignments
+* TODO don't produce invalid wasm for impossible alignments (pr36093.c)
 * TODO work out why this appears in most tests
 #+begin
 Executing on host: wasm32-unknown-none-gcc offload_gcn716358.c    -fno-diagnostics-show-caret -fno-diagnostics-show-line-numbers -fdiagnostics-color=never  -fdiagnostics-urls=never  -foffload=amdgcn-amdhsa -S -o offload_gcn716358.s    (timeout = 300)
