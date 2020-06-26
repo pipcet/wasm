@@ -804,4 +804,3 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make -kj10 binutils-test!
-)
