@@ -10,7 +10,7 @@ JS ?= $$JS
 .SECONDEXPANSION:
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush
+all!: lds/wasm32.cpp-lds.lds built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 bin build built extracted github/assets github/release github/install js lib ship src stamp test wasm:
@@ -108,7 +108,8 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc s
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.[cSi]$$' | sed -e 's/^\.\///g'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}:" >> $@; \
-	    echo "\t(cd build/wasm32/gcc-testsuite; mkdir -p $(dir $*)$$file.{dejagnu}.log/; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}.log/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t@(cd build/wasm32/gcc-testsuite; mkdir -p $(dir $*)$$file.{dejagnu}.log/; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}.log/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t@! grep -q unexpected build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}.log/gcc.log || echo $$file" >> $@; \
 	    echo >> $@; \
 	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}"; \
 	done; \
