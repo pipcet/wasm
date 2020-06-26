@@ -403,14 +403,12 @@ long ast(unsigned long len, unsigned long index)
       break;
 
     default:
-      fprintf(stderr, "ast %02x %lx\n", (int)c, roff);
       ABORT();
       abort();
     }
   }
 
   if (block != -1) {
-    fprintf(stderr, "unbalanced %ld %lx %lx\n", block, roff, index);
     ABORT();
   }
 
@@ -921,14 +919,12 @@ long init_expr()
       break;
 
     default:
-      fprintf(stderr, "ast %02x %lx\n", (int)c, roff);
       ABORT();
       abort();
     }
   }
  out:
   if (block != -1) {
-    fprintf(stderr, "unbalanced %ld %lx %lx\n", block, roff, index);
     ABORT();
   }
 
@@ -1126,9 +1122,6 @@ int main(int argc, char **argv)
 
   unsigned long ooff = 0;
   for (woff = 0; woff < off; woff++) {
-    if (0) if ((woff & 1023) == 0)
-      fprintf(stderr, "%lx -> %lx\n",
-              woff, ooff);
     if (gmask[woff]) {
       putchar(gbuf[woff]);
       ooff++;
