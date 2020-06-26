@@ -180,7 +180,7 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
 
-tools/bin/%: tools/src/%.c | bin
+tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds| bin
 	gcc -g3 $< -o $@
 
 # wasm/ targets.
