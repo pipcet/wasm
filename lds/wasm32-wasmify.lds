@@ -3,7 +3,7 @@ SECTIONS
 {
   .data : SUBALIGN(1)  {
       *(.output)
-      *(.asmjs.header)
+      *(.header)
       *(.got*)
       *(.data)
       *(.bss)
