@@ -82,7 +82,7 @@
   *(.data*);					\
   *(.gnu.linkonce.d.*)				\
   *(__libc_IO_vtables)				\
-  *(.asmjs.header);				\
+  *(.header);					\
   *(.rodata);					\
   *(.bss);					\
   __wasm_##name##_segment_end = .;		\
@@ -147,10 +147,10 @@ SECTIONS
     SECTION_DATA_HEADER(data)
   }
   . = 16384;
-  .asmjs.header :
+  .header :
   {
     __wasm_data_segment = .;
-    *(.asmjs.header);
+    *(.header);
   }
   .data :
   {
