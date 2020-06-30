@@ -343,6 +343,10 @@ long ast(unsigned long len, unsigned long index)
 
     case 0x11:
     case 0x28 ... 0x3e:
+      mputchar(0x41);
+      mputchar(0x80);
+      mputchar(0x20);
+      mputchar(0x6b);
       mputchar(c);
       mputuleb128(mgetuleb128());
       mputuleb128(mgetuleb128());
