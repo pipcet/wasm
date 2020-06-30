@@ -9,6 +9,7 @@ my %flags = (
     "O3" => "-O3",
     "Og" => "-Og",
     "Os" => "-Os",
+    "debug" => $ENV{WASMDIR} . "/stub.o",
 );
 my @flags;
 while (@comps && $comps[0] !~ /^\{.*\}$/) {

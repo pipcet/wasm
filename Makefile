@@ -379,6 +379,9 @@ test/wasm32/%.c.exe: test/wasm32/%.c
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
 
+test/wasm32/%.c.{debug}.exe: test/wasm32/%.c
+	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c.{debug},$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map $< -o $@ -lstdc++ -lm
+
 test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
 	cat $< > $@
 
