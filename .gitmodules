@@ -34,3 +34,6 @@
 	path = subrepos/libtool
 	url = https://github.com/pipcet/libtool
 	branch = wasm
+[submodule "subrepos/coreutils"]
+	path = subrepos/coreutils
+	url = https://github.com/pipcet/coreutils
