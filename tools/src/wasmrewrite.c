@@ -29,11 +29,6 @@ void mputchar(int c)
   gbuf[woff++] = c;
 }
 
-void mskipchar(void)
-{
-  woff++;
-}
-
 void msetchar(unsigned long off, int c)
 {
   gmask[off] = 0xff;
@@ -342,16 +337,19 @@ long ast(unsigned long len, unsigned long index)
       break;
 
     case 0x11:
-    case 0x28 ... 0x3e:
-      mputchar(0x41);
-      mputchar(0x80);
-      mputchar(0x20);
-      mputchar(0x6b);
+    case 0x28 ... 0x3e: {
+      long a = mgetuleb128();
+      long b = mgetuleb128();
+      /* mputchar(0x41); fprintf (stderr, "%ld %ld\n", roff, woff); */
+      /* mputchar(0x80); fprintf (stderr, "%ld %ld\n", roff, woff); */
+      /* mputchar(0x20); fprintf (stderr, "%ld %ld\n", roff, woff); */
+      /* mputchar(0x6b); fprintf (stderr, "%ld %ld\n", roff, woff); */
       mputchar(c);
-      mputuleb128(mgetuleb128());
-      mputuleb128(mgetuleb128());
+      mputuleb128(a);
+      mputuleb128(b);
       delta += msynch();
       break;
+    }
 
     case 0x0e:
       mputchar(c);
@@ -363,6 +361,7 @@ long ast(unsigned long len, unsigned long index)
       break;
 
     case 0x06:
+      abort();
       switch (mgetchar()) {
       case 1: /* jump */
         //mputchar(0x41);
