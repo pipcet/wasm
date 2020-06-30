@@ -384,14 +384,14 @@ public:
     JSCType jsctype = JSCType::u8;
     switch(sizeof(T)) {
     case 1:
-      return this->heap()->describe_heap(JSCType::i8) + "[" + a->describe_word() + "]";
+      return this->heap()->describe_heap(JSCType::i8) + "[" + a->describe_word() + "-4096]";
     case 2:
-      return this->heap()->describe_heap(JSCType::i16) + "[" + a->describe_word() + ">>1]";
+      return this->heap()->describe_heap(JSCType::i16) + "[" + a->describe_word() + "-4096>>1]";
     case 4:
-      return this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + ">>2]";
+      return this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + "-4096>>2]";
     case 8:
       /* this is a hack */
-      return this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + ">>2]";
+      return this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + "-4096>>2]";
     }
 
     return "unknown size";
@@ -404,15 +404,15 @@ public:
     std::vector<std::string> ret;
 
     while (len-off >= 4) {
-      ret.push_back(this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + ">>2]");
+      ret.push_back(this->heap()->describe_heap(JSCType::i32) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + "-4096>>2]");
       off += 4;
     }
     while (len-off >= 2) {
-      ret.push_back(this->heap()->describe_heap(JSCType::i16) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + ">>1]");
+      ret.push_back(this->heap()->describe_heap(JSCType::i16) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + "-4096>>1]");
       off += 2;
     }
     while (len-off >= 1) {
-      ret.push_back(this->heap()->describe_heap(JSCType::i8) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + "]");
+      ret.push_back(this->heap()->describe_heap(JSCType::i8) + "[" + a->describe_word() + (off ? "+" + to_string(off) : "") + "-4096]");
       off += 1;
     }
 
@@ -844,13 +844,13 @@ const char *js_set(const char *base, unsigned off, unsigned len, const char *v)
   char *ret;
   switch (len) {
   case 1:
-    asprintf(&ret, "this.HEAP8[%s+%d] = %s;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP8[%s+%d-4096] = %s;", base, off, v); return ret;
   case 2:
-    asprintf(&ret, "this.HEAP16[%s+%d>>1] = %s;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP16[%s+%d-4096>>1] = %s;", base, off, v); return ret;
   case 4:
-    asprintf(&ret, "this.HEAP32[%s+%d>>2] = %s;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP32[%s+%d-4096>>2] = %s;", base, off, v); return ret;
   case 8:
-    asprintf(&ret, "this.HEAP32[%s+%d>>2] = %s; this.HEAP32[%s+%d>>2] = 0;", base, off, v, base, off+4, 0); return ret;
+    asprintf(&ret, "this.HEAP32[%s+%d-4096>>2] = %s; this.HEAP32[%s+%d-4096>>2] = 0;", base, off, v, base, off+4, 0); return ret;
   }
   return "XXX";
 }
@@ -860,13 +860,13 @@ const char *js_set(const char *base, unsigned off, unsigned len, unsigned long l
   char *ret;
   switch (len) {
   case 1:
-    asprintf(&ret, "this.HEAP8[%s+%d] = %d;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP8[%s+%d-4096] = %d;", base, off, v); return ret;
   case 2:
-    asprintf(&ret, "this.HEAP16[%s+%d>>1] = %d;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP16[%s+%d-4096>>1] = %d;", base, off, v); return ret;
   case 4:
-    asprintf(&ret, "this.HEAP32[%s+%d>>2] = %d;", base, off, v); return ret;
+    asprintf(&ret, "this.HEAP32[%s+%d-4096>>2] = %d;", base, off, v); return ret;
   case 8:
-    asprintf(&ret, "this.HEAP32[%s+%d>>2] = %d; this.HEAP32[%s+%d>>2] = %d;", base, off, (int)v&0xffffffff, base, off+4, (int)(v>>32)); return ret;
+    asprintf(&ret, "this.HEAP32[%s+%d-4096>>2] = %d; this.HEAP32[%s+%d-4096>>2] = %d;", base, off, (int)v&0xffffffff, base, off+4, (int)(v>>32)); return ret;
   }
   return "XXX";
 }
@@ -903,7 +903,7 @@ void clear(int T::*x)
   T* ptr = nullptr;
   unsigned long off = (unsigned long)&(ptr->*x);
   int status;
-  std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << ">>2] = 0;\n";
+  std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << "-4096>>2] = 0;\n";
 }
 
 template<typename T>
@@ -912,7 +912,7 @@ void clear(long long T::*x)
   T* ptr = nullptr;
   unsigned long off = (unsigned long)&(ptr->*x);
   int status;
-  std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << ">>2] = 0;\n";
+  std::cout << "this.HEAP32[" << abi::__cxa_demangle(typeid(T).name(), 0, 0, &status) << "+" << off << "-4096>>2] = 0;\n";
 }
 
 #if 0
