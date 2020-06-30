@@ -46,6 +46,16 @@ ThinThin.recopy = function ()
     return 0;
 };
 
+ThinThin.abort = function ()
+{
+    try {
+	i.dont.exist++;
+    } catch (e) {
+	console.log(e);
+	console.log(e.stack);
+    }
+};
+
 ThinThin.sbrk = function (size)
 {
     size = (size + 4095) & -4096;
