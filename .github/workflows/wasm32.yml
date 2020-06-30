@@ -262,6 +262,57 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  bash-run:
+    name: Run bash
+    runs-on: ubuntu-latest
+    needs:
+    - bash
+    - jsshell
+    - wasm32-js
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Download jsshell
+      uses: actions/download-artifact@v1
+      with:
+        name: jsshell-linux-x86_64.zip
+    - name: Unpack jsshell
+      run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
+    - name: Download wasm32.js
+      uses: actions/download-artifact@v1
+      with:
+        name: wasm32.js
+    - run: mkdir js
+    - name: Unpack wasm32.js
+      run: cp wasm32.js/wasm32.js js/wasm32.js
+    - name: Download bash.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: bash.wasm.wasm
+    - name: Download ld.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: ld.wasm
+    - name: Download libc.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: libc.wasm
+    - name: Directory shuffle
+      run: mkdir wasm-dirs && mv *.wasm wasm-dirs
+    - name: Copy *.wasm
+      run: cp wasm-dirs/*.wasm/*.wasm .
+    - name: Set env variables
+      uses: ./github/env/
+    - name: Install binfmt_misc
+      run: make github/install/binfmt_misc/wasm
+    - name: chmod
+      run: chmod a+x bash.wasm
+    - name: ls -l
+      run: ls -l bash.wasm
+    - name: Run
+      run: WASMDIR=. JS=`pwd`/bin/js `pwd`/bash.wasm bash -c 'echo $((3*4*5))'
+
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
