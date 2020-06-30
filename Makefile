@@ -181,7 +181,10 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	touch $@
 
 tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds | bin
-	gcc -g3 $< -o $@
+	gcc -Wall -g3 $< -o $@
+
+tools/bin/%: tools/src/%.cc lds/wasm32.cpp-lds.lds | bin
+	g++ -Wall -g3 $< -o $@
 
 # wasm/ targets.
 wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
