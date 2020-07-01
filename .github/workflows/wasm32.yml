@@ -306,6 +306,8 @@ jobs:
       run: mkdir wasm-dirs && mv *.wasm wasm-dirs
     - name: Copy *.wasm
       run: cp wasm-dirs/*.wasm/*.wasm .
+    - name: Copy *.wasm
+      run: cp wasm-dirs/*.wasm/*.wasm wasm
     - name: Set env variables
       uses: ./github/env/
     - name: Install binfmt_misc
