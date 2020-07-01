@@ -6,6 +6,7 @@ $VAR1 = {
           'EBADF' => '9',
           'EINVAL' => '22',
           'EIO' => '5',
+          'EISDIR' => '21',
           'ENOENT' => '2',
           'FIONREAD' => '21531',
           'POLLIN' => '1',
