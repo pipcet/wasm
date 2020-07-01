@@ -1071,7 +1071,7 @@ ThinThinFD.prototype.readAsArrayBuffer = function ()
 
 /* .read(undefined, 0, 0) returns a promise that resolves to 0 when
  * data is available to read. */
-ThinThinFD.prototype.read = function(heap, ptr, len)
+ThinThinFD.prototype.read = function (heap, ptr, len)
 {
     if (ptr === undefined)
         ptr = 0;
