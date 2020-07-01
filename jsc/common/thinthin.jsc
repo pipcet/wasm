@@ -1082,6 +1082,10 @@ ThinThinFD.prototype.read_stdin = function ()
  * data is available to read. */
 ThinThinFD.prototype.read = function (heap, ptr, len)
 {
+    if (this.fdno === 0 && this.read_stdin) {
+	this.read_stdin();
+	this.read_stdin = undefined;
+    }
     if (ptr === undefined)
         ptr = 0;
     if (len === undefined)
