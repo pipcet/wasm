@@ -1069,6 +1069,15 @@ ThinThinFD.prototype.readAsArrayBuffer = function ()
     });
 };
 
+ThinThinFD.prototype.read_stdin = function ()
+{
+    let line;
+    if (typeof(this.readData) !== "string")
+	this.readData = "";
+    while ((line = readline()) !== null)
+	this.readData += line + "\n";
+};
+
 /* .read(undefined, 0, 0) returns a promise that resolves to 0 when
  * data is available to read. */
 ThinThinFD.prototype.read = function (heap, ptr, len)
@@ -1100,6 +1109,9 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
         return Promise.resolve(this.read(heap, ptr+i, len-i)).then(j => i+j);
     }
 
+    if (this.readPosition >= this.readData.length)
+	this.readEOF = true;
+    if (false)
     try {
 	this.readData = readline();
 	if (this.readData == null) {
