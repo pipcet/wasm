@@ -289,7 +289,7 @@ jobs:
     - name: Download bash.wasm
       uses: actions/download-artifact@v1
       with:
-        name: bash.wasm.wasm
+        name: bash.wasm
     - name: Download ld.wasm
       uses: actions/download-artifact@v1
       with:
