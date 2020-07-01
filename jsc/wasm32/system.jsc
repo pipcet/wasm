@@ -108,7 +108,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	addr += imports.sys.got - 0x4000;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
-	if (symbols.get(name).get_addr()) {
+	if (false && symbols.get(name).get_addr()) {
 	    let symbol = new Wasm32Symbol(name)
 	    symbols.set(name, symbol);
 	    this.allsymbols.add(symbol);
@@ -119,7 +119,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	addr += imports.sys.plt;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
-	if (symbols.get(name).get_addr()) {
+	if (false && symbols.get(name).get_addr()) {
 	    let symbol = new Wasm32Symbol(name)
 	    symbols.set(name, symbol);
 	    this.allsymbols.add(symbol);
@@ -192,7 +192,7 @@ Wasm32LM.prototype.dyninfo_apply_symbols =
     function (dyninfo, imports, module)
 {
     for (let symbol of [...this.allsymbols].sort((a,b) => a.name > b.name)) {
-	for (let definition of symbol.definitions)
+	for (let definition of [...symbol.definitions].reverse())
 	    for (let reference of symbol.references) {
 		if (definition[0] === "code" &&
 		    reference[0] === "code") {
