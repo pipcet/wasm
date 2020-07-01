@@ -2838,8 +2838,6 @@ if (typeof(os) !== "undefined" &&
     ThinThin.close = function (fdno) {
         var fd = this.fds[fdno];
 
-        console.log("CLOSE " + fd + " " + fdno);
-
         return 0;
 
         if (!fd)
