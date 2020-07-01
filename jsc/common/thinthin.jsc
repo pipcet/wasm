@@ -3536,3 +3536,8 @@ ThinThin.destroy_trampoline = function (mtramp)
 
     return 0;
 };
+
+ThinThin.chdir = function ()
+{
+    return 0;
+};
