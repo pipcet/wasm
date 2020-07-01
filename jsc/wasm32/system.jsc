@@ -1415,7 +1415,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
 
                 // outstr = "";
             } else {
-                (new ThinThinFD(process, 0)).read_stdin();
+                new ThinThinFD(process, 0);
                 new ThinThinFD(process, 1);
                 new ThinThinFD(process, 2);
             }
@@ -1455,7 +1455,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
 
         // outstr = "";
     } else {
-        (new ThinThinFD(process, 0)).read_stdin();
+        new ThinThinFD(process, 0);
         new ThinThinFD(process, 1);
         new ThinThinFD(process, 2);
     }
