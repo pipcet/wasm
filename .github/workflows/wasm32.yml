@@ -290,6 +290,10 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: bash.wasm
+    - name: Download libncurses.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: libncurses.wasm
     - name: Download ld.wasm
       uses: actions/download-artifact@v1
       with:
