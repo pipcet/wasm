@@ -307,6 +307,8 @@ jobs:
     - name: Copy *.wasm
       run: cp wasm-dirs/*.wasm/*.wasm .
     - name: Copy *.wasm
+      run: mkdir wasm
+    - name: Copy *.wasm
       run: cp wasm-dirs/*.wasm/*.wasm wasm
     - name: Set env variables
       uses: ./github/env/
