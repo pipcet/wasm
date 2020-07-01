@@ -38,7 +38,7 @@ built/wasm32: | built
 	$(MKDIR) $@
 test/wasm32: | test
 	$(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash build/wasm32/coreutils: | build/wasm32
 	$(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
 	$(MKDIR) $@
@@ -50,7 +50,7 @@ src/wasm32/binutils-gdb: | src/wasm32
 	mv $@T $@
 
 # These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen
+good-repos = gcc glibc ncurses bash wabt binaryen coreutils
 
 $(patsubst %,src/%,$(good-repos)): src/%: | src
 	test -L $@ || ln -sf ../subrepos/$* $@
@@ -125,6 +125,9 @@ build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurs
 build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
 	(cd build/wasm32/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/bash/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-bash-malloc)
 	touch $@
+build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm32/coreutils
+	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/coreutils/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	touch $@
 
 # Actually building a package and installing it: make && make install, plus package-specific workarounds.
 built/common/binaryen: build/common/binaryen/Makefile | built/common bin
@@ -172,6 +175,10 @@ built/wasm32/ncurses: build/wasm32/ncurses/Makefile | built/wasm32
 built/wasm32/bash: build/wasm32/bash/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
+	touch $@
+built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/coreutils
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/coreutils install
 	touch $@
 # Emacs has a Makefile, so we configure it in the "built" step.
 built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
