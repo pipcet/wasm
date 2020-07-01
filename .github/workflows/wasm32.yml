@@ -302,6 +302,10 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: libc.wasm
+    - name: Download libc.wasm
+      uses: actions/download-artifact@v1
+      with:
+        name: libdl.wasm
     - name: Directory shuffle
       run: mkdir wasm-dirs && mv *.wasm wasm-dirs
     - name: Copy *.wasm

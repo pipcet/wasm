@@ -252,7 +252,7 @@ test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
-run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm
+run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
 
 # GitHub support
 # Check out a subrepo
@@ -302,8 +302,8 @@ artifact-glibc!: | github/install/texinfo-bison-flex subrepos/glibc/checkout! ar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
 	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
-	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm
-	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm artifacts/
+	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm
+	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm artifacts/
 	$(MAKE) artifact-push!
 artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
