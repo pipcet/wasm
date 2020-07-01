@@ -55,7 +55,7 @@ Wasm32Symbol.prototype.get_addr = function ()
 	if (def[0] === "code" || def[0] === "data")
 	    return def[1];
 
-    return undefined
+    return undefined;
     throw "undefined symbol " + this.name;
 };
 
@@ -108,7 +108,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	addr += imports.sys.got - 0x4000;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
-	if (false && symbols.get(name).get_addr()) {
+	if (symbols.get(name).get_addr()) {
 	    let symbol = new Wasm32Symbol(name)
 	    symbols.set(name, symbol);
 	    this.allsymbols.add(symbol);
@@ -119,7 +119,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	addr += imports.sys.plt;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
-	if (false && symbols.get(name).get_addr()) {
+	if (symbols.get(name).get_addr()) {
 	    let symbol = new Wasm32Symbol(name)
 	    symbols.set(name, symbol);
 	    this.allsymbols.add(symbol);
@@ -192,7 +192,7 @@ Wasm32LM.prototype.dyninfo_apply_symbols =
     function (dyninfo, imports, module)
 {
     for (let symbol of [...this.allsymbols].sort((a,b) => a.name > b.name)) {
-	for (let definition of [...symbol.definitions].reverse())
+	for (let definition of symbol.definitions)
 	    for (let reference of symbol.references) {
 		if (definition[0] === "code" &&
 		    reference[0] === "code") {
@@ -337,12 +337,13 @@ Wasm32VM.prototype.grow_pcs = function (limit)
 var Wasm32ModuleIndex = 1;
 var Wasm32Modules = {};
 
-function Wasm32Module(process, bytes)
+function Wasm32Module(process, bytes, name)
 {
     this.bytes = bytes;
     this.ctime = Date.now();
     this.index = Wasm32ModuleIndex++;
     this.symtab = {};
+    this.name = name;
     Wasm32Modules[this.index] = this;
 
     process.modules.push(this);
@@ -427,7 +428,7 @@ Wasm32Module.prototype.check_libs = function (thread)
                 }
 
                 if (typeof os !== "undefined") {
-                    var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib, "binary"));
+                    var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib, "binary"), lib);
                     return module.load(thread, this.vm).then(() => {
                         var mem = this.vm.%{zp[&zp->top_of_sbrk]};
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
