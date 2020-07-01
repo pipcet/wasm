@@ -751,6 +751,12 @@ ThinThinDD.prototype.read = function ()
 
 ThinThinDD.prototype.openat = function (path)
 {
+    let str = os.file.readFile(path);
+    if (str !== null) {
+	let ret = new ThinThinFD(this.process);
+	ret.read_string(str);
+	return ret.fdno;
+    }
     return -%{ENOENT};
 };
 //** ThinThinFetchDD (kill)
@@ -1076,6 +1082,11 @@ ThinThinFD.prototype.read_stdin = function ()
 	this.readData = "";
     while ((line = readline()) !== null)
 	this.readData += line + "\n";
+};
+
+ThinThinFD.prototype.read_string = function (string)
+{
+    this.readData = string;
 };
 
 /* .read(undefined, 0, 0) returns a promise that resolves to 0 when
@@ -2535,11 +2546,7 @@ SparseDD.prototype.openat = function (path)
                 });
             });
         else
-            return this.base.openat(path).then(fd => {
-                return fd.open().then(() => {
-                    return fd;
-                });
-            });
+            return this.base.openat(path);
     }
 };
 //** ReadableFD
@@ -2831,30 +2838,6 @@ if (typeof(os) !== "undefined" &&
             return 0;
 
         return fd.write(this.HEAPU8, ptr, len);
-    };
-    ThinThin.openat = function (fdno, ptr, flags, mode) {
-        var path = CStringAt(this.HEAPU8, ptr);
-
-        if (path.length && path === gLimboPath) {
-            console.log("match! path: " + path);
-            var ret = gLimboFD;
-            gLimboFD = undefined;
-            gLimboPath = undefined;
-            return ret.fdno;
-        }
-
-        if (path.match(/^\//))
-            return -%{ENOENT};
-
-        var dd = this.fds[fdno];
-        if (!dd)
-            dd = this.process.ddroot;
-
-        if (path.length === 0)
-            return dd.then(fd => fd.fdno);
-
-        return dd.openat(path, flags, mode)
-            .then(fd => fd.fdno);
     };
     ThinThin.close = function (fdno) {
         var fd = this.fds[fdno];
@@ -3540,4 +3523,28 @@ ThinThin.destroy_trampoline = function (mtramp)
 ThinThin.chdir = function ()
 {
     return 0;
+};
+
+ThinThin.openat = function (fdno, ptr, flags, mode) {
+    var path = CStringAt(this.HEAPU8, ptr);
+
+    if (path.length && path === gLimboPath) {
+        console.log("match! path: " + path);
+        var ret = gLimboFD;
+        gLimboFD = undefined;
+        gLimboPath = undefined;
+        return ret.fdno;
+    }
+
+    if (path.match(/^\//))
+        return -%{ENOENT};
+
+    var dd = this.fds[fdno];
+    if (!dd)
+        dd = this.process.ddroot;
+
+    if (path.length === 0)
+        return dd.then(fd => fd.fdno);
+
+    return dd.openat(path, flags, mode)
 };
