@@ -162,6 +162,7 @@ SECTIONS
      *(.rodata*)
      *(.jcr*)
      *(.dynbss)
+     *(.subrs)
      *(.bss* .gnu.linkonce.b.*)
      *(.gcc_except_table*)
      *(.eh_frame*)
