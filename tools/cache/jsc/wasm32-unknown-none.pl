@@ -9,6 +9,7 @@ $VAR1 = {
           'EISDIR' => '21',
           'ENOENT' => '2',
           'FIONREAD' => '21531',
+          'O_CREAT' => '64',
           'POLLIN' => '1',
           'SEEK_CUR' => '1',
           'SEEK_END' => '2',
