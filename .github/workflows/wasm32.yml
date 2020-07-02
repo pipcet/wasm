@@ -323,7 +323,7 @@ jobs:
     - name: ls -l
       run: ls -l bash.wasm
     - name: Run
-      run: WASMDIR=. JS=`pwd`/bin/js `pwd`/bash.wasm bash -c 'echo $((3*4*5))'
+      run: WASMDIR=. JS=`pwd`/bin/js `pwd`/bash.wasm -c 'echo $((3*4*5))'
 
   _001-hello-world-o:
     name: Hello World (assemble)
