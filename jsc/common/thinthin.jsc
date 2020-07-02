@@ -887,6 +887,7 @@ ThinThinFD.prototype.advance = function (i)
 
 ThinThinFD.prototype.consume = function (i)
 {
+    this.readPosition += i;
     //this.readData = this.readData.substr(i);
 };
 
