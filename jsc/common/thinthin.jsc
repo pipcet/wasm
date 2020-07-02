@@ -753,8 +753,12 @@ ThinThinDD.prototype.openat = function (path)
 {
     if (path.match(/(emacs-lisp|progmodes|language|international|textmodes|vc)$/))
 	return new ThinThinDD(this.process).fdno;
-    let str = os.file.readFile(path);
-    if (str !== null) {
+    let data = os.file.readFile(path, "binary");
+    if (data !== null) {
+	let view = new Uint8Array(data);
+	let str = "";
+	for (let i = 0; i < view.length; i++)
+	    str += String.fromCharCode(view[i]);
 	let ret = new ThinThinFD(this.process);
 	ret.read_string(str);
 	return ret.fdno;
@@ -3092,7 +3096,7 @@ if (typeof(os) !== "undefined" &&
         });
     };
     ThinThin.lseek = function (fdno, pos, whence) {
-        console.log("lseek " + fdno + " " + pos + " " + whence);
+        //console.log("lseek " + fdno + " " + pos + " " + whence);
         var fd = this.fds[fdno];
 
         if (whence == %{SEEK_SET})
@@ -3502,23 +3506,22 @@ ThinThin.chdir = function ()
 ThinThin.openat = function (fdno, ptr, flags, mode) {
     var path = CStringAt(this.HEAPU8, ptr);
 
-    if (path.length && path === gLimboPath) {
-        console.log("match! path: " + path);
-        var ret = gLimboFD;
-        gLimboFD = undefined;
-        gLimboPath = undefined;
-        return ret.fdno;
-    }
 
     if (path.match(/\.pdmp$/))
 	return -%{ENOENT};
 
-    if (path.match(/lisp$/))
+    if (path.match(/lisp$/) &&
+	!path.match(/emacs-lisp.lisp/))
 	return new ThinThinDD(this).fdno;
 
     if (path.match(/^\//)) {
-	dd = this.process.ddroot;
-	return dd.openat(path, flags, mode);
+	try {
+	    dd = this.process.ddroot;
+	    let ret = dd.openat(path, flags, mode);
+	    return ret;
+	} catch (e) {
+	    return -%{ENOENT};
+	}
     }
 
     var dd = this.fds[fdno];
@@ -3561,4 +3564,9 @@ ThinThin.exit = function (code) {
     //    throw "Exit Status " + code;
     //else
     //    throw new SuccessException();
+};
+
+ThinThin.readlinkat = function ()
+{
+    return -%{ENOENT};
 };
