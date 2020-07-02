@@ -751,6 +751,8 @@ ThinThinDD.prototype.read = function ()
 
 ThinThinDD.prototype.openat = function (path)
 {
+    if (path.match(/(emacs-lisp|progmodes|language|international|textmodes|vc)$/))
+	return new ThinThinDD(this.process).fdno;
     let str = os.file.readFile(path);
     if (str !== null) {
 	let ret = new ThinThinFD(this.process);
@@ -885,7 +887,7 @@ ThinThinFD.prototype.advance = function (i)
 
 ThinThinFD.prototype.consume = function (i)
 {
-    this.readData = this.readData.substr(i);
+    //this.readData = this.readData.substr(i);
 };
 
 ThinThinFD.prototype.provideString = function (data)
@@ -2849,9 +2851,6 @@ if (typeof(os) !== "undefined" &&
 
         return fd.close();
     };
-    ThinThin.faccessat = function (fdno, ptr, flags, mode) {
-        return 0;
-    };
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
         var dd = this.fds[fdno] || this.process.ddroot;
         var path = CStringAt(this.HEAPU8, pathstr);
@@ -2859,9 +2858,6 @@ if (typeof(os) !== "undefined" &&
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
-
-	if (path.match(/^\//))
-            return -%{ENOENT};
 
         if (!dd)
             return -%{EBADF};
@@ -3111,29 +3107,6 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.access = function (ptr, mode) {
         return ThinThin.stat.call(this, ptr, 0);
-    };
-    ThinThin.exit = function (code) {
-	quit(code);
-        //console.log("exiting: " + code);
-        return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
-
-        console.log("runtime: " + (Date.now() - lastdonetime));
-        if (typeof quit !== "undefined")
-            quit(code);
-        else if (typeof self !== "undefined") {
-            self.close();
-            return new Promise((resolve, reject) => {
-            });
-        } else if (typeof process !== "undefined")
-            process.exit(code);
-        else if (typeof document !== "undefined") {
-            document.getElementById("output").textContent += "Exit Status " + code;
-            this.stop(0xffffffff);
-        }
-        //if (code != 0 && code !== undefined)
-        //    throw "Exit Status " + code;
-        //else
-        //    throw new SuccessException();
     };
     //ThinThin.unlink =       Module._unlink;
     //ThinThin.rename =       Module._rename;
@@ -3536,8 +3509,16 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
         return ret.fdno;
     }
 
-    if (path.match(/^\//))
-        return -%{ENOENT};
+    if (path.match(/\.pdmp$/))
+	return -%{ENOENT};
+
+    if (path.match(/lisp$/))
+	return new ThinThinDD(this).fdno;
+
+    if (path.match(/^\//)) {
+	dd = this.process.ddroot;
+	return dd.openat(path, flags, mode);
+    }
 
     var dd = this.fds[fdno];
     if (!dd)
@@ -3546,5 +3527,37 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (path.length === 0)
         return dd.then(fd => fd.fdno);
 
-    return dd.openat(path, flags, mode)
+    return dd.openat(path, flags, mode);
+};
+
+ThinThin.faccessat = function (fdno, ptr, flags, mode) {
+    return 0;
+};
+
+ThinThin.exit = function (code) {
+    try {
+	quit(code);
+    } catch (e) {
+	os.kill(os.getpid());
+    }
+    //console.log("exiting: " + code);
+    return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
+
+    console.log("runtime: " + (Date.now() - lastdonetime));
+    if (typeof quit !== "undefined")
+        quit(code);
+    else if (typeof self !== "undefined") {
+        self.close();
+        return new Promise((resolve, reject) => {
+        });
+    } else if (typeof process !== "undefined")
+        process.exit(code);
+    else if (typeof document !== "undefined") {
+        document.getElementById("output").textContent += "Exit Status " + code;
+        this.stop(0xffffffff);
+    }
+    //if (code != 0 && code !== undefined)
+    //    throw "Exit Status " + code;
+    //else
+    //    throw new SuccessException();
 };
