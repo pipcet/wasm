@@ -194,19 +194,19 @@ tools/bin/%: tools/src/%.cc lds/wasm32.cpp-lds.lds | bin
 	g++ -Wall -g3 $< -o $@
 
 # wasm/ targets.
-wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/ld.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libm.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libm.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/gcc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/ncurses
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/libdl.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/libdl.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
-wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm
+wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
