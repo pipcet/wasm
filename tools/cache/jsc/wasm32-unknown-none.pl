@@ -1,6 +1,7 @@
 $VAR1 = {
           '*intptr = "avail"' => 'this.HEAP32[intptr>>2] = avail;',
           '*intptr = 0' => 'this.HEAP32[intptr>>2] = 0;',
+          '0' => '0',
           'AT_EMPTY_PATH' => '4096',
           'AT_FDROOTD' => '-101',
           'EBADF' => '9',
