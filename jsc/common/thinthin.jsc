@@ -869,11 +869,11 @@ ThinThinFD.prototype.close = function ()
     try {
         i.dont.exist++;
     } catch (e) {
-        console.log(e.stack);
+        //console.log(e.stack);
     }
-    console.log("closing " + this.fdno);
+    //console.log("closing " + this.fdno);
 
-    delete this.process.fds[this.fdno];
+    //delete this.process.fds[this.fdno];
 
     return Promise.resolve(0);
 };
