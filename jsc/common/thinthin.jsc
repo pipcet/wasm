@@ -3570,3 +3570,7 @@ ThinThin.readlinkat = function ()
 {
     return -%{ENOENT};
 };
+ThinThin.unlinkat = function ()
+{
+    return 0;
+};
