@@ -803,7 +803,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
                 break;
             }
         }
-        console.log ("couldn't find " + fun);
+        console.log ("could not find " + fun);
 	quit(0);
     case "debug": {
 	switch (fun) {
