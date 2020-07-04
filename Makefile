@@ -346,7 +346,8 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils
 
 artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/gperf github/install/autopoint github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp js/wasm32.js
 	$(MAKE) artifact-timestamp
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils $(patsubst %,wasm/%.wasm,$(COREUTILS))
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
