@@ -213,7 +213,7 @@ wasm/libdl.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so tools/bin/
 wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 COREUTILS = echo true false
-$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built-wasm32/coreutils
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
