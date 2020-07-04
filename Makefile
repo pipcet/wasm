@@ -289,6 +289,10 @@ github/install/dejagnu: | github/install
 	touch $@
 github/install/gettext: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
+github/install/autopoint: | github/install
+	tools/bin/locked --lockfile apt.lock sudo apt-get install autopoint
+github/install/gperf: | github/install
+	tools/bin/locked --lockfile apt.lock sudo apt-get install gperf
 github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
@@ -340,7 +344,7 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/gperf github/install/autopoint
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/coreutils $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
