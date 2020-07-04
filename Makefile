@@ -212,6 +212,9 @@ wasm/libdl.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so tools/bin/
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+COREUTILS = echo true false
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built-wasm32/coreutils
+	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
@@ -335,6 +338,12 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
+	$(MAKE) artifact-push!
+
+artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/coreutils $(patsubst %,wasm/%.wasm,$(COREUTILS))
+	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
 # Create a file to be shipped
