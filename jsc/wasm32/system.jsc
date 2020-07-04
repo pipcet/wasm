@@ -109,6 +109,8 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
 	if (symbols.get(name).get_addr()) {
+	    if (name === "__environ")
+		continue;
 	    let symbol = new Wasm32Symbol(name)
 	    symbols.set(name, symbol);
 	    this.allsymbols.add(symbol);
@@ -752,7 +754,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     var mod = CStringAt(this.HEAPU8, modstr);
     var fun = CStringAt(this.HEAPU8, funstr);
 
-    //console.log("mod " + mod + " fun " + fun + "("+modstr+"/"+funstr+")");
+    //console.log("//mod " + mod + " fun " + fun + "("+modstr+"/"+funstr+")");
 
     if (sp in this.extcallRet) {
         var ret = this.extcallRet[sp];
