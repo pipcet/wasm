@@ -271,7 +271,7 @@ run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite
 # GitHub support
 # Check out a subrepo
 subrepos/%/checkout!:
-	git submodule update --depth=1 --single-branch --init subrepos/$*
+	git submodule update --depth=1 --single-branch --init --recursive subrepos/$*
 
 # install various packages on the GitHub VM:
 github/install/file-slurp: | github/install
