@@ -18,6 +18,7 @@ $VAR1 = {
           'SEEK_SET' => '0',
           'S_IFDIR + 0777' => '16895',
           '__S_IFCHR + 0777' => '8703',
+          '__S_IFREG + 0777' => '33279',
           'direntp + &dirent::d_name' => 'direntp+19',
           'direntp[&dirent::d_ino] = 1' => 'this.HEAP32[direntp>>2] = 1; this.HEAP32[direntp+4>>2] = 0;',
           'direntp[&dirent::d_off] = "0"' => 'this.HEAP32[direntp+8>>2] = 0;',
