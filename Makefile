@@ -204,6 +204,10 @@ wasm/libc.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libc.so tools/bin/el
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libm.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libm.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
+wasm/libcrypt.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libcrypt.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
+wasm/libutil.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libutil.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libstdc++.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/gcc
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/libncurses.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/ncurses
