@@ -799,6 +799,9 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
                 retv = ThinThin[fun].apply(this, args);
                 break;
             } catch (e) {
+		console.log("exception!");
+		console.log(e);
+		console.log(e.stack);
                 retv = this.errorToCode(e);
                 break;
             }
