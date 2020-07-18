@@ -2914,39 +2914,6 @@ if (typeof(os) !== "undefined" &&
             return 0;
         }
     };
-    ThinThin.stat = function (ptr, bufptr) {
-        var path = CStringAt(this.HEAPU8, ptr);
-
-        path = path.replace(/^.*[\/]/, "");
-
-        /* st_dev: 64 bits */
-        this.HEAP32[bufptr+ 0>>2] = 0;
-        this.HEAP32[bufptr+ 4>>2] = 0;
-        /* pad1: 32 bits */
-        this.HEAP32[bufptr+ 8>>2] = 0;
-        /* __st_ino: 32 bits */
-        this.HEAP32[bufptr+12>>2] = 0;
-        /* st_mode: 32 bits */
-        this.HEAP32[bufptr+16>>2] = 0;
-        /* st_nlink: 64 bits */
-        this.HEAP32[bufptr+20>>2] = 0;
-        this.HEAP32[bufptr+24>>2] = 0;
-        this.HEAP32[bufptr+28>>2] = 0;
-        this.HEAP32[bufptr+32>>2] = 0;
-        this.HEAP32[bufptr+36>>2] = 0;
-        this.HEAP32[bufptr+40>>2] = 0;
-        this.HEAP32[bufptr+44>>2] = 0;
-
-        if (path == "terminfo") {
-            this.HEAP32[bufptr+6*4>>2] = 4 << 12;
-        } else if (path.match(/\.elc$/)) {
-            return -2;
-        } else {
-            //console.log("statting " + CStringAt(ptr));
-        }
-
-        return 0;
-    };
     ThinThin.getdents = function (fdno, direntp, count)
     {
         var fd = this.fds[fdno];
