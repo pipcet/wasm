@@ -1069,6 +1069,7 @@ function Wasm32Process(system, fds)
 
     this.fds = fds ? fds : [];
     this.ddroot = system.ddroot = new ThinThinDD(this, 4);
+    this.ddroot.path = ".";
     this.ddcwd = system.ddroot;
 
     //system.ddroot.open();
