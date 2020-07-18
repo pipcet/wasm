@@ -50,7 +50,7 @@ src/wasm32/binutils-gdb: | src/wasm32
 	mv $@T $@
 
 # These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen coreutils
+good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl
 
 $(patsubst %,src/%,$(good-repos)): src/%: | src
 	test -L $@ || ln -sf ../subrepos/$* $@
@@ -131,6 +131,20 @@ build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
 	touch $@
 build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm32/coreutils
 	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure  --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	touch $@
+build/wasm32/perl: src/perl
+	mkdir -p $@
+	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
+
+build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc
+	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
+	touch build/wasm32/perl/config.sh
+	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
+	touch $@
+
+built/wasm32/perl: build/wasm32/perl/Makefile
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl install
 	touch $@
 
 # Actually building a package and installing it: make && make install, plus package-specific workarounds.
