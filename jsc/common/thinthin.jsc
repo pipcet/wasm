@@ -749,32 +749,48 @@ ThinThinDD.prototype.read = function ()
     return -%{EISDIR};
 };
 
-ThinThinDD.prototype.openat = function (path)
+ThinThinDD.prototype.openat = function (path, flags)
 {
-    if (path.match(/(emacs-lisp|progmodes|language|international|textmodes|vc)$/))
-	return new ThinThinDD(this.process).fdno;
-    let data = os.file.readFile(path, "binary");
-    if (data !== null) {
-	let view = new Uint8Array(data);
-	let str = "";
-	for (let i = 0; i < view.length; i++)
-	    str += String.fromCharCode(view[i]);
-	let ret = new ThinThinFD(this.process);
-	ret.read_string(str);
-	return ret.fdno;
+    if (path[0] !== "/")
+	path = this.path + "/" + path;
+    if (path.match(/(emacs-lisp|progmodes|language|international|textmodes|vc)$/)) {
+	let ret = new ThinThinDD(this.process);
+	ret.path = path;
+	return Promise.resolve(ret);
     }
-    return -%{ENOENT};
+    if (path.match(/^\/dev\/(u?random)$/))
+	return Promise.resolve(-%{ENOENT});
+    try {
+	let data = os.file.readFile(path, "binary");
+	if (data !== null) {
+	    let view = new Uint8Array(data);
+	    let str = "";
+	    for (let i = 0; i < view.length; i++)
+		str += String.fromCharCode(view[i]);
+	    let ret = new ThinThinFD(this.process);
+	    ret.path = path;
+	    ret.read_string(str);
+	    return Promise.resolve(ret);
+	}
+    } catch (e) {
+    }
+    try {
+	let data = os.file.readFile(path + "/.dir", "binary");
+	if (data !== null) {
+	    let ret = new ThinThinDD(this.process);
+	    ret.path = path;
+	    return Promise.resolve(ret);
+	}
+    } catch (e) {
+    }
+    if (flags & %{O_CREAT}) {
+	let ret = new ThinThinFD(this.process);
+	ret.path = path;
+	return Promise.resolve(ret);
+    }
+    return Promise.resolve(-%{ENOENT});
 };
-//** ThinThinFetchDD (kill)
-function ThinThinFetchDD(process, parent, stem, cache, fdno)
-{
-    ThinThinDD.call(this, process, fdno);
-    this.stem = stem;
-    this.cache = cache;
-}
 
-ThinThinFetchDD.prototype = Object.create(ThinThinDD.prototype);
-//** ThinThinDD
 ThinThinDD.prototype.walk = function (component, isdir)
 {
     if (component in this.entries)
@@ -787,6 +803,15 @@ ThinThinDD.prototype.walk = function (component, isdir)
             this.entries[component] = entry;
     });
 };
+//** ThinThinFetchDD (kill)
+function ThinThinFetchDD(process, parent, stem, cache, fdno)
+{
+    ThinThinDD.call(this, process, fdno);
+    this.stem = stem;
+    this.cache = cache;
+}
+
+ThinThinFetchDD.prototype = Object.create(ThinThinDD.prototype);
 //** ThinThinFetchDD
 ThinThinFetchDD.prototype.discover = function (component, isdir)
 {
@@ -848,6 +873,8 @@ ThinThinFD.prototype.clonedesc = function ()
 
 ThinThinFD.prototype.mode = function ()
 {
+    if (this.fdno >= 3)
+	return %{__S_IFREG + 0777};
     return %{__S_IFCHR + 0777};
 };
 
@@ -874,6 +901,13 @@ ThinThinFD.prototype.close = function ()
     //console.log("closing " + this.fdno);
 
     //delete this.process.fds[this.fdno];
+
+    if (this.fdno >= 3 && this.writeData !== "") {
+	printErr(this.path);
+	let r = redirect(this.path);
+	putstr(this.writeData);
+	redirect(r);
+    }
 
     return Promise.resolve(0);
 };
@@ -1115,9 +1149,6 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
 
         for (i=0; i<len && i<this.readData.length - this.readPosition; i++) {
             var cc = this.readData.charCodeAt(this.readPosition+i);
-            if (cc >= 0x80 || cc <= 0 || cc != cc) {
-                //console.log("UTF-8 char in " + this.readData.substr(this.readPosition+i, 32));
-            }
             heap[ptr+i] = cc;
         }
         this.consume(i);
@@ -1213,7 +1244,11 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
     if (this.half)
         return this.half[0].write(data);
     else {
-        putstr(data);
+	if (this.fdno >= 3) {
+	    this.writeData += data;
+	} else {
+            putstr(data);
+	}
 
         return data.length;
     }
@@ -2075,7 +2110,7 @@ function RRPort(port)
                 this.port.postMessage(msg, transfer);
             });
         } else {
-            console.log("couldn't deal with it");
+            console.log("could not deal with it");
         }
     }, false);
     this.port.start();
@@ -2785,9 +2820,6 @@ if (typeof(os) !== "undefined" &&
     };
 } else {
     if (typeof global !== "undefined") {
-        ThinThin.fcntl_i = function () {
-            return 0;
-        };
         ThinThin.fcntl_v = function () {
             return 0;
         };
@@ -2801,11 +2833,6 @@ if (typeof(os) !== "undefined" &&
             %{timespec[&timespec::tv_nsec] = 0}
             %{timespec[&timespec::tv_sec] = "s"}
             %{timespec[&timespec::tv_nsec] = "ns"}
-
-            return 0;
-        };
-        ThinThin.getcwd = function (addr, len) {
-            this.HEAP8[addr] = 0;
 
             return 0;
         };
@@ -2843,8 +2870,6 @@ if (typeof(os) !== "undefined" &&
     ThinThin.close = function (fdno) {
         var fd = this.fds[fdno];
 
-        return 0;
-
         if (!fd)
             return -%{EBADF};
 
@@ -2853,6 +2878,7 @@ if (typeof(os) !== "undefined" &&
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
         var dd = this.fds[fdno] || this.process.ddroot;
         var path = CStringAt(this.HEAPU8, pathstr);
+	printErr(`fstatat ${fdno} ${path}`)
 
 	if (path === "/home/pip/g/wasm/wasm32-unknown-none/wasm32-unknown-none/share/terminfo") {
 	    let fd = dd;
@@ -2870,6 +2896,7 @@ if (typeof(os) !== "undefined" &&
         if (!dd)
             return -%{EBADF};
 
+	printErr(`fstatat ${fdno} ${path}`)
         if (path.length === 0)
             return Promise.resolve(dd).then(fd => {
                 var off;
@@ -2887,6 +2914,7 @@ if (typeof(os) !== "undefined" &&
 
         if ("openat" in dd)
             return dd.openat(path).then(fd => {
+		printErr(`fstatat ${fdno} ${path}`)
                 var off;
                 for (off = 0; off < %{sizeof(struct stat)}; off += 4)
                     this.HEAP32[statbufptr+off>>2] = 0;
@@ -2896,6 +2924,7 @@ if (typeof(os) !== "undefined" &&
                 %{statbufptr[&stat::st_size] = "fd.size()"}
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
                 %{statbufptr[&stat::st_blocks] = "1"}
+		printErr(`fstatat ${fdno} ${path} => 0 ${fd.mode()}`)
 
                 return 0;
             });
@@ -3077,6 +3106,8 @@ if (typeof(os) !== "undefined" &&
             throw("SEEK_END not supported");
         else
             return -%{EINVAL};
+
+	fd.readEOF = false;
 
         return fd.readPosition;
     };
@@ -3468,13 +3499,18 @@ ThinThin.destroy_trampoline = function (mtramp)
     return 0;
 };
 
-ThinThin.chdir = function ()
+ThinThin.chdir = function (ptr)
 {
-    return 0;
+    var path = CStringAt(this.HEAPU8, ptr);
+    return this.ddcwd.openat(path).then(fd => {
+	this.ddcwd = fd;
+	return 0;
+    });
 };
 
 ThinThin.openat = function (fdno, ptr, flags, mode) {
     var path = CStringAt(this.HEAPU8, ptr);
+    printErr(path);
 
     if (path.match(/^\/dev\/tty/))
 	return 1;
@@ -3483,8 +3519,11 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 	return -%{ENOENT};
 
     if (path.match(/lisp$/) &&
-	!path.match(/emacs-lisp.lisp/))
-	return new ThinThinDD(this).fdno;
+	!path.match(/emacs-lisp.lisp/)) {
+	let ret = new ThinThinDD(this);
+	ret.path = ".";
+	return ret.fdno;
+    }
 
     if (path.match(/loadup\.el$/)) {
 	path = "/home/pip/g/wasm/build/wasm32/emacs/lisp/loadup.el";
@@ -3494,8 +3533,9 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 	try {
 	    dd = this.process.ddroot;
 	    let ret = dd.openat(path, flags, mode);
-	    return ret;
+	    return ret.then(fd => (typeof fd === "object") ? fd.fdno : fd);
 	} catch (e) {
+	    console.log("exception!");
 	    return -%{ENOENT};
 	}
     }
@@ -3504,10 +3544,10 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (!dd)
         dd = this.process.ddroot;
 
-    if (path.length === 0)
-        return dd.then(fd => fd.fdno);
+    if (path.length === 0 || path === ".")
+        return dd.then(fd => (typeof fd === "object") ? fd.fdno : fd);
 
-    return dd.openat(path, flags, mode);
+    return dd.openat(path, flags, mode).then(fd => (typeof fd === "object") ? fd.fdno : fd);
 };
 
 ThinThin.faccessat = function (fdno, ptr, flags, mode) {
@@ -3542,8 +3582,8 @@ ThinThin.exit = function (code) {
     //    throw new SuccessException();
 };
 
-ThinThin.isatty = function () {
-    return 1;
+ThinThin.isatty = function (fdno) {
+    return fdno < 3 ? 1 : 0;
 };
 
 ThinThin.readlinkat = function ()
@@ -3559,4 +3599,16 @@ ThinThin.unlinkat = function ()
 ThinThin.fcntl_v = function ()
 {
     return %{O_RDWR};
+};
+
+ThinThin.fcntl_i = function () {
+    return 0;
+};
+
+ThinThin.getcwd = function (addr, len) {
+    this.HEAP8[addr] = ".".charCodeAt(0);
+    this.HEAP8[addr+1] = "/".charCodeAt(0);
+    this.HEAP8[addr+2] = 0;
+
+    return 0;
 };
