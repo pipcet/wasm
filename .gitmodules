@@ -37,3 +37,6 @@
 [submodule "subrepos/coreutils"]
 	path = subrepos/coreutils
 	url = https://github.com/pipcet/coreutils
+[submodule "subrepos/perl"]
+	path = subrepos/perl
+	url = https://github.com/pipcet/perl
