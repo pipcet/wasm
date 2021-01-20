@@ -241,5 +241,5 @@ SECTIONS
   SECTION_SPACE(code)
   SECTION_SPACE(data)
   SECTION_SPACE_NAME(name)
-  /DISCARD/ : { *(.asmjs.term) *(.dynamic) }
+  /DISCARD/ : { *(.asmjs.term) *(.dynamic) *(.dynsym) *(.dynstr) *(.rela.dyn) *(.rela.plt) *(.gnu.version_d) *(.note.ABI-tag) }
 }
