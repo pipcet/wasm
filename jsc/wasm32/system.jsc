@@ -1222,6 +1222,7 @@ Wasm32Kernel.prototype.message = function (port, data)
         var pid = this.space_pids.alloc(1);
         var [nport, tport] = this.get_port();
 
+	let newproc = this.threads_by_port.get(port).process.fork(nport);
         this.ports_by_pid[pid] = tport;
         this.pids_by_port.set(tport, pid);
         this.ppids[pid] = this.pids_by_port.get(port);
