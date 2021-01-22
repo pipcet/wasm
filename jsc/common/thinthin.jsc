@@ -3168,7 +3168,7 @@ if (typeof(os) !== "undefined" &&
 
                 rr.port.start();
             }
-            worker.onmessage = success => {
+            if (false) worker.onmessage = success => {
                 console.log(success);
 
                 resolve(success ? pid : -1);
