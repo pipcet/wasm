@@ -1350,6 +1350,65 @@ function abtoascii(ab)
     return s;
 }
 
+Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
+						 fds, extcallRet)
+{
+    var process;
+    var thread;
+    process = new Wasm32Process(this, fds);
+    thread = new Wasm32Thread(kport, process, 8192);
+    thread.vm = vm;
+    thread.extcallRet = extcallRet;
+    process.vm = vm;
+    for (let module of [modules[0]]) {
+	await module.load(thread, vm);
+        var ret = await module.instantiate(thread, vm, 0x4000, true);
+        var tos = (module.dyninfo.data_end + 4095) & -4096;
+
+        vm.%{zp[&zp->top_of_sbrk] = "tos"}
+
+        process.HEAP8 = vm.HEAP8;
+        process.HEAP16 = vm.HEAP16;
+        process.HEAP32 = vm.HEAP32;
+        process.HEAPU8 = vm.HEAPU8;
+        process.HEAPU16 = vm.HEAPU16;
+        process.HEAPU32 = vm.HEAPU32;
+        process.HEAPF32 = vm.HEAPF32;
+        process.HEAPF64 = vm.HEAPF64;
+
+        thread.heap = vm.heap;
+        thread.HEAP8 = vm.HEAP8;
+        thread.HEAP16 = vm.HEAP16;
+        thread.HEAP32 = vm.HEAP32;
+        thread.HEAPU8 = vm.HEAPU8;
+        thread.HEAPU16 = vm.HEAPU16;
+        thread.HEAPU32 = vm.HEAPU32;
+        thread.HEAPF32 = vm.HEAPF32;
+        thread.HEAPF64 = vm.HEAPF32;
+
+        var HEAP32 = vm.HEAP32;
+
+	thread.%{zp[&zp->top_of_memory] = "module.top_of_memory"}
+	thread.%{zp[&zp->thread_list]} = %{tp1};
+	thread.%{zp[&zp->bottom_of_sbrk] = "module.start_of_sbrk"}
+
+	thread.%{tp1[&tp1->next]} = %{tp1};
+	thread.%{tp1[&tp1->prev]} = %{tp1};
+	thread.%{tp1[&tp1->id] = "1"}
+	thread.%{tp1[&tp1->bottom_of_stack] = "module.bottom_of_stack"}
+	thread.%{tp1[&tp1->top_of_stack] = "module.top_of_stack"}
+
+        module.top_of_stack = vm.sizes.stackbottom + vm.sizes.stacksize;
+	thread.%{tp1[&tp1->sp] = "sp"}
+	thread.%{tp1[&tp1->pc] = "pc"}
+    }
+    this.runqueue.unshift(thread);
+    thread.first = false;
+    if (gRetrigger)
+	gRetrigger();
+    return process;
+};
+
 Wasm32System.prototype.instantiate = function (module, vm, args, env)
 {
     var process;
