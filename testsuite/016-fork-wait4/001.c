@@ -7,15 +7,24 @@
 
 int main(void)
 {
-  pid_t pid = fork();
+  pid_t pid;
 
-  if (pid) {
+  if ((pid = fork())) {
     int status;
     printf("here1 %d %d\n", pid, wait4(pid, &status, 0, 0));
     printf("status %d\n", status);
   } else {
     printf("here0\n");
+    return 1;
+  }
+  if ((pid = fork())) {
+    int status;
+    printf("here1 %d %d\n", pid, wait4(pid, &status, 0, 0));
+    printf("status %d\n", status);
+  } else {
+    printf("here0\n");
+    return 1;
   }
 
-  return 1;
+  return 0;
 }
