@@ -2914,6 +2914,8 @@ if (typeof(os) !== "undefined" &&
 
         if ("openat" in dd)
             return dd.openat(path).then(fd => {
+		if (typeof fd === "number")
+		    return fd;
                 var off;
                 for (off = 0; off < %{sizeof(struct stat)}; off += 4)
                     this.HEAP32[statbufptr+off>>2] = 0;
@@ -3645,6 +3647,12 @@ ThinThin.getcwd = function (addr, len) {
     this.HEAP8[addr] = ".".charCodeAt(0);
     this.HEAP8[addr+1] = "/".charCodeAt(0);
     this.HEAP8[addr+2] = 0;
+
+    return 0;
+};
+
+ThinThin.dup2 = function (oldfd, newfd) {
+    this.fds[newfd] = this.fds[oldfd];
 
     return 0;
 };
