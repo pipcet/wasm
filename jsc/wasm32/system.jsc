@@ -843,6 +843,9 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
             this.extcallRet[sp] = r;
             this.stop(0);
         }).catch(e => {
+	    console.log("exception");
+	    console.log(e);
+	    console.log(e.stack);
             this.extcallRet[sp] = this.errorToCode(e);
             this.stop(0);
         });
@@ -901,22 +904,22 @@ Wasm32Thread.prototype.step = function ()
 
     while (true) {
         if (first) {
-            ret = system.threads[0].indcall(-1, sp+16, 0, 0, rpc, this.entry);
+            ret = this.indcall(-1, sp+16, 0, 0, rpc, this.entry);
             first = this.first = false;
         } else {
-            ret = system.threads[0].indcall(dpc, sp+16, 0, 0, rpc, pc0);
+            ret = this.indcall(dpc, sp+16, 0, 0, rpc, pc0);
         }
 
         if (ret & 3) {
             sp = ret;
             sp &= -4;
-            pc0 = system.threads[0].HEAPU32[sp+8>>2];
+            pc0 = this.HEAPU32[sp+8>>2];
             dpc = 0;
             break;
         } else {
             sp = ret; //system.threads[0].HEAPU32[ret+16>>2];
-            sp = system.threads[0].HEAPU32[ret>>2];
-            pc0 = system.threads[0].HEAPU32[sp+8>>2];
+            sp = this.HEAPU32[ret>>2];
+            pc0 = this.HEAPU32[sp+8>>2];
             dpc = 0; //system.threads[0].HEAPU32[sp+28>>2];
         }
     }
