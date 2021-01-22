@@ -132,7 +132,7 @@ build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
 build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm32/coreutils
 	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure  --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 	touch $@
-build/wasm32/perl: src/perl
+build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 	mkdir -p $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
@@ -145,6 +145,11 @@ build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc
 built/wasm32/perl: build/wasm32/perl/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl install
+	touch $@
+
+built/wasm32/miniperl: build/wasm32/perl/Makefile
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl miniperl
+	cp build/wasm32/perl/miniperl wasm32-unknown-none/wasm32-unknown-none/bin/miniperl
 	touch $@
 
 # Actually building a package and installing it: make && make install, plus package-specific workarounds.
@@ -230,6 +235,11 @@ wasm/libdl.wasm: wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so tools/bin/
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 wasm/bash.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/bash tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+
+wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/perl
+	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+
+
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
