@@ -290,8 +290,12 @@ function Wasm32VM(sizes)
 Wasm32VM.prototype.fork = function ()
 {
     let ret = new Wasm32VM(this.sizes);
-    for (let i = 0; i < this.sizes.memsize; i++)
-	ret.HEAP8[i] = this.HEAP8[i];
+    let count = 0;
+    for (let i = 0; i < vm.sizes.memsize; i++)
+	if (ret.HEAP8[i] !== this.HEAP8[i]) {
+	    count++
+	    ret.HEAP8[i] = this.HEAP8[i];
+	}
     return ret;
 };
 
@@ -360,8 +364,10 @@ function Wasm32Module(process, bytes, name)
     Wasm32Modules[this.index] = this;
 
     process.modules.push(this);
+    this.process = process;
 }
 
+Wasm32Module.prototype.fork =
 Wasm32Module.prototype.clonedesc = function ()
 {
     return {
@@ -520,8 +526,6 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
     this.imports.sys.plt = vm.space_functions.alloc(this.dyninfo.plt_end);
     this.imports.sys.table = vm.table;
     this.imports.sys.memory = vm.memory;
-
-    thread.process.modules.push(this);
     return WebAssembly.instantiate(this.module, this.imports)
         .then(instance => {
             this.instance = instance;
@@ -546,7 +550,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
     });
 };
 
-function Wasm32Thread(kport, process, threadpage)
+function Wasm32Thread(kport, process, threadpage, vm)
 {
     if (kport)
         this.kport = kport;
@@ -569,7 +573,7 @@ function Wasm32Thread(kport, process, threadpage)
         stacksize: 1 * 1024 * 1024,
         stackbottom: 511 * 1024 * 1024,
     };
-    let vm = new Wasm32VM(sizes);
+    vm ||= new Wasm32VM(sizes);
 
     process.vm = vm;
     this.vm = vm;
@@ -841,7 +845,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     }
     default:
         i.dont.exist++;
-        throw("giving up, pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
+        throw("giving up,", this.vm.index, "pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
     }
 
     if (typeof Promise !== "undefined" &&
@@ -1104,7 +1108,7 @@ Wasm32Process.prototype.fork = function (kport)
     for (let sp in this.threads[0].extcallRet) {
 	extcallRet[sp] = 0;
     }
-    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet);
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice());
     return ret.then(process => {
 	process.threads[0].extcallRet = extcallRet;
 	return process;
@@ -1445,7 +1449,7 @@ function abtoascii(ab)
 }
 
 Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
-						 fds, extcallRet)
+						 fds, extcallRet, heap)
 {
     var process;
     var thread;
@@ -1455,10 +1459,11 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     thread.extcallRet = extcallRet;
     process.vm = vm;
     for (let module of [modules[0]]) {
+        var tos = (module.dyninfo.data_end + 4095) & -4096;
+        vm.%{zp[&zp->top_of_sbrk] = "tos"}
 	await module.load(thread, vm);
         var ret = await module.instantiate(thread, vm, 0x4000, true);
         var tos = (module.dyninfo.data_end + 4095) & -4096;
-
         vm.%{zp[&zp->top_of_sbrk] = "tos"}
 
         process.HEAP8 = vm.HEAP8;
@@ -1496,6 +1501,12 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 	thread.%{tp1[&tp1->sp] = "sp"}
 	thread.%{tp1[&tp1->pc] = "pc"}
     }
+    let count = 0;
+    for (let i = 0; i < vm.sizes.memsize; i++)
+	if (vm.HEAP8[i] !== heap[i]) {
+	    count++;
+	    vm.HEAP8[i] = heap[i];
+	}
     this.runqueue.unshift(thread);
     thread.first = false;
     if (gRetrigger)
@@ -1508,8 +1519,8 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
     var process;
     var thread;
     if (!this.threads.length) {
-        process = new Wasm32Process(this);
-        thread = new Wasm32Thread(undefined, process, 8192);
+        process = module.process;
+        thread = new Wasm32Thread(undefined, process, 8192, vm);
         return module.load(thread, vm).then(() => {
             var ret = module.instantiate(thread, vm, 0x4000, true);
             var tos = (module.dyninfo.data_end + 4095) & -4096;
