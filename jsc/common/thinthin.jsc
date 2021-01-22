@@ -3554,7 +3554,7 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 
 ThinThin.exit = function (code) {
     try {
-	quit(code);
+	//quit(code);
     } catch (e) {
 	os.kill(os.getpid());
     }
