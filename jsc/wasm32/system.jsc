@@ -285,6 +285,14 @@ function Wasm32VM(sizes)
     this.copies = [];
 }
 
+Wasm32VM.prototype.fork = function ()
+{
+    let ret = new Wasm32VM(this.sizes);
+    for (let i = 0; i < this.sizes.memsize; i++)
+	ret.HEAP8[i] = this.HEAP8[i];
+    return ret;
+};
+
 Wasm32VM.prototype.clonedesc = function ()
 {
     this.%{zp[&zp->top_of_sbrk]} += 64 * 1024 * 1024;
