@@ -9,6 +9,7 @@ var vm = new Wasm32VM(sizes);
 var system = new Wasm32System();
 var module;
 
+var gRetrigger;
 
 if (remote) {
     fetch(path).then(response => {
@@ -58,15 +59,15 @@ if (remote) {
         try {
             run = () => {
                 try {
-                    system.threads[0].step();
-                    if (!system.threads[0].stopped())
-                        Promise.resolve().then(run);
+		    if (!system.step())
+			Promise.resolve().then(run);
                 } catch (e) {
                     console.log(e);
 		    console.log(e.stack);
                 }
             };
             run();
+	    gRetrigger = run;
         } catch (e) {
             console.log("exception");
             console.log(e);
@@ -101,9 +102,8 @@ if (remote) {
         try {
             run = () => {
                 try {
-                    system.threads[0].step();
-                    if (!system.threads[0].stopped())
-                        Promise.resolve().then(run);
+                    system.step();
+                    Promise.resolve().then(run);
                 } catch (e) {
                     console.log(e);
 		    console.log(e.stack);
