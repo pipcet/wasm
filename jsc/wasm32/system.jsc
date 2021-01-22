@@ -257,9 +257,11 @@ Wasm32LM.prototype.dyninfo_apply =
     this.dyninfo_misc (dyninfo, imports, module);
 }
 
+var gWasm32VMIndex = 0;
 /* A virtual memory object. */
 function Wasm32VM(sizes)
 {
+    this.index = gWasm32VMIndex++;
     this.table = new WebAssembly.Table({element:"anyfunc",initial:sizes.tablesize,maximum:sizes.tablesize});
     this.table_length = 0;
     this.shadowtable = {};
