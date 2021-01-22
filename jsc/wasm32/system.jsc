@@ -1472,7 +1472,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
 Wasm32System.prototype.step = function ()
 {
     if (this.runqueue.length == 0)
-        return;
+        return true;
 
     var thread = this.runqueue.shift();
 
