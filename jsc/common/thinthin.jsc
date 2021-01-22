@@ -2898,7 +2898,6 @@ if (typeof(os) !== "undefined" &&
         if (!dd)
             return -%{EBADF};
 
-	printErr(`fstatat ${fdno} ${path}`)
         if (path.length === 0)
             return Promise.resolve(dd).then(fd => {
                 var off;
@@ -2916,7 +2915,6 @@ if (typeof(os) !== "undefined" &&
 
         if ("openat" in dd)
             return dd.openat(path).then(fd => {
-		printErr(`fstatat ${fdno} ${path}`)
                 var off;
                 for (off = 0; off < %{sizeof(struct stat)}; off += 4)
                     this.HEAP32[statbufptr+off>>2] = 0;
@@ -2926,7 +2924,6 @@ if (typeof(os) !== "undefined" &&
                 %{statbufptr[&stat::st_size] = "fd.size()"}
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
                 %{statbufptr[&stat::st_blocks] = "1"}
-		printErr(`fstatat ${fdno} ${path} => 0 ${fd.mode()}`)
 
                 return 0;
             });
@@ -3512,7 +3509,6 @@ ThinThin.chdir = function (ptr)
 
 ThinThin.openat = function (fdno, ptr, flags, mode) {
     var path = CStringAt(this.HEAPU8, ptr);
-    printErr(path);
 
     if (path.match(/^\/dev\/tty/))
 	return 1;
