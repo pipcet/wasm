@@ -237,7 +237,6 @@ $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-
 # JSC->js substitution
 js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
 	tools/bin/jsc wasm32-unknown-none < $< > $@
-# asm- is the common prefix
 js/wasm32-%.jsc.js: jsc/common/%.jsc | js
 	tools/bin/jsc wasm32-unknown-none < $< > $@
 
