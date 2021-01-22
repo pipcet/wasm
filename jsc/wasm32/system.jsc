@@ -1199,6 +1199,10 @@ Wasm32Kernel.prototype.get_port = function ()
         this.message(channel.port1, event.data);
     };
 
+    channel.port2.onmessage = ({data}) => {
+	this.requesters[data[1]](data[2]);
+    };
+
     if (this.ports_by_pid[1] === undefined) {
         this.ports_by_pid[1] = channel.port1;
         this.pids_by_port.set(channel.port1, 1);
