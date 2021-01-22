@@ -1260,7 +1260,7 @@ Wasm32Kernel.prototype.message = function (port, data)
         var ppid = this.ppids[pid];
         var pport = this.ports_by_pid[ppid];
 
-        this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
+        //this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;

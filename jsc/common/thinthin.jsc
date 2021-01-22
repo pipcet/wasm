@@ -3141,12 +3141,17 @@ if (typeof(os) !== "undefined" &&
             };
 
             test();
-        }).then(() => {
-            return this.kport.req("fork");
-        }).then(data => new Promise((resolve, reject) => {
+	}).then(() => {
+	    this.kport.channel.kernel.threads_by_port.set(this.kport, this);
+	    this.kport.channel.kernel.threads_by_port.set(this.kport.channel.port1, this);
+	    this.kport.channel.kernel.threads_by_port.set(this.kport.channel.port2, this);
+	    return this.kport.req("fork");
+	}).then(data => new Promise((resolve, reject) => {
             var pid = data[0];
             var kport = data[1];
-            var worker = new Worker("wasm32-forkedworker.js");
+            //var worker = new Worker("wasm32-forkedworker.js");
+	    resolve(pid);
+	    return;
             var fdchannels = {};
             var lfdports = {};
             var rfdports = {};
@@ -3157,7 +3162,7 @@ if (typeof(os) !== "undefined" &&
                 rfdports[fdno] = fdchannels[fdno].port2;
                 rports.push(rfdports[fdno]);
             }
-            worker.postMessage([kport, this.process.clonedesc(), this.vm.clonedesc(), this.syscall_sp, rfdports], [kport, ...rports]);
+            //workenr.postMessage([kport, this.process.clonedesc(), this.vm.clonedesc(), this.syscall_sp, rfdports], [kport, ...rports]);
 
             var pipes = {};
             for (var fdno in lfdports) {
