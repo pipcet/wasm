@@ -1203,6 +1203,48 @@ FrozenWasm32Process.prototype.thaw = function (system)
     return n;
 };
 
+function MessageChannel(kernel)
+{
+    this.kernel = kernel;
+    this.port1 = new Object();
+    this.port1.channel = this;
+    this.port2 = new Object();
+    this.port2.channel = this;
+    this.port1.start = this.port2.start = () => {};
+    this.port1.req = (kind, ...data) => {
+        var seq = this.kernel.seq++;
+	this.kernel.requesters[seq] = () => {
+	};
+	return new Promise((resolve, reject) => {
+            var seq = this.kernel.seq++;
+            var msg = [kind, seq];
+            msg.push(...data);
+
+            this.port1.postMessage(msg);
+	});
+    };
+    this.port2.req = (kind, ...data) => {
+        var seq = this.kernel.seq++;
+	return new Promise((resolve, reject) => {
+            var msg = [kind, seq];
+            msg.push(...data);
+
+	    this.kernel.requesters[seq] = data => {
+		resolve(data);
+	    };
+            this.port2.postMessage(msg);
+	});
+    };
+    this.port1.postMessage = data => {
+	this.port2.onmessage({data});
+    };
+    this.port2.postMessage = data => {
+	this.port1.onmessage({data});
+    };
+
+    return this;
+}
+
 /* The kernel: code that must run once only, even from workers. */
 function Wasm32Kernel()
 {
@@ -1210,8 +1252,32 @@ function Wasm32Kernel()
     this.space_pids.alloc(2);
     this.ports_by_pid = {};
     this.pids_by_port = new WeakMap();
+    this.threads_by_port = new WeakMap();
     this.ppids = { 1: 1 };
     this.wait4 = {};
+    this.seq = 0;
+    this.requesters = {};
+    this.responders = {};
+}
+
+Wasm32Kernel.prototype.init_port = function (thread)
+{
+    let channel = new MessageChannel(this);
+    channel.port1.onmessage = event => {
+	this.message(channel.port1, event.data);
+    };
+    channel.port2.onmessage = ({data}) => {
+	if (this.requesters[data[1]])
+	    this.requesters[data[1]](data[2]);
+    };
+
+    this.ports_by_pid[1] = channel.port1;
+    this.pids_by_port.set(channel.port1, 1);
+    this.ppids[1] = 1;
+    this.threads_by_port.set(channel.port1, thread);
+    this.threads_by_port.set(channel.port2, thread);
+
+    return channel.port2;
 }
 
 Wasm32Kernel.prototype.get_port = function ()
