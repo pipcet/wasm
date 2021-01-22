@@ -1088,6 +1088,19 @@ function Wasm32Process(system, fds)
     this.modules = [];
 }
 
+Wasm32Process.prototype.fork = function (kport)
+{
+    let extcallRet = {};
+    for (let sp in this.threads[0].extcallRet) {
+	extcallRet[sp] = 0;
+    }
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet);
+    return ret.then(process => {
+	process.threads[0].extcallRet = extcallRet;
+	return process;
+    });
+};
+
 Wasm32Process.prototype.clonedesc = function ()
 {
     return {
