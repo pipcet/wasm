@@ -903,10 +903,12 @@ ThinThinFD.prototype.close = function ()
     //delete this.process.fds[this.fdno];
 
     if (this.fdno >= 3 && this.writeData !== "") {
-	printErr(this.path);
-	let r = redirect(this.path);
-	putstr(this.writeData);
-	redirect(r);
+	let buf = new ArrayBuffer(this.writeData.length);
+	let arr = new Uint8Array(buf);
+	for (let i = 0; i < this.writeData.length; i++) {
+	    arr[i] = this.writeData.charCodeAt(i) & 0xff;
+	}
+	os.file.writeTypedArrayToFile(this.path, arr);
     }
 
     return Promise.resolve(0);
