@@ -384,6 +384,8 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 # Create a file to be shipped
 ship/%.wasm: artifacts/%.wasm | ship
 	cat $< > $@
+ship/binutils.tar: artifacts/binutils.tar | ship
+	cat $< > $@
 # Retrieve asset list (and cache it)
 github/assets/%.json: | github/release/list! github/assets
 	if [ -e "github/release/\"$*\"" ]; then \
