@@ -3507,6 +3507,7 @@ ThinThin.destroy_trampoline = function (mtramp)
 ThinThin.chdir = function (ptr)
 {
     var path = CStringAt(this.HEAPU8, ptr);
+    this.pwd = path;
     return Promise.resolve(0);
 };
 
