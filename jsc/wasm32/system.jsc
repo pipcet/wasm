@@ -1528,6 +1528,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
     if (!this.threads.length) {
         process = module.process;
         thread = new Wasm32Thread(undefined, process, 8192, vm);
+	thread.main_thread = true;
         return module.load(thread, vm).then(() => {
             var ret = module.instantiate(thread, vm, 0x4000, true);
             var tos = (module.dyninfo.data_end + 4095) & -4096;

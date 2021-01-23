@@ -3598,11 +3598,12 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 var gExitStatus;
 ThinThin.exit = function (code) {
     gExitStatus = code;
-    try {
-	//quit(code);
-    } catch (e) {
-	os.kill(os.getpid());
-    }
+    if (this.main_thread)
+	try {
+	    quit(code);
+	} catch (e) {
+	    os.kill(os.getpid());
+	}
     //console.log("exiting: " + code);
     return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
 
