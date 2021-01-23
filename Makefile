@@ -395,7 +395,12 @@ github/assets/%.json: | github/release/list! github/assets
 	fi
 
 # Ship assets
-ship-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
+ship-wasm-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
+	$(MAKE) github/release/list!
+	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
+	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
+
+ship-binutils-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
@@ -411,7 +416,7 @@ github/check-release!: | github
 	    node ./github/release.js $$this_release_date $$last_release_date > github/release.json; \
 	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@github/release.json'; \
 	    sleep 1m; \
-	    $(MAKE) ship-$$this_release_date!; \
+	    $(MAKE) ship-wasm-$$this_release_date!; \
 	fi; \
 	true
 
@@ -537,6 +542,12 @@ extracted/%.tar: %.tar | extracted
 	tar xf $*.tar
 	touch $@
 
+daily/%: | daily
+	bash github/dl-daily $*
+	mv $@.new/$* $@
+	rm -rf $@.new
+	ls -l $@
+
 artifacts/%: | artifacts
 	bash github/dl-artifact $*
 	mv $@.new/$* $@
@@ -608,6 +619,14 @@ binutils-test!: github/install/texinfo-bison-flex github/install/dejagnu
 	$(MAKE) artifact-push!
 
 gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar
+
+daily-binutils!: | github/install/texinfo-bison-flex subrepos/binutils-gdb/checkout! artifact-timestamp artifacts
+	$(MAKE) built/wasm32/binutils-gdb
+daily-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar github/install/gcc-dependencies
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/gcc-preliminary
+	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
+	$(MAKE) artifact-push!
 
 clean: clean!
 all: built/all
