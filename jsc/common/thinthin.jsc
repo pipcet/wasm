@@ -3291,7 +3291,7 @@ if (typeof(os) !== "undefined" &&
 
         return ret.then(([pid, wstatus]) => {
             if (wstatusp)
-                this.HEAP32[wstatusp>>2] = wstatus;
+                this.HEAP32[wstatusp>>2] = (wstatus << 8);
 
             return pid;
         });
