@@ -235,6 +235,8 @@ wasm/libdl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect 
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so > $@
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/bash > $@
+wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/miniperl
+	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/miniperl > $@
 
 
 COREUTILS = echo true false
@@ -375,6 +377,12 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
+	$(MAKE) artifact-push!
+
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
+	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
 # Create a file to be shipped
