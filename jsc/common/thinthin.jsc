@@ -3471,6 +3471,7 @@ ThinThin.renameat2 = function (oldfdno, oldpathptr, newfdno, newpathptr, flags)
     var oldpath = CStringAt(this.HEAPU8, oldpathptr);
     var newpath = CStringAt(this.HEAPU8, newpathptr);
 
+    os.system(`mv ${oldpath} ${newpath}`);
     return Promise.resolve(0);
 };
 
