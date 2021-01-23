@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-curl https://github.com/pipcet/wasm/releases/download/latest/"$1" > daily/$1
+curl -L https://github.com/pipcet/wasm/releases/download/latest/"$1" > daily/$1

@@ -381,9 +381,7 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	$(MAKE) artifact-push!
 
 # Create a file to be shipped
-ship/%.wasm: artifacts/%.wasm | ship
-	cat $< > $@
-ship/binutils.tar: artifacts/binutils.tar | ship
+ship/%: artifacts/% | ship
 	cat $< > $@
 # Retrieve asset list (and cache it)
 github/assets/%.json: | github/release/list! github/assets
@@ -399,7 +397,7 @@ ship-wasm-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm gi
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-binutils-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
+ship-binutils-%!: ship/binutils.tar github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
@@ -531,6 +529,9 @@ test/%.exp.cmp: test/%.exp test/%
 artifacts: | .github-init
 	$(MKDIR) $@
 
+daily:
+	$(MKDIR) $@
+
 .github-init:
 	bash github/artifact-init
 	touch $@
@@ -543,8 +544,6 @@ extracted/%.tar: %.tar | extracted
 
 daily/%: | daily
 	bash github/dl-daily $*
-	mv $@.new/$* $@
-	rm -rf $@.new
 	ls -l $@
 
 artifacts/%: | artifacts
