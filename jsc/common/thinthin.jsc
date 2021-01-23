@@ -2912,7 +2912,7 @@ if (typeof(os) !== "undefined" &&
                 return 0;
             });
 
-        if ("openat" in dd)
+        if ("openat" in dd) {
             return dd.openat(path).then(fd => {
 		if (typeof fd === "number")
 		    return fd;
@@ -2928,7 +2928,7 @@ if (typeof(os) !== "undefined" &&
 
                 return 0;
             });
-        else {
+	} else {
             var fd = dd;
             var off;
             for (off = 0; off < %{sizeof(struct stat)}; off += 4)
