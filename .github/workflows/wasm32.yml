@@ -749,6 +749,40 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  ship_gcc:
+    name: ship gcc
+    runs-on: ubuntu-latest
+    needs:
+    - ncurses
+    - bash
+    - tests
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 ship-gcc-latest!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ship_glibc:
+    name: ship glibc
+    runs-on: ubuntu-latest
+    needs:
+    - ncurses
+    - bash
+    - tests
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 ship-glibc-latest!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
     name: release
     runs-on: ubuntu-latest
