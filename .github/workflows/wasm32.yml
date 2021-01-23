@@ -5,38 +5,6 @@ on:
   pull_request:
     branches: [ master, wasm ]
 jobs:
-
-  # all:
-  #   name: make all
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: true
-  #   - run: git submodule update --depth=1 --single-branch --init --recursive --
-  #   - name: Install texinfo, bison, flex
-  #     run: sudo apt-get install texinfo bison flex
-  #   - name: Install GCC dependencies
-  #     run: sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
-  #   - name: Build binutils-gdb
-  #     run: make OPT_NATIVE="-O0 -g0" -j10 built/wasm32/binutils-gdb
-  #   - name: Build gcc-preliminary
-  #     run: make OPT_NATIVE="-O0 -g0" -j10 built/wasm32/gcc-preliminary
-  #   - name: Build glibc
-  #     run: make OPT_WASM="-O1 -g0" -j10 built/wasm32/glibc
-  #   - name: Build gcc
-  #     run: make OPT_NATIVE="-O1 -g0" -j10 built/wasm32/gcc
-  #   - name: Build ncurses
-  #     run: make -j10 built/wasm32/ncurses
-  #   - name: Build bash
-  #     run: make -j10 built/wasm32/bash
-  #   - name: Build wabt
-  #     run: make -j10 built/common/wabt
-  #   - name: Build binaryen
-  #     run: make -j10 built/common/binaryen
-  #   - name: Build all
-  #     run: make -j10 all
-
   tests:
     name: Run tests
     runs-on: ubuntu-latest
