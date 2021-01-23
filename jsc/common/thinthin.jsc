@@ -3194,92 +3194,22 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.execveat = function (dirfdno, pathptr, argvptr, envpptr, flags)
     {
-        if (this.HEAP8[pathptr] == "/".charCodeAt(0))
+        if (this.HEAP8[pathptr] === "/".charCodeAt(0))
             dirfdno = %{AT_FDROOTD};
 
-        //var fd;
-        //if (this.HEAP8[pathptr] == 0 &&
-        //    flags & %{AT_EMPTY_PATH})
-        //    fd = this.fds[dirfdno];
-        //else
-        var process;
-        var thread;
-        var module;
-        var vm;
-        var args;
-        var env;
-        var sizes = {
-            tablesize: 65536,
-            memsize: 512 * 1024 * 1024,
-            stacksize: 1 * 1024 * 1024,
-            stackbottom: 511 * 1024 * 1024,
-        };
-
-        return Promise.resolve(ThinThin.openat.call(this, dirfdno, pathptr, 0))
-            .then(fdno => this.fds[fdno])
-
-            .then(fd => {
-                var ret;
-                try {
-                    args = CStringsAt(this.heap, argvptr);
-                    env = CStringsAt(this.heap, envpptr);
-
-                    process = new Wasm32Process(this.process.system, this.fds);
-                    ret = fd.readAsArrayBuffer();
-                } catch (e) {
-                    console.log(e);
-                    console.log(e.stack);
-                }
-
-                return ret;
-            }).then(ab => {
-                module = new Wasm32Module(process, ab);
-                thread = new Wasm32Thread(this.kport.port, process, 8192);
-                return module.load(thread, thread.vm);
-            }).then(() => {
-                vm = thread.vm;
-                var ret = module.instantiate(thread, vm, 0x4000, true);
-                var tos = (module.dyninfo.data_end + 4095) & -4096;
-
-                vm.%{zp[&zp->top_of_sbrk] = "tos"}
-
-                return ret;
-            }).then(() => {
-                process.HEAP8 = vm.HEAP8;
-                process.HEAP16 = vm.HEAP16;
-                process.HEAP32 = vm.HEAP32;
-                process.HEAPU8 = vm.HEAPU8;
-                process.HEAPU16 = vm.HEAPU16;
-                process.HEAPU32 = vm.HEAPU32;
-                process.HEAPF32 = vm.HEAPF32;
-                process.HEAPF64 = vm.HEAPF64;
-
-                thread.heap = vm.heap;
-                var HEAP32 = vm.HEAP32;
-
-                %{zp[&zp->top_of_memory] = "module.top_of_memory"}
-                %{zp[&zp->thread_list]} = %{tp1};
-                %{zp[&zp->bottom_of_sbrk] = "module.start_of_sbrk"}
-
-                %{tp1[&tp1->next]} = %{tp1};
-                %{tp1[&tp1->prev]} = %{tp1};
-                %{tp1[&tp1->id] = "1"}
-                %{tp1[&tp1->bottom_of_stack] = "module.bottom_of_stack"}
-                module.top_of_stack = sizes.stackbottom + sizes.stacksize;
-                %{tp1[&tp1->top_of_stack] = "module.top_of_stack"}
-
-                var sp = this.process.system.init_sp(vm, module.top_of_stack, args, env);
-                %{tp1[&tp1->sp] = "sp"}
-                %{tp1[&tp1->initsp] = -1}
-
-                %{tp1[&tp1->pc] = "process.entry"}
-                thread.first = true;
-            }).then(() => {
-                this.process.system.threads[0] = thread;
-                thread.stop(0);
-                run();
-            }).then(() => new Promise((resolve, reject) => {
-            }));
+	let args = CStringsAt(this.heap, argvptr);
+	let command = args.join(" ");
+	if (this.pwd !== undefined)
+	    command = "cd " + this.pwd + "; " + command;
+	try {
+	    let pid = os.spawn(command);
+	    let o = os.waitpid(pid);
+	    return ThinThin.exit.call(this, o.exitStatus);
+	} catch (e) {
+	    console.log("OH NO!");
+	    console.log(e);
+	    return -%{EIO};
+	}
     };
     ThinThin.wait4 = function(pid, wstatusp, options, rusage)
     {
