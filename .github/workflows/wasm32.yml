@@ -293,6 +293,22 @@ jobs:
     - name: Run
       run: WASMDIR=. JS=`pwd`/bin/js `pwd`/bash.wasm -c 'echo $((3*4*5))'
 
+  miniperl:
+    name: miniperl
+    runs-on: ubuntu-latest
+    needs:
+      - glibc
+      - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -k artifact-miniperl!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
