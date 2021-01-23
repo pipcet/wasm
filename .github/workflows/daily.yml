@@ -1,0 +1,17 @@
+name: daily
+on:
+  push:
+    branches: [ master, daily, wasm ]
+  pull_request:
+    branches: [ master, daily, wasm ]
+jobs:
+  binutils:
+    name: binutils
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 daily-binutils!
