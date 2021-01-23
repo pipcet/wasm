@@ -10,6 +10,7 @@ var system = new Wasm32System();
 var module;
 
 var gRetrigger;
+var gExitStatus = 0;
 
 if (remote) {
     fetch(path).then(response => {

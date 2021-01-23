@@ -3593,7 +3593,9 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
     return 0;
 };
 
+var gExitStatus;
 ThinThin.exit = function (code) {
+    gExitStatus = code;
     try {
 	//quit(code);
     } catch (e) {
