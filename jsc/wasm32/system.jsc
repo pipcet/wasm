@@ -291,11 +291,12 @@ Wasm32VM.prototype.fork = function ()
 {
     let ret = new Wasm32VM(this.sizes);
     let count = 0;
-    for (let i = 0; i < vm.sizes.memsize; i++)
-	if (ret.HEAP8[i] !== this.HEAP8[i]) {
-	    count++
-	    ret.HEAP8[i] = this.HEAP8[i];
-	}
+    let lim = 64 * 1024 * 1024;
+    for (let i = 0; i < lim; i++)
+	ret.HEAP8[i] = this.HEAP8[i];
+    lim = this.sizes.memsize;
+    for (let i = this.sizes.stackbottom; i < lim; i++)
+	ret.HEAP8[i] = this.HEAP8[i];
     return ret;
 };
 
@@ -1108,7 +1109,7 @@ Wasm32Process.prototype.fork = function (kport)
     for (let sp in this.threads[0].extcallRet) {
 	extcallRet[sp] = 0;
     }
-    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice());
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice());
     return ret.then(process => {
 	process.threads[0].extcallRet = extcallRet;
 	return process;
@@ -1332,7 +1333,9 @@ Wasm32Kernel.prototype.message = function (port, data)
         var ppid = this.ppids[pid];
         var pport = this.ports_by_pid[ppid];
 
-        this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
+	if (this.ports_by_pid[ppid]) {
+            this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
+	}
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
@@ -1449,12 +1452,14 @@ function abtoascii(ab)
 }
 
 Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
-						 fds, extcallRet, heap)
+						 fds, extcallRet, heap, pwd,
+						 heap32)
 {
     var process;
     var thread;
     process = new Wasm32Process(this, fds);
     thread = new Wasm32Thread(kport, process, 8192);
+    thread.pwd = pwd;
     thread.vm = vm;
     thread.extcallRet = extcallRet;
     process.vm = vm;
@@ -1502,11 +1507,13 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 	thread.%{tp1[&tp1->pc] = "pc"}
     }
     let count = 0;
-    for (let i = 0; i < vm.sizes.memsize; i++)
-	if (vm.HEAP8[i] !== heap[i]) {
-	    count++;
-	    vm.HEAP8[i] = heap[i];
-	}
+    var HEAP32 = heap32;
+    let lim = 64 * 1024 * 1024; //%{zp[&zp->top_of_sbrk]};
+    for (let i = 0; i < lim; i++)
+	vm.HEAP8[i] = heap[i];
+    lim = vm.sizes.memsize;
+    for (let i = vm.sizes.stackbottom; i < lim; i++)
+	vm.HEAP8[i] = heap[i];
     this.runqueue.unshift(thread);
     thread.first = false;
     if (gRetrigger)
