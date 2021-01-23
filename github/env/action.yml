@@ -3,3 +3,5 @@ description: 'Sets certain env variables so that e2e artifact upload and downloa
 runs:
   using: 'node12'
   main: 'index.js'
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
