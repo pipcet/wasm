@@ -1,6 +1,7 @@
 name: 'Set env variables'
 description: 'Sets certain env variables so that e2e artifact upload and download can be tested in a shell'
-run: |
-  echo ACTIONS_RUNTIME_URL=${ACTIONS_RUNTIME_URL} >> $GITHUB_ENV
-  echo ACTIONS_RUNTIME_TOKEN=${ACTIONS_RUNTIME_TOKEN} >> $GITHUB_ENV
-  echo GITHUB_RUN_ID=${GITHUB_RUN_ID} >> $GITHUB_ENV
+runs:
+  using: 'node12'
+  main: 'index.js'
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
