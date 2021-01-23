@@ -881,7 +881,8 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -k artifact-coreutils!
+    - run:
+        JS=$(pwd)/bin/js WASMDIR=$(pwd) make -k artifact-coreutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
