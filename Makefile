@@ -747,6 +747,19 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	tools/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
 	chmod u+x hello-world.wasm
 	./hello-world.wasm
+daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js tools/bin/elf-to-wasm
+	mkdir -p wasm
+	touch built/wasm32/binutils-gdb
+	touch built/wasm32/gcc-preliminary
+	touch built/wasm32/glibc
+	touch built/wasm32/gcc
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) run-all-tests!
 
 clean: clean!
 all: built/all
