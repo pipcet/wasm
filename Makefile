@@ -282,9 +282,9 @@ bin/js:
 	unzip jsshell-linux-x86_64.zip -d bin
 
 # JSC->js substitution
-js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js
+js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js install/file-slurp
 	tools/bin/jsc wasm32-unknown-none < $< > $@
-js/wasm32-%.jsc.js: jsc/common/%.jsc | js
+js/wasm32-%.jsc.js: jsc/common/%.jsc | js install/file-slurp
 	tools/bin/jsc wasm32-unknown-none < $< > $@
 
 # fixme: don't use a wildcard here.
