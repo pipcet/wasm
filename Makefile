@@ -70,20 +70,28 @@ build/wasm32/coreutils: | build/wasm32
 # We use /Makefile as a sentinel for whether the configure/cmake script has run.
 build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
 	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
+
 build/common/wabt/Makefile: | src/wabt build/common/wabt
 	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
+
 build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binutils-gdb
 	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
 	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+
 build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
 	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+
 # Note that src/gcc is shared between the gcc-preliminary and gcc targets.
+
 build/wasm32/gcc-preliminary/Makefile: | built/wasm32/binutils-gdb build/wasm32/gcc-preliminary src/gcc
 	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+
 build/wasm32/glibc/Makefile: | built/wasm32/gcc-preliminary src/glibc build/wasm32/glibc
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -O3 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+
 build/wasm32/gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-O3 -g3" CXXFLAGS="-O3 -g3" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+
 build/wasm32/gcc-testsuite/site.exp: | build
 	$(MKDIR) $(dir $@)
 	> $@
@@ -130,6 +138,7 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurses
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
+
 build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
 	(cd build/wasm32/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/bash/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-bash-malloc)
 	touch $@
@@ -141,6 +150,7 @@ build/wasm32/zsh/Makefile: | built/wasm32/ncurses src/zsh build/wasm32/zsh
 build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm32/coreutils
 	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure  --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 	touch $@
+
 build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 	mkdir -p $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
@@ -162,26 +172,31 @@ built/wasm32/miniperl: build/wasm32/perl/Makefile
 	touch $@
 
 # Actually building a package and installing it: make && make install, plus package-specific workarounds.
+
 built/common/binaryen: build/common/binaryen/Makefile | built/common bin
 	$(MAKE) -C build/common/binaryen
 	$(MAKE) -C build/common/binaryen install
 	(cd bin; ln -sf ../common/bin/* .)
 	touch $@
+
 built/common/wabt: build/common/wabt/Makefile | built/common bin
 	$(MAKE) -C build/common/wabt
 	$(MAKE) -C build/common/wabt install
 	(cd bin; ln -sf ../common/bin/* .)
 	touch $@
+
 built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	$(MAKE) -C build/wasm32/binutils-gdb
 	$(MAKE) -C build/wasm32/binutils-gdb install
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+
 built/wasm32/gdb: build/wasm32/gdb/Makefile built/wasm32/gcc | bin built/wasm32
 	$(MAKE) -C build/wasm32/gdb
 	$(MAKE) -C build/wasm32/gdb install
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+
 built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32 bin
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary install
@@ -189,6 +204,7 @@ built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm
 	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
+
 built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
@@ -221,22 +237,27 @@ built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc install
 	touch $@
+
 built/wasm32/ncurses: build/wasm32/ncurses/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
 	touch $@
+
 built/wasm32/bash: build/wasm32/bash/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
 	touch $@
+
 built/wasm32/zsh: build/wasm32/zsh/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zsh
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zsh install
 	touch $@
+
 built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils install
 	touch $@
+
 # Emacs has a Makefile, so we configure it in the "built" step.
 built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	(cd build/wasm32/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=none --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
@@ -251,27 +272,36 @@ tools/bin/%: tools/src/%.cc lds/wasm32.cpp-lds.lds | bin
 	g++ -Wall -g3 $< -o $@
 
 # wasm/ targets.
+
 wasm/ld.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
+
 wasm/libc.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
+
 wasm/libm.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libm.so > $@
+
 wasm/libcrypt.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libcrypt.so > $@
+
 wasm/libutil.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libutil.so > $@
+
 wasm/libstdc++.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/gcc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so > $@
+
 wasm/libncurses.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/ncurses
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
+
 wasm/libdl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/glibc
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so > $@
+
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/bash
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/bash > $@
+
 wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/miniperl
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/miniperl > $@
-
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
