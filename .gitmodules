@@ -40,3 +40,6 @@
 [submodule "subrepos/perl"]
 	path = subrepos/perl
 	url = https://github.com/pipcet/perl
+[submodule "subrepos/zsh"]
+	path = subrepos/zsh
+	url = ../zsh
