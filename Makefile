@@ -683,14 +683,15 @@ daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
-daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/gperf github/install/autopoint github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp js/wasm32.js
+daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/gperf github/install/autopoint github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp js/wasm32.js
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
+	touch built/wasm32/ncurses
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
