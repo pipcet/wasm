@@ -350,8 +350,8 @@ artifact-glibc!: | github/install/texinfo-bison-flex subrepos/glibc/checkout! ar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
 	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
-	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm
-	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm artifacts/
+	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
+	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm artifacts/
 	$(MAKE) artifact-push!
 artifact-gcc!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
