@@ -88,5 +88,5 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make -kj10 github/install/file-slurp
-    - run: make -kj10 tools/bin/dyninfo js/bin/wasm32.js
+    - run: make -kj10 tools/bin/dyninfo js/wasm32.js
     - run: WASMDIR=$(pwd) make -kj10 daily-miniperl!
