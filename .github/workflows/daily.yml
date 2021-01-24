@@ -77,7 +77,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make -kj10 github/install/file-slurp
-    - run: make -kj10 daily-coreutils!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-coreutils!
   miniperl:
     name: miniperl
     runs-on: ubuntu-latest
