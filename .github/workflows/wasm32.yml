@@ -852,7 +852,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
   gcc-c-torture-execute:
     name: gcc.c-torture/execute
     runs-on: ubuntu-latest
@@ -866,7 +866,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
   gcc-c-torture-execute-ieee:
     name: gcc.c-torture/execute/ieee
     runs-on: ubuntu-latest
@@ -880,7 +880,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
   gcc-dg-dg:
     name: gcc.dg/dg.exp
     runs-on: ubuntu-latest
@@ -894,7 +894,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make gcc.dg/dg.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make gcc.dg/dg.exp.{dejanew}!
   binutils-check:
     name: make check (binutils)
     runs-on: ubuntu-latest
