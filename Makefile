@@ -313,6 +313,9 @@ test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
+run-all-tests!: | install/binfmt_misc/elf32-wasm32
+run-all-tests!: | install/binfmt_misc/wasm
+run-all-tests!: | tools/bin/elf-to-wasm
 run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
 
 # GitHub support
@@ -337,8 +340,17 @@ github/install/gcc-dependencies: | github/install
 github/install/dejagnu: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
+
 github/install/gettext: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
+
+artifact-miniperl!: | install/gettext
+built/wasm32/bash: | install/gettext
+built/wasm32/coreutils: | install/gettext
+built/wasm32/coreutils: | install/gettext
+built/wasm32/miniperl: | install/gettext
+built/wasm32/zsh: | install/gettext
+
 github/install/autopoint: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install autopoint
 github/install/gperf: | github/install
@@ -410,7 +422,7 @@ artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.t
 	cp wasm/zsh.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js
+artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
@@ -419,7 +431,11 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp
+artifact-miniperl!: | install/binfmt_misc/elf32-wasm32
+artifact-miniperl!: | install/binfmt_misc/wasm
+artifact-miniperl!: | install/file-slurp
+
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar
 	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
@@ -639,7 +655,7 @@ artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-%.{dejagnu}!: install/file-slurp install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build
 	$(MAKE) extracted/artifacts/binutils.tar
 	$(MAKE) extracted/artifacts/gcc-preliminary.tar
 	$(MAKE) extracted/artifacts/gcc.tar
@@ -648,7 +664,6 @@ artifact-push!:
 	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	$(MAKE) install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32
-	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
 	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
@@ -665,7 +680,7 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{dejanew}!: install/file-slurp install/texinfo-bison-flex install/gcc-dependencies install/dejagnu
+%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu
 	$(MAKE) extracted/artifacts/binutils.tar
 	$(MAKE) extracted/artifacts/gcc-preliminary.tar
 	$(MAKE) extracted/artifacts/gcc.tar
@@ -675,7 +690,6 @@ artifact-push!:
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32
-	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
 	$(MKDIR) wasm
 	$(MAKE) subrepos/gcc/checkout!
@@ -719,21 +733,22 @@ daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz ext
 	touch built/wasm32/gcc
 	$(MAKE) built/wasm32/ncurses
 	$(MAKE) wasm/libncurses.wasm
-daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext
+daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
-daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext install/nroff
+built/wasm32/zsh: | install/nroff
+daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/zsh
-daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
+daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
@@ -747,7 +762,7 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) wasm/libm.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
 	mkdir -p wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
@@ -791,7 +806,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	tools/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
 	chmod u+x hello-world.wasm
 	./hello-world.wasm
-daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js tools/bin/elf-to-wasm
+daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js bin/js tools/bin/elf-to-wasm
 	mkdir -p wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
