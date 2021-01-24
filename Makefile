@@ -26,6 +26,8 @@ env:
 	@echo "export JS=$(JS)"
 
 # subsidiary directories. Nothing interesting here.
+src/wasm32: | src
+	$(MKDIR) $@
 build/common: | build
 	$(MKDIR) $@
 built/common: | built
