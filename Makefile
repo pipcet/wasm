@@ -322,7 +322,7 @@ github/install/file-slurp: | github/install
 	sudo cpanm File::Slurp
 	touch $@
 github/install/nroff: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install nroff
+	tools/bin/locked --lockfile apt.lock sudo apt-get install groff-base
 	touch $@
 github/install/texinfo-bison-flex: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
