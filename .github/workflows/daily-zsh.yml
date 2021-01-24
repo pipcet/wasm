@@ -1,4 +1,4 @@
-name: daily
+name: daily-zsh
 on:
   push:
     branches: [ master, daily, wasm ]

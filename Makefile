@@ -321,6 +321,9 @@ github/install/file-slurp: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
+github/install/nroff: | github/install
+	tools/bin/locked --lockfile apt.lock sudo apt-get install nroff
+	touch $@
 github/install/texinfo-bison-flex: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
@@ -387,7 +390,7 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/nroff
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/zsh wasm/zsh.wasm
 	cp wasm/zsh.wasm artifacts/
@@ -708,7 +711,7 @@ daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
-daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/nroff
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
