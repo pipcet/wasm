@@ -784,6 +784,23 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  ship_ncurses:
+    name: ship ncurses
+    runs-on: ubuntu-latest
+    needs:
+    - ncurses
+    - bash
+    - tests
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 ship-ncurses/latest!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
     name: release
     runs-on: ubuntu-latest
@@ -793,6 +810,7 @@ jobs:
     - ship_gcc_preliminary
     - ship_gcc
     - ship_glibc
+    - ship_ncurses
     steps:
     - uses: actions/checkout@v2
       with:
