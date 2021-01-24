@@ -38,7 +38,7 @@ built/wasm32: | built
 	$(MKDIR) $@
 test/wasm32: | test
 	$(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash build/wasm32/zsh: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/ncurses build/wasm32/bash: | build/wasm32
 	$(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
 	$(MKDIR) $@
