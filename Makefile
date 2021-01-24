@@ -383,11 +383,11 @@ github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 
 ifeq (${GITHUB},1)
 install/%: github/install/%
-	mkdir -p install/$(dirname $*)
+	mkdir -p install/$(dir $*)
 	touch $@
 else
 install/%:
-	mkdir -p install/$(dirname $*)
+	mkdir -p install/$(dir $*)
 	touch $@
 endif
 
