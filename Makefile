@@ -193,6 +193,8 @@ built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
 	touch $@
+built/wasm32/gcc-preliminary built/wasm32/gcc built/wasm32/binutils-gdb built/wasm32/glibc built/wasm32/ncurses built/wasm32/bash built/wasm32/miniperl built/wasm32/zsh built/wasm32/coreutils: install/texinfo-bison-flex
+built/wasm32/gcc-preliminary built/wasm32/gcc built/wasm32/binutils-gdb built/wasm32/glibc built/wasm32/ncurses built/wasm32/bash built/wasm32/miniperl built/wasm32/zsh built/wasm32/coreutils: install/gcc-dependencies
 built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	$(MKDIR) build/wasm32/gcc/gcc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
@@ -362,31 +364,31 @@ endif
 artifact-wasm32.js!: | js/wasm32.js artifact-timestamp artifacts
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
-artifact-binutils!: | install/texinfo-bison-flex subrepos/binutils-gdb/checkout! artifact-timestamp artifacts
+artifact-binutils!: | subrepos/binutils-gdb/checkout! artifact-timestamp artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/binutils-gdb
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
-artifact-gcc-preliminary!: | install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar install/gcc-dependencies
+artifact-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
-artifact-glibc!: | install/texinfo-bison-flex subrepos/glibc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar
+artifact-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
 	tar cf artifacts/glibc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
 	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm artifacts/
 	$(MAKE) artifact-push!
-artifact-gcc!: | install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar install/gcc-dependencies
+artifact-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) wasm/libstdc++.wasm
 	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
-artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar install/gcc-dependencies
+artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/ncurses
 	$(MAKE) wasm/libncurses.wasm
@@ -394,19 +396,19 @@ artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/bi
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/texinfo-bison-flex install/gcc-dependencies install/gettext
+artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/texinfo-bison-flex install/gcc-dependencies install/gettext install/nroff
+artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/zsh wasm/zsh.wasm
 	cp wasm/zsh.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/texinfo-bison-flex install/gcc-dependencies install/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js
+artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tarinstall/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
@@ -415,7 +417,7 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar install/texinfo-bison-flex install/gcc-dependencies install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp
 	$(MAKE) js/wasm32.js
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
@@ -683,7 +685,7 @@ artifact-push!:
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
 	$(MAKE) artifact-push!
 
-binutils-test!: install/texinfo-bison-flex install/dejagnu
+binutils-test!: install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
 	$(MAKE) artifacts
@@ -694,42 +696,42 @@ binutils-test!: install/texinfo-bison-flex install/dejagnu
 
 gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar
 
-daily-binutils!: | install/texinfo-bison-flex subrepos/binutils-gdb/checkout!
+daily-binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
-daily-gcc-preliminary!: | install/texinfo-bison-flex subrepos/gcc/checkout! extracted/daily/binutils.tar.gz install/gcc-dependencies
+daily-gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) built/wasm32/gcc-preliminary
-daily-glibc!: | install/texinfo-bison-flex subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
+daily-glibc!: | subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
-daily-gcc!: | install/texinfo-bison-flex subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/glibc.tar.gz install/gcc-dependencies
+daily-gcc!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/glibc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	$(MAKE) built/wasm32/gcc
 	$(MAKE) wasm/libstdc++.wasm
-daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz install/gcc-dependencies
+daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
 	$(MAKE) built/wasm32/ncurses
 	$(MAKE) wasm/libncurses.wasm
-daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/texinfo-bison-flex install/gcc-dependencies install/gettext
+daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
-daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/texinfo-bison-flex install/gcc-dependencies install/gettext install/nroff
+daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext install/nroff
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/zsh
-daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/texinfo-bison-flex install/gcc-dependencies install/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
+daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gettext install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
@@ -743,7 +745,7 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) wasm/libm.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/texinfo-bison-flex install/gcc-dependencies install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/gettext install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
 	mkdir -p wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
