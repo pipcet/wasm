@@ -89,4 +89,4 @@ jobs:
       uses: ./github/env/
     - run: make -kj10 github/install/file-slurp
     - run: make -kj10 tools/bin/dyninfo js/wasm32.js
-    - run: WASMDIR=$(pwd) make -kj10 daily-miniperl!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-miniperl!
