@@ -90,3 +90,27 @@ jobs:
     - run: make -kj10 github/install/file-slurp
     - run: make -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-miniperl!
+  run-wasm:
+    name: Hello World (run with binfmt_misc)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
+    - run: make -kj10 tools/bin/dyninfo js/wasm32.js
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-run-wasm!
+  run-elf:
+    name: Hello World (run with binfmt_misc, ELF32)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
+    - run: make -kj10 tools/bin/dyninfo js/wasm32.js
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-run-elf!
