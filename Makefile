@@ -26,8 +26,6 @@ env:
 	@echo "export JS=$(JS)"
 
 # subsidiary directories. Nothing interesting here.
-src/wasm32: | src
-	$(MKDIR) $@
 build/common: | build
 	$(MKDIR) $@
 built/common: | built
@@ -50,7 +48,7 @@ src/wasm32/binutils-gdb: | src/wasm32
 	mv $@T $@
 
 # These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl
+good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh
 
 $(patsubst %,src/%,$(good-repos)): src/%: | src
 	test -L $@ || ln -sf ../subrepos/$* $@
