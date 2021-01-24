@@ -193,6 +193,7 @@ built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
 	touch $@
+
 built/wasm32/gcc-preliminary: | install/texinfo-bison-flex
 built/wasm32/gcc: | install/texinfo-bison-flex
 built/wasm32/binutils-gdb: | install/texinfo-bison-flex
@@ -212,6 +213,7 @@ built/wasm32/bash: | install/gcc-dependencies
 built/wasm32/miniperl: | install/gcc-dependencies
 built/wasm32/zsh: | install/gcc-dependencies
 built/wasm32/coreutils: | install/gcc-dependencies
+
 built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	$(MKDIR) build/wasm32/gcc/gcc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
@@ -392,10 +394,11 @@ install/%:
 endif
 
 # Build the various artifacts
-artifact-wasm32.js!: | js/wasm32.js artifact-timestamp artifacts
+artifact-wasm32.js!: | js/wasm32.js artifacts
+	$(MAKE) artifact-timestamp
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
-artifact-binutils!: | subrepos/binutils-gdb/checkout! artifact-timestamp artifacts
+artifact-binutils!: | subrepos/binutils-gdb/checkout! artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/binutils-gdb
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
@@ -452,9 +455,7 @@ artifact-miniperl!: | install/binfmt_misc/elf32-wasm32
 artifact-miniperl!: | install/binfmt_misc/wasm
 artifact-miniperl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar
-	$(MAKE) js/wasm32.js
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
@@ -672,20 +673,10 @@ artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build
-	$(MAKE) extracted/artifacts/binutils.tar
-	$(MAKE) extracted/artifacts/gcc-preliminary.tar
-	$(MAKE) extracted/artifacts/gcc.tar
-	$(MAKE) extracted/artifacts/glibc.tar
-	$(MAKE) tools/bin/wasmrewrite > /dev/null
-	$(MAKE) tools/bin/wasmsect > /dev/null
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
-	$(MAKE) install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32
-	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/gcc.tar extracted/artifacts/glibc.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts
 	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
-	$(MAKE) artifacts
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
@@ -697,11 +688,7 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu
-	$(MAKE) extracted/artifacts/binutils.tar
-	$(MAKE) extracted/artifacts/gcc-preliminary.tar
-	$(MAKE) extracted/artifacts/gcc.tar
-	$(MAKE) extracted/artifacts/glibc.tar
+%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/gcc.tar extracted/artifacts/glibc.tar
 	$(MAKE) tools/bin/wasmrewrite > /dev/null
 	$(MAKE) tools/bin/wasmsect > /dev/null
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
