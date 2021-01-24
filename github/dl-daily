@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-wget -O daily/"$1" https://github.com/pipcet/wasm/releases/download/latest/"$1"
+wget --quiet -O daily/"$1" https://github.com/pipcet/wasm/releases/download/latest/"$1"
