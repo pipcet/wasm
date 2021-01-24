@@ -405,7 +405,7 @@ github/assets/%.json: | github/release/list! github/assets
 	fi
 
 # Ship assets
-ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
+ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm ship/libutil.wasm ship/libdl.wasm ship/libcrypt.wasm github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
@@ -697,7 +697,12 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	touch built/wasm32/ncurses
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm js/wasm32.js bin/js
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm js/wasm32.js bin/js daily/libc.wasm daily/libdl.wasm daily/libcrypt.wasm daily/libutil.wasm
+	mkdir -p wasm
+	cp daily/libc.wasm wasm
+	cp daily/libdl.wasm wasm
+	cp daily/libcrypt.wasm wasm
+	cp daily/libutil.wasm wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
