@@ -381,7 +381,7 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 
 artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
