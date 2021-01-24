@@ -5,8 +5,8 @@ on:
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
-  bash:
-    name: bash
+  zsh:
+    name: zsh
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
