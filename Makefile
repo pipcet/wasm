@@ -200,8 +200,8 @@ built/wasm32/bash: build/wasm32/bash/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
 	touch $@
 built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/coreutils
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/coreutils install
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils install
 	touch $@
 # Emacs has a Makefile, so we configure it in the "built" step.
 built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
