@@ -56,3 +56,4 @@ $WASMDIR/tools/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
 $WASMDIR/tools/bin/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
 cat $TMPD/dyninfo.json.wass >> $TMPD/wasm
 cat $TMPD/wasm
+rm -rf $TMPD
