@@ -54,7 +54,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
     - run: make GITHUB=1 -kj10 daily-ncurses!
   bash:
     name: bash
@@ -65,7 +64,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
     - run: make GITHUB=1 -kj10 daily-bash!
   coreutils:
     name: coreutils
@@ -76,7 +74,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-coreutils!
   miniperl:
     name: miniperl
@@ -87,7 +84,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
     - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-miniperl!
   run-wasm:
@@ -99,8 +95,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-wasm!
   run-elf:
     name: Hello World (run with binfmt_misc, ELF32)
@@ -111,8 +105,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-elf!
   run-all-tests:
     name: All Tests
@@ -123,8 +115,6 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-all-tests!
   zsh:
     name: zsh
@@ -135,5 +125,4 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 github/install/file-slurp
     - run: make GITHUB=1 -kj10 daily-zsh!
