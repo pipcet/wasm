@@ -703,7 +703,7 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) wasm/libm.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm js/wasm32.js bin/js daily/libc.wasm daily/libdl.wasm daily/libcrypt.wasm daily/libutil.wasm
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm js/wasm32.js bin/js
 	mkdir -p wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
