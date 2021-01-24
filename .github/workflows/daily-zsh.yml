@@ -1,0 +1,18 @@
+name: daily
+on:
+  push:
+    branches: [ master, daily, wasm ]
+  pull_request:
+    branches: [ master, daily, wasm ]
+jobs:
+  bash:
+    name: bash
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
+    - run: make -kj10 daily-zsh!

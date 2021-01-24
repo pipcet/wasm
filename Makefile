@@ -702,6 +702,13 @@ daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted
 	touch built/wasm32/gcc
 	touch built/wasm32/ncurses
 	$(MAKE) built/wasm32/bash wasm/bash.wasm
+daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext
+	touch built/wasm32/binutils-gdb
+	touch built/wasm32/gcc-preliminary
+	touch built/wasm32/glibc
+	touch built/wasm32/gcc
+	touch built/wasm32/ncurses
+	$(MAKE) built/wasm32/zsh
 daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz github/install/texinfo-bison-flex github/install/gcc-dependencies github/install/gettext github/install/gperf github/install/autopoint github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp js/wasm32.js bin/js
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
