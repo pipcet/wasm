@@ -921,4 +921,3 @@ jobs:
         JS=$(pwd)/bin/js WASMDIR=$(pwd) make -k artifact-coreutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
