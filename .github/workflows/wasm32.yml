@@ -844,7 +844,7 @@ jobs:
     needs:
     - release
     - bash-run
-    - run: true
+    run: true
 
   # test-shipped:
   #   name: test shipped binaries
