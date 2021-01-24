@@ -193,8 +193,25 @@ built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
 	touch $@
-built/wasm32/gcc-preliminary built/wasm32/gcc built/wasm32/binutils-gdb built/wasm32/glibc built/wasm32/ncurses built/wasm32/bash built/wasm32/miniperl built/wasm32/zsh built/wasm32/coreutils: install/texinfo-bison-flex
-built/wasm32/gcc-preliminary built/wasm32/gcc built/wasm32/binutils-gdb built/wasm32/glibc built/wasm32/ncurses built/wasm32/bash built/wasm32/miniperl built/wasm32/zsh built/wasm32/coreutils: install/gcc-dependencies
+built/wasm32/gcc-preliminary: | install/texinfo-bison-flex
+built/wasm32/gcc: | install/texinfo-bison-flex
+built/wasm32/binutils-gdb: | install/texinfo-bison-flex
+built/wasm32/glibc: | install/texinfo-bison-flex
+built/wasm32/ncurses: | install/texinfo-bison-flex
+built/wasm32/bash: | install/texinfo-bison-flex
+built/wasm32/miniperl: | install/texinfo-bison-flex
+built/wasm32/zsh: | install/texinfo-bison-flex
+built/wasm32/coreutils: | install/texinfo-bison-flex
+
+built/wasm32/gcc-preliminary: | install/gcc-dependencies
+built/wasm32/gcc: | install/gcc-dependencies
+built/wasm32/binutils-gdb: | install/gcc-dependencies
+built/wasm32/glibc: | install/gcc-dependencies
+built/wasm32/ncurses: | install/gcc-dependencies
+built/wasm32/bash: | install/gcc-dependencies
+built/wasm32/miniperl: | install/gcc-dependencies
+built/wasm32/zsh: | install/gcc-dependencies
+built/wasm32/coreutils: | install/gcc-dependencies
 built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	$(MKDIR) build/wasm32/gcc/gcc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
