@@ -42,4 +42,4 @@
 	url = https://github.com/pipcet/perl
 [submodule "subrepos/zsh"]
 	path = subrepos/zsh
-	url = ../zsh
+	url = https://github.com/pipcet/zsh
