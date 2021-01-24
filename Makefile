@@ -750,6 +750,22 @@ daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz ext
 	touch built/wasm32/gcc
 	$(MAKE) built/wasm32/ncurses
 	$(MAKE) wasm/libncurses.wasm
+
+daily-bash!: | install/file-slurp
+daily-coreutils!: | install/file-slurp
+daily-miniperl!: | install/file-slurp
+daily-ncurses!: | install/file-slurp
+daily-run-all-tests!: | install/file-slurp
+daily-run-all-tests!: | tools/bin/dyninfo
+daily-run-all-tests!: | js/wasm32.js
+daily-run-elf!: | install/file-slurp
+daily-run-elf!: | tools/bin/dyninfo
+daily-run-elf!: | js/wasm32.js
+daily-run-wasm!: | install/file-slurp
+daily-run-wasm!: | tools/bin/dyninfo
+daily-run-wasm!: | js/wasm32.js
+daily-zsh!: | install/file-slurp
+
 daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
