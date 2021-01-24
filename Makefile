@@ -635,11 +635,8 @@ gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{de
 
 daily-binutils!: | github/install/texinfo-bison-flex subrepos/binutils-gdb/checkout! artifact-timestamp artifacts
 	$(MAKE) built/wasm32/binutils-gdb
-daily-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar github/install/gcc-dependencies
-	$(MAKE) artifact-timestamp
+daily-gcc-preliminary!: | github/install/texinfo-bison-flex subrepos/gcc/checkout! artifacts extracted/daily/binutils.tar github/install/gcc-dependencies
 	$(MAKE) built/wasm32/gcc-preliminary
-	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
-	$(MAKE) artifact-push!
 
 clean: clean!
 all: built/all
