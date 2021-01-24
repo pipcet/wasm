@@ -54,6 +54,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
     - run: make -kj10 daily-ncurses!
   bash:
     name: bash
@@ -64,6 +65,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
     - run: make -kj10 daily-bash!
   coreutils:
     name: coreutils
@@ -74,6 +76,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
     - run: make -kj10 daily-coreutils!
   miniperl:
     name: miniperl
@@ -84,4 +87,5 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
     - run: make -kj10 daily-miniperl!
