@@ -386,6 +386,8 @@ artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binu
 	$(MAKE) artifact-push!
 
 # Create a file to be shipped
+ship/%.gz: artifacts/% | ship
+	gzip < $< > $@
 ship/%: artifacts/% | ship
 	cat $< > $@
 # Retrieve asset list (and cache it)
@@ -397,22 +399,27 @@ github/assets/%.json: | github/release/list! github/assets
 	fi
 
 # Ship assets
-ship-wasm-%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
+ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-binutils-%!: ship/binutils.tar github/assets/%.json | ship github github/release/list!
+ship-binutils/%!: ship/binutils.tar.gz github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-gcc-%!: ship/gcc.tar github/assets/%.json | ship github github/release/list!
+ship-gcc-preliminary/%!: ship/gcc-preliminary.tar.gz github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-glibc-%!: ship/glibc.tar github/assets/%.json | ship github github/release/list!
+ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship github github/release/list!
+	$(MAKE) github/release/list!
+	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
+	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
+
+ship-glibc/%!: ship/glibc.tar.gz github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
@@ -428,7 +435,7 @@ github/check-release!: | github
 	    node ./github/release.js $$this_release_date $$last_release_date > github/release.json; \
 	    curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases" --data '@github/release.json'; \
 	    sleep 1m; \
-	    $(MAKE) ship-wasm-$$this_release_date!; \
+	    $(MAKE) ship-wasm/$$this_release_date!; \
 	fi; \
 	true
 
@@ -555,6 +562,11 @@ daily:
 extracted/%.tar: %.tar | extracted
 	$(MKDIR) $(dir extracted/$*)
 	tar xf $*.tar
+	touch $@
+
+extracted/%.tar.gz: %.tar.gz | extracted
+	$(MKDIR) $(dir extracted/$*)
+	tar xzf $*.tar.gz
 	touch $@
 
 daily/%: | daily
