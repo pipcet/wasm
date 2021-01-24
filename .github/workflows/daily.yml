@@ -126,3 +126,14 @@ jobs:
     - run: make -kj10 github/install/file-slurp
     - run: make -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make -kj10 daily-run-all-tests!
+  zsh:
+    name: zsh
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make -kj10 github/install/file-slurp
+    - run: make -kj10 daily-zsh!
