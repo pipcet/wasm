@@ -83,9 +83,9 @@ jobs:
       run:
         tar xf gcc.tar/gcc.tar
     - name: Build wasmrewrite
-      run: make tools/bin/wasmrewrite
+      run: make GITHUB=1 tools/bin/wasmrewrite
     - name: Build wasmssect
-      run: make tools/bin/wasmsect
+      run: make GITHUB=1 tools/bin/wasmsect
     - name: Directory shuffle
       run: mkdir wasm-dirs && mv *.wasm wasm-dirs
     - name: Copy *.wasm
@@ -94,7 +94,7 @@ jobs:
       run: mkdir wasm; cp *.wasm wasm
     - name: Run tests
       run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make -k run-all-tests!
+        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k run-all-tests!
 
   binaryen:
     name: binaryen
@@ -106,7 +106,7 @@ jobs:
     - name: Check out subrepos/binaryen
       run: git submodule update --depth=1 --single-branch --init subrepos/binaryen
     - name: Build binaryen
-      run: make built/common/binaryen
+      run: make GITHUB=1 built/common/binaryen
 
   wabt:
     name: wabt
@@ -118,7 +118,7 @@ jobs:
     - name: Check out subrepos/wabt
       run: git submodule update --depth=1 --single-branch --recursive --init subrepos/wabt
     - name: Build wabt
-      run: make built/common/wabt
+      run: make GITHUB=1 built/common/wabt
 
   jsshell:
     name: jsshell
@@ -141,7 +141,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-binutils!
+    - run: make GITHUB=1 -kj10 artifact-binutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -154,7 +154,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make artifact-wasm32.js!
+    - run: make GITHUB=1 artifact-wasm32.js!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,7 +168,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-gcc-preliminary!
+    - run: make GITHUB=1 -kj10 artifact-gcc-preliminary!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -182,7 +182,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-glibc!
+    - run: make GITHUB=1 -kj10 artifact-glibc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -196,7 +196,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-gcc!
+    - run: make GITHUB=1 -kj10 artifact-gcc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -210,7 +210,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 artifact-ncurses!
+    - run: make GITHUB=1 -kj10 artifact-ncurses!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -226,7 +226,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -k artifact-bash!
+    - run: make GITHUB=1 -k artifact-bash!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -285,7 +285,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - name: Install binfmt_misc
-      run: make github/install/binfmt_misc/wasm
+      run: make GITHUB=1 github/install/binfmt_misc/wasm
     - name: chmod
       run: chmod a+x bash.wasm
     - name: ls -l
@@ -304,7 +304,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -k artifact-zsh!
+    - run: make GITHUB=1 -k artifact-zsh!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -320,7 +320,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -k artifact-miniperl!
+    - run: make GITHUB=1 -k artifact-miniperl!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -490,7 +490,7 @@ jobs:
       - name: Set env variables
         uses: ./github/env/
       - name: Install binfmt_misc
-        run: make github/install/binfmt_misc/wasm
+        run: make GITHUB=1 github/install/binfmt_misc/wasm
       - name: chmod
         run: chmod a+x 001-hello-world.wasm
       - name: ls -l
@@ -550,9 +550,9 @@ jobs:
       - name: Set env variables
         uses: ./github/env/
       - name: Install binfmt_misc
-        run: make github/install/binfmt_misc/elf32-wasm32
+        run: make GITHUB=1 github/install/binfmt_misc/elf32-wasm32
       - name: Build utilities
-        run: make tools/bin/wasmrewrite tools/bin/wasmsect
+        run: make GITHUB=1 tools/bin/wasmrewrite tools/bin/wasmsect
       - name: chmod
         run: chmod a+x 001-hello-world.exe
       - name: ls -l
@@ -640,9 +640,9 @@ jobs:
       with:
         name: 001-hello-world.exe
     - name: Build wasmrewrite
-      run: make tools/bin/wasmrewrite
+      run: make GITHUB=1 tools/bin/wasmrewrite
     - name: Build wasmssect
-      run: make tools/bin/wasmsect
+      run: make GITHUB=1 tools/bin/wasmsect
     - name: Generate hello-world.wasm
       run: tools/bin/elf-to-wasm --executable 001-hello-world.exe/001-hello-world.exe > 001-hello-world.wasm
     - name: Upload hello-world.wasm
@@ -705,9 +705,9 @@ jobs:
   #     run:
   #       tar xf ncurses.tar/ncurses.tar
   #   - name: Build emacs
-  #     run: make -kj10 built/wasm32/emacs
+  #     run: make GITHUB=1 -kj10 built/wasm32/emacs
   #   - name: Build emacs.wasm
-  #     run: make -kj10 wasm/emacs.wasm
+  #     run: make GITHUB=1 -kj10 wasm/emacs.wasm
   #   - name: Upload emacs.wasm
   #     uses: actions/upload-artifact@v1
   #     with:
@@ -727,7 +727,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-wasm/latest!
+    - run: make GITHUB=1 -kj10 ship-wasm/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -744,7 +744,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-binutils/latest!
+    - run: make GITHUB=1 -kj10 ship-binutils/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -761,7 +761,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-gcc/latest!
+    - run: make GITHUB=1 -kj10 ship-gcc/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -778,7 +778,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-gcc-preliminary/latest!
+    - run: make GITHUB=1 -kj10 ship-gcc-preliminary/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -795,7 +795,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-glibc/latest!
+    - run: make GITHUB=1 -kj10 ship-glibc/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -812,7 +812,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 ship-ncurses/latest!
+    - run: make GITHUB=1 -kj10 ship-ncurses/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -833,7 +833,7 @@ jobs:
         fetch-depth: 0
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 github/check-release!
+    - run: make GITHUB=1 -kj10 github/check-release!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         RELEASE_ID: 27619169
@@ -903,7 +903,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
   gcc-c-torture-execute:
     name: gcc.c-torture/execute
     runs-on: ubuntu-latest
@@ -917,7 +917,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
   gcc-c-torture-execute-ieee:
     name: gcc.c-torture/execute/ieee
     runs-on: ubuntu-latest
@@ -931,7 +931,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
   gcc-dg-dg:
     name: gcc.dg/dg.exp
     runs-on: ubuntu-latest
@@ -945,7 +945,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make gcc.dg/dg.exp.{dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 gcc.dg/dg.exp.{dejanew}!
   binutils-check:
     name: make check (binutils)
     runs-on: ubuntu-latest
@@ -955,7 +955,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make -kj10 binutils-test!
+    - run: make GITHUB=1 -kj10 binutils-test!
 
   coreutils:
     name: coreutils
@@ -969,6 +969,6 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make -k artifact-coreutils!
+        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-coreutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
