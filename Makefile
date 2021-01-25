@@ -470,8 +470,7 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/binutils
 
 artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/zsh wasm/zsh.wasm
-	cp wasm/zsh.wasm artifacts/
+	$(MAKE) built/wasm32/zsh
 	$(MAKE) artifact-push!
 
 artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js
