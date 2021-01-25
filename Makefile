@@ -136,7 +136,7 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
 build/wasm32/gcc-testsuite/%.{dejagnu-unexpected}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
-	mkdir tmp
+	mkdir -p tmp/$(dir $*)
 	cp -a build/wasm32/gcc-testsuite/$(dir $*) tmp/$(dir $*)
 	(cd tmp; find -type f -print0 | xargs -0 egrep -LZ 'unexpected' | xargs -0 rm; tar cf ../$@ $(dir $*))
 
