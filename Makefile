@@ -2,7 +2,7 @@
 MKDIR ?= mkdir -p
 # $(PWD) is the top-level directory. No recursion here (except for subrepos).
 PWD ?= $(shell pwd)
-OPT_NATIVE ?= "-O0 -g3"
+OPT_NATIVE ?= "-O3 -g3"
 OPT_WASM ?= "-O2"
 WASMDIR ?= $(PWD)
 JS ?= $$JS
