@@ -155,7 +155,7 @@ build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 	mkdir -p $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
-build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm
+build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm
 	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
 	touch build/wasm32/perl/config.sh
 	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
@@ -430,16 +430,19 @@ artifact-wasm32.js!: | js/wasm32.js artifacts
 	$(MAKE) artifact-timestamp
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
+
 artifact-binutils!: | subrepos/binutils-gdb/checkout! artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/binutils-gdb
 	tar cf artifacts/binutils.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
+
 artifact-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc-preliminary
 	tar cf artifacts/gcc-preliminary.tar built wasm32-unknown-none -N ./artifact-timestamp
 	$(MAKE) artifact-push!
+
 artifact-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/glibc
@@ -447,6 +450,7 @@ artifact-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/binuti
 	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
 	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm artifacts/
 	$(MAKE) artifact-push!
+
 artifact-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
@@ -454,6 +458,7 @@ artifact-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.t
 	$(MAKE) wasm/libstdc++.wasm
 	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
+
 artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/ncurses
@@ -750,18 +755,22 @@ gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{de
 
 daily-binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
+
 daily-gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) built/wasm32/gcc-preliminary
+
 daily-glibc!: | subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	$(MAKE) built/wasm32/glibc
+
 daily-gcc!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/glibc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
 	$(MAKE) built/wasm32/gcc
 	$(MAKE) wasm/libstdc++.wasm
+
 daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
