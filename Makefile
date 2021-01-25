@@ -477,8 +477,8 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
+	$(MAKE) built/wasm32/coreutils
+	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
@@ -489,7 +489,7 @@ artifact-miniperl!: | install/file-slurp
 artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/binutils.tar extracted/artifacts/gcc-preliminary.tar extracted/artifacts/glibc.tar extracted/artifacts/gcc.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
+	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
