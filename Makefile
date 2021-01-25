@@ -721,15 +721,14 @@ artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts
-	$(MKDIR) wasm
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
-	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisS]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
+	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisSxX]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
 	(cd build/wasm32/gcc/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest -a --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
 	cp build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
@@ -742,9 +741,7 @@ artifact-push!:
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
-	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu-unexpected}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
-	cp build/wasm32/gcc-testsuite/$*.{dejagnu-unexpected}.tar artifacts/
 	$(MAKE) artifact-push!
 
 binutils-test!: install/dejagnu
@@ -756,7 +753,7 @@ binutils-test!: install/dejagnu
 	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read; do cp $REPLY artifacts/; done
 	$(MAKE) artifact-push!
 
-gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu-unexpected}.tar
+gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar
 
 daily-binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
