@@ -307,7 +307,7 @@ COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
-ifeq(${GITHUB},1)
+ifeq (${GITHUB},1)
 bin/js:
 	wget --quiet http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
 	unzip jsshell-linux-x86_64.zip -d bin
