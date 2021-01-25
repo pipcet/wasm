@@ -736,19 +736,11 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar
-	$(MAKE) tools/bin/wasmrewrite > /dev/null
-	$(MAKE) tools/bin/wasmsect > /dev/null
+%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
-	$(MAKE) install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32
-	$(MAKE) artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm
-	$(MKDIR) wasm
-	$(MAKE) subrepos/gcc/checkout!
-	$(MAKE) src/gcc
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
-	$(MAKE) artifacts
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu-unexpected}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
