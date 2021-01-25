@@ -849,6 +849,7 @@ jobs:
     - _001-hello-world-run-binfmt
     - _001-hello-world-run-elf-binfmt
     - _001-hello-world-run
+    - miniperl
     steps:
     - run: true
 
