@@ -698,6 +698,7 @@ artifacts/%: | artifacts
 
 artifact-timestamp:
 	touch $@
+	sleep 1
 
 artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
