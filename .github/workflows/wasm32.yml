@@ -937,6 +937,22 @@ jobs:
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
 
+  gcc-c-torture-execute-builtins:
+    name: gcc.c-torture/execute/builtins
+    runs-on: ubuntu-latest
+    needs:
+    - jsshell
+    - gcc
+    - glibc
+    - phase2
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/builtins/builtins.exp.{dejanew}!
+
   gcc-c-torture-execute-ieee:
     name: gcc.c-torture/execute/ieee
     runs-on: ubuntu-latest
