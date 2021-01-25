@@ -848,7 +848,7 @@ jobs:
     - zsh
     - _001-hello-world-run-binfmt
     - _001-hello-world-run-elf-binfmt
-    -  _001-hello-world-run:
+    - _001-hello-world-run
     steps:
     - run: true
 
