@@ -455,6 +455,7 @@ artifact-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/binutils.t
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/gcc
 	tar cf artifacts/gcc.tar built wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/toolchain.tar built wasm32-unknown-none
 	$(MAKE) wasm/libstdc++.wasm
 	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
