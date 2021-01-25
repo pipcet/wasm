@@ -135,6 +135,11 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
+build/wasm32/gcc-testsuite/%.{dejagnu-unexpected}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
+	mkdir tmp
+	cp -a build/wasm32/gcc-testsuite/$(dir $*) tmp/$(dir $*)
+	(cd tmp; find -type f -print0 | xargs -0 egrep -LZ 'unexpected' | xargs -0 rm; tar cf ../$@ $(dir $*))
+
 build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurses
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
@@ -745,7 +750,9 @@ artifact-push!:
 	$(MAKE) artifact-timestamp
 	$(MAKE) artifacts
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
+	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu-unexpected}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
+	cp build/wasm32/gcc-testsuite/$*.{dejagnu-unexpected}.tar artifacts/
 	$(MAKE) artifact-push!
 
 binutils-test!: install/dejagnu
@@ -757,7 +764,7 @@ binutils-test!: install/dejagnu
 	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read; do cp $REPLY artifacts/; done
 	$(MAKE) artifact-push!
 
-gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar
+gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu-unexpected}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu-unexpected}.tar
 
 daily-binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) built/wasm32/binutils-gdb
