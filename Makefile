@@ -135,11 +135,6 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
-build/wasm32/gcc-testsuite/%.{dejagnu-unexpected}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
-	$(MKDIR) tmp/$(dir $*)
-	cp -a build/wasm32/gcc-testsuite/$(dir $*) tmp/$(dir $*)
-	(cd tmp; find -type f -print0 | xargs -0 egrep -LZ 'unexpected' | xargs -0 rm; tar cf ../$@ $(dir $*))
-
 build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurses
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
