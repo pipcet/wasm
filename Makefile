@@ -714,7 +714,6 @@ artifact-timestamp:
 
 artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
-	@echo "(Do not be confused by the size stated above; it's the compressed size)"
 
 %.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
