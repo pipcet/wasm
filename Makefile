@@ -122,7 +122,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc
 	$(MKDIR) $(dir $@)
 	> $@
-	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.[cSi]$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
+	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSixX]|[xX]0)$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}:" >> $@; \
 	    echo "\t@(cd build/wasm32/gcc-testsuite; mkdir -p $(dir $*)$$file.{dejagnu}.log/; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}.log/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
 	    echo "\t@! grep -q unexpected build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}.log/gcc.log || echo $$file" >> $@; \
@@ -728,7 +728,7 @@ artifact-push!:
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
-	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.[cisSxX]$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
+	(cd src/gcc/gcc/testsuite; find -type f | egrep '\.([cisSxX]|x0|X0)$$' | xargs md5sum | egrep -v "^$$PREFIX" | while read shasum path; do rm -f $$path; done)
 	(cd build/wasm32/gcc/gcc/testsuite/gcc; WASMDIR=$(PWD) JS=$(PWD)/bin/js srcdir=$(PWD)/src/gcc/gcc runtest -a --tool gcc $*) | tee $(notdir $*).out || true
 	cp $(notdir $*).out artifacts/$(notdir $*)-$$PREFIX.out
 	cp build/wasm32/gcc/gcc/testsuite/gcc/gcc.log artifacts/$(notdir $*)-$$PREFIX.log
