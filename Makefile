@@ -125,7 +125,7 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc s
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}:" >> $@; \
 	    echo "\t@(cd build/wasm32/gcc-testsuite; mkdir -p $(dir $*)$$file.{dejagnu}.log/; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}.log/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
-	    echo "\t@! grep -q unexpected build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}.log/gcc.log || (echo $$file; false)" >> $@; \
+	    echo "\t@! egrep -q 'unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}.log/gcc.log || (echo $$file; false)" >> $@; \
 	    echo >> $@; \
 	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}"; \
 	done; \
