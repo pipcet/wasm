@@ -161,12 +161,12 @@ build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc wasm/l
 	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
 	touch $@
 
-built/wasm32/perl: build/wasm32/perl/Makefile
+built/wasm32/perl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl install
 	touch $@
 
-built/wasm32/miniperl: build/wasm32/perl/Makefile
+built/wasm32/miniperl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl miniperl
 	cp build/wasm32/perl/miniperl wasm32-unknown-none/wasm32-unknown-none/bin/miniperl
 	touch $@
