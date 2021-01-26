@@ -17,7 +17,7 @@ bin build built extracted github/assets github/release github/install install js
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf bin build built extracted github/assets github/release github/install install js lib ship src stamp test wasm wasm32-unknown-none lds/*.cpp-lds.lds
+	rm -rf artifacts bin build built daily extracted github/assets github/release github/install install js lib ship src stamp test wasm wasm32-unknown-none lds/*.cpp-lds.lds
 
 # environment for bash shells
 env:
