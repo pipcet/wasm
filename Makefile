@@ -136,7 +136,7 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
 build/wasm32/gcc-testsuite/%.{dejagnu-unexpected}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
-	mkdir -p tmp/$(dir $*)
+	$(MKDIR) tmp/$(dir $*)
 	cp -a build/wasm32/gcc-testsuite/$(dir $*) tmp/$(dir $*)
 	(cd tmp; find -type f -print0 | xargs -0 egrep -LZ 'unexpected' | xargs -0 rm; tar cf ../$@ $(dir $*))
 
@@ -157,7 +157,7 @@ build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm
 	touch $@
 
 build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
-	mkdir -p $@
+	$(MKDIR) $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
 build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
@@ -422,11 +422,11 @@ github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 
 ifeq (${GITHUB},1)
 install/%: github/install/%
-	mkdir -p install/$(dir $*)
+	$(MKDIR) install/$(dir $*)
 	touch $@
 else
 install/%:
-	mkdir -p install/$(dir $*)
+	$(MKDIR) install/$(dir $*)
 	touch $@
 endif
 
@@ -827,7 +827,7 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
-	mkdir -p wasm
+	$(MKDIR) wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
@@ -840,7 +840,7 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js
-	mkdir -p wasm
+	$(MKDIR) wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
@@ -854,7 +854,7 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
 daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js tools/bin/elf-to-wasm
-	mkdir -p wasm
+	$(MKDIR) wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
@@ -871,7 +871,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	chmod u+x hello-world.wasm
 	./hello-world.wasm
 daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js bin/js tools/bin/elf-to-wasm
-	mkdir -p wasm
+	$(MKDIR) wasm
 	touch built/wasm32/binutils-gdb
 	touch built/wasm32/gcc-preliminary
 	touch built/wasm32/glibc
