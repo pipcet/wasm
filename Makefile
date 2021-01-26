@@ -404,16 +404,22 @@ built/wasm32/zsh: | install/gettext
 
 github/install/autopoint: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install autopoint
+
 github/install/gperf: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gperf
+
 github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
+
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/tools/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	touch $@
+
 github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/tools/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	touch $@
 
 ifeq (${GITHUB},1)
 install/%: github/install/%
