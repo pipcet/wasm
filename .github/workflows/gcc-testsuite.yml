@@ -59,3 +59,22 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/dg.exp.{daily-dejanew}!
+
+gcc-dg-misc:
+    name: gcc.dg/*
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/atomic/atomic.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/charset/charset.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/debug.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/dwarf2/dwarf2.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/format/format.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/lto/lto.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/tls/tls.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/tm/tm.exp.{daily-dejanew}!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/weak/weak.exp.{daily-dejanew}!
