@@ -905,11 +905,6 @@ daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) built/wasm32/zsh
 
 daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
-	touch built/wasm32/binutils-gdb
-	touch built/wasm32/gcc-preliminary
-	touch built/wasm32/glibc
-	touch built/wasm32/gcc
-	touch built/wasm32/ncurses
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -921,10 +916,6 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 
 daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
 	$(MKDIR) wasm
-	touch built/wasm32/binutils-gdb
-	touch built/wasm32/gcc-preliminary
-	touch built/wasm32/glibc
-	touch built/wasm32/gcc
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -935,10 +926,6 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 
 daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js
 	$(MKDIR) wasm
-	touch built/wasm32/binutils-gdb
-	touch built/wasm32/gcc-preliminary
-	touch built/wasm32/glibc
-	touch built/wasm32/gcc
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -950,10 +937,6 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 
 daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js tools/bin/elf-to-wasm
 	$(MKDIR) wasm
-	touch built/wasm32/binutils-gdb
-	touch built/wasm32/gcc-preliminary
-	touch built/wasm32/glibc
-	touch built/wasm32/gcc
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -968,10 +951,6 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 
 daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js bin/js tools/bin/elf-to-wasm
 	$(MKDIR) wasm
-	touch built/wasm32/binutils-gdb
-	touch built/wasm32/gcc-preliminary
-	touch built/wasm32/glibc
-	touch built/wasm32/gcc
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
