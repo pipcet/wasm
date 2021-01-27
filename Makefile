@@ -159,7 +159,15 @@ GCC_BAD_TESTS = \
 GCC_BAD_TESTSUITES = \
 	gcc.c-torture/execute/builtins/builtins.exp \
 	gcc.dg/compat/compat.exp \
+	gcc.dg/dfp/dfp.exp \
+	gcc.dg/fixed-point/fixed-point.exp \
 	gcc.dg/ipa/ipa.exp \
+	gcc.dg/special/mips-abi.exp \
+	gcc.dg/vect/costmodel/i386/i386-costmodel-vect.exp \
+	gcc.dg/vect/costmodel/ppc/ppc-costmodel-vect.exp \
+	gcc.dg/vect/costmodel/x86_64/x86_64-costmodel-vect.exp \
+	gcc.dg/vmx/vmx.exp \
+	gcc.dg/vxworks/vxworks.exp \
 
 GCC_TESTSUITES = \
 	gcc.c-torture/compile/compile.exp \
@@ -173,9 +181,7 @@ GCC_TESTSUITES = \
 	gcc.dg/cpp/cpp.exp \
 	gcc.dg/debug/debug.exp \
 	gcc.dg/debug/dwarf2/dwarf2.exp \
-	gcc.dg/dfp/dfp.exp \
 	gcc.dg/dg.exp \
-	gcc.dg/fixed-point/fixed-point.exp \
 	gcc.dg/format/format.exp \
 	gcc.dg/goacc-gomp/goacc-gomp.exp \
 	gcc.dg/goacc/goacc.exp \
@@ -191,7 +197,6 @@ GCC_TESTSUITES = \
 	gcc.dg/rtl/rtl.exp \
 	gcc.dg/sancov/sancov.exp \
 	gcc.dg/simulate-thread/simulate-thread.exp \
-	gcc.dg/special/mips-abi.exp \
 	gcc.dg/special/special.exp \
 	gcc.dg/sso/sso.exp \
 	gcc.dg/tls/tls.exp \
@@ -204,12 +209,7 @@ GCC_TESTSUITES = \
 	gcc.dg/tsan/tsan.exp \
 	gcc.dg/ubsan/ubsan.exp \
 	gcc.dg/vect/complex/complex.exp \
-	gcc.dg/vect/costmodel/i386/i386-costmodel-vect.exp \
-	gcc.dg/vect/costmodel/ppc/ppc-costmodel-vect.exp \
-	gcc.dg/vect/costmodel/x86_64/x86_64-costmodel-vect.exp \
 	gcc.dg/vect/vect.exp \
-	gcc.dg/vmx/vmx.exp \
-	gcc.dg/vxworks/vxworks.exp \
 	gcc.dg/weak/weak.exp
 
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
