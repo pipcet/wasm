@@ -59,8 +59,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/dg.exp.{daily-dejanew}!
-
-gcc-dg-misc:
+  gcc-dg-misc:
     name: gcc.dg/*
     runs-on: ubuntu-latest
     steps:
