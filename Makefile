@@ -135,6 +135,21 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
+# Trampolines are currently broken
+# No sibcalls yet
+
+GCC_BAD_TESTS = \
+	gcc.dg/lto/20091216-1_0.c \
+	gcc.dg/pr78902.c \
+	gcc.dg/sibcall-9.c \
+	gcc.dg/sibcall-10.c \
+	gcc.dg/unwind-1.c \
+	gcc.c-torture/execute/920428-2.c \
+	gcc.c-torture/execute/920501-7.c \
+	gcc.c-torture/execute/comp-goto-2.c \
+	gcc.c-torture/execute/nestfunc-5.c \
+	gcc.c-torture/execute/nestfunc-6.c \
+
 GCC_BAD_TESTSUITES = \
 	gcc.c-torture/execute/builtins/builtins.exp \
 	gcc.dg/compat/compat.exp \
