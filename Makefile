@@ -963,9 +963,8 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 gcc-testsuites-pack!: | artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.exp.{dejagnu}.tar artifacts/charset.exp.{dejagnu}.tar artifacts/compile.exp.{dejagnu}.tar artifacts/debug.exp.{dejagnu}.tar artifacts/dg.exp.{dejagnu}.tar artifacts/dwarf2.exp.{dejagnu}.tar artifacts/execute.exp.{dejagnu}.tar artifacts/format.exp.{dejagnu}.tar artifacts/ieee.exp.{dejagnu}.tar artifacts/lto.exp.{dejagnu}.tar artifacts/tls.exp.{dejagnu}.tar artifacts/tm.exp.{dejagnu}.tar artifacts/weak.exp.{dejagnu}.tar
 	$(MAKE) artifact-timestamp
 	mkdir tmp
-	cd tmp
-	for a in artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.exp.{dejagnu}.tar artifacts/charset.exp.{dejagnu}.tar artifacts/compile.exp.{dejagnu}.tar artifacts/debug.exp.{dejagnu}.tar artifacts/dg.exp.{dejagnu}.tar artifacts/dwarf2.exp.{dejagnu}.tar artifacts/execute.exp.{dejagnu}.tar artifacts/format.exp.{dejagnu}.tar artifacts/ieee.exp.{dejagnu}.tar artifacts/lto.exp.{dejagnu}.tar artifacts/tls.exp.{dejagnu}.tar artifacts/tm.exp.{dejagnu}.tar artifacts/weak.exp.{dejagnu}.tar; do tar xvf ../$$a; done
-	tar cvf ../artifacts/dejagnu.tar .
+	cd tmp; for a in artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.exp.{dejagnu}.tar artifacts/charset.exp.{dejagnu}.tar artifacts/compile.exp.{dejagnu}.tar artifacts/debug.exp.{dejagnu}.tar artifacts/dg.exp.{dejagnu}.tar artifacts/dwarf2.exp.{dejagnu}.tar artifacts/execute.exp.{dejagnu}.tar artifacts/format.exp.{dejagnu}.tar artifacts/ieee.exp.{dejagnu}.tar artifacts/lto.exp.{dejagnu}.tar artifacts/tls.exp.{dejagnu}.tar artifacts/tm.exp.{dejagnu}.tar artifacts/weak.exp.{dejagnu}.tar; do tar xvf ../$$a; done
+	cd tmp; tar cvf ../artifacts/dejagnu.tar .
 
 clean: clean!
 all: built/all
