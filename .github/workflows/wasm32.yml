@@ -856,20 +856,20 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         RELEASE_ID: 27619169
 
-  phase2:
-    name: Phase II
-    runs-on: ubuntu-latest
-    needs:
-    - release
-    - bash-run
-    - coreutils
-    - zsh
-    - _001-hello-world-run-binfmt
-    - _001-hello-world-run-elf-binfmt
-    - _001-hello-world-run
-    - miniperl
-    steps:
-    - run: true
+  # phase2:
+  #   name: Phase II
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - release
+  #   - bash-run
+  #   - coreutils
+  #   - zsh
+  #   - _001-hello-world-run-binfmt
+  #   - _001-hello-world-run-elf-binfmt
+  #   - _001-hello-world-run
+  #   - miniperl
+  #   steps:
+  #   - run: true
 
   # test-shipped:
   #   name: test shipped binaries
@@ -923,85 +923,85 @@ jobs:
   #   - name: Run
   #     run: WASMDIR=. ./bin/js ./js/wasm32.js ./001-hello-world.wasm
 
-  gcc-c-torture-compile:
-    name: gcc.c-torture/compile
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - gcc
-    - glibc
-    - phase2
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
+  # gcc-c-torture-compile:
+  #   name: gcc.c-torture/compile
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - gcc
+  #   - glibc
+  #   - phase2
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/compile/compile.exp.{dejanew}!
 
-  gcc-c-torture-execute:
-    name: gcc.c-torture/execute
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - gcc
-    - glibc
-    - phase2
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
+  # gcc-c-torture-execute:
+  #   name: gcc.c-torture/execute
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - gcc
+  #   - glibc
+  #   - phase2
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/execute.exp.{dejanew}!
 
-  gcc-c-torture-execute-builtins:
-    name: gcc.c-torture/execute/builtins
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - gcc
-    - glibc
-    - phase2
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/builtins/builtins.exp.{dejanew}!
+  # gcc-c-torture-execute-builtins:
+  #   name: gcc.c-torture/execute/builtins
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - gcc
+  #   - glibc
+  #   - phase2
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/builtins/builtins.exp.{dejanew}!
 
-  gcc-c-torture-execute-ieee:
-    name: gcc.c-torture/execute/ieee
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - gcc
-    - glibc
-    - phase2
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
+  # gcc-c-torture-execute-ieee:
+  #   name: gcc.c-torture/execute/ieee
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - gcc
+  #   - glibc
+  #   - phase2
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/ieee/ieee.exp.{dejanew}!
 
-  gcc-dg-dg:
-    name: gcc.dg/dg.exp
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - gcc
-    - glibc
-    - phase2
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 gcc.dg/dg.exp.{dejanew}!
+  # gcc-dg-dg:
+  #   name: gcc.dg/dg.exp
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - gcc
+  #   - glibc
+  #   - phase2
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 gcc.dg/dg.exp.{dejanew}!
 
   binutils-check:
     name: make check (binutils)
