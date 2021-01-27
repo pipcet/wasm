@@ -135,6 +135,64 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagn
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
+GCC_BAD_TESTSUITES = \
+	gcc.c-torture/execute/builtins/builtins.exp \
+	gcc.dg/compat/compat.exp \
+	gcc.dg/ipa/ipa.exp \
+
+GCC_TESTSUITES = \
+	gcc.c-torture/compile/compile.exp \
+	gcc.c-torture/execute/execute.exp \
+	gcc.c-torture/execute/ieee/ieee.exp \
+	gcc.c-torture/unsorted/unsorted.exp \
+	gcc.dg/asan/asan.exp \
+	gcc.dg/atomic/atomic.exp \
+	gcc.dg/autopar/autopar.exp \
+	gcc.dg/charset/charset.exp \
+	gcc.dg/cpp/cpp.exp \
+	gcc.dg/debug/debug.exp \
+	gcc.dg/debug/dwarf2/dwarf2.exp \
+	gcc.dg/dfp/dfp.exp \
+	gcc.dg/dg.exp \
+	gcc.dg/fixed-point/fixed-point.exp \
+	gcc.dg/format/format.exp \
+	gcc.dg/goacc-gomp/goacc-gomp.exp \
+	gcc.dg/goacc/goacc.exp \
+	gcc.dg/gomp/gomp.exp \
+	gcc.dg/graphite/graphite.exp \
+	gcc.dg/guality/guality.exp \
+	gcc.dg/hwasan/hwasan.exp \
+	gcc.dg/lto/lto.exp \
+	gcc.dg/noncompile/noncompile.exp \
+	gcc.dg/params/params.exp \
+	gcc.dg/pch/pch.exp \
+	gcc.dg/plugin/plugin.exp \
+	gcc.dg/rtl/rtl.exp \
+	gcc.dg/sancov/sancov.exp \
+	gcc.dg/simulate-thread/simulate-thread.exp \
+	gcc.dg/special/mips-abi.exp \
+	gcc.dg/special/special.exp \
+	gcc.dg/sso/sso.exp \
+	gcc.dg/tls/tls.exp \
+	gcc.dg/tm/tm.exp \
+	gcc.dg/torture/dg-torture.exp \
+	gcc.dg/torture/stackalign/stackalign.exp \
+	gcc.dg/torture/tls/tls.exp \
+	gcc.dg/tree-prof/tree-prof.exp \
+	gcc.dg/tree-ssa/tree-ssa.exp \
+	gcc.dg/tsan/tsan.exp \
+	gcc.dg/ubsan/ubsan.exp \
+	gcc.dg/vect/complex/complex.exp \
+	gcc.dg/vect/costmodel/i386/i386-costmodel-vect.exp \
+	gcc.dg/vect/costmodel/ppc/ppc-costmodel-vect.exp \
+	gcc.dg/vect/costmodel/x86_64/x86_64-costmodel-vect.exp \
+	gcc.dg/vect/vect.exp \
+	gcc.dg/vmx/vmx.exp \
+	gcc.dg/vxworks/vxworks.exp \
+	gcc.dg/weak/weak.exp
+
+gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
+
 build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurses
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
