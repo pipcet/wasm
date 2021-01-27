@@ -735,6 +735,18 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
+%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/toolchain.tar.gz tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! daily src/gcc
+	$(MAKE) bin/js
+	mkdir wasm
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) wasm/libstdc++.wasm
+	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
+
 %.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
