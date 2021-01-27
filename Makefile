@@ -132,7 +132,7 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc s
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
 build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
-	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all
+	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
 GCC_BAD_TESTSUITES = \
@@ -803,7 +803,10 @@ artifact-push!:
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libstdc++.wasm
+	$(MAKE) artifact-timestamp
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
+	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
+	$(MAKE) artifact-push!
 
 %.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
