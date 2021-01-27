@@ -116,7 +116,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set PLUGINCC "g++"' >> $@
 	echo 'set PLUGINCFLAGS "-g  "' >> $@
 	echo 'set GMPINC ""' >> $@
-	echo 'set tmpdir /home/pip/g/wasm/build/wasm32/gcc-testsuite' >> $@
+	echo 'set tmpdir $(PWD)/build/wasm32/gcc-testsuite' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
 build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc
