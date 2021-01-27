@@ -793,7 +793,9 @@ artifact-push!:
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/gcc.tar.gz extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/glibc.tar.gz tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
+%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
+	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
+	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) bin/js
 	mkdir wasm
 	$(MAKE) wasm/ld.wasm
