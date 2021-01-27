@@ -805,7 +805,7 @@ artifact-push!:
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libstdc++.wasm
-	$(MAKE) artifact-timestamp
+	$(MAKE) artifacts artifact-timestamp
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
 	$(MAKE) artifact-push!
