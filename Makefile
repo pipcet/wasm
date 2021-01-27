@@ -131,6 +131,9 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc s
 	done; \
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
+build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.mk
+	make -f $< $@
+
 build/wasm32/gcc-testsuite/%.{dejagnu}.tar: build/wasm32/gcc-testsuite/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
