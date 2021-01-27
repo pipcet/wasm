@@ -84,3 +84,20 @@ jobs:
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/tm/tm.exp.{daily-dejanew}!
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/weak/weak.exp.{daily-dejanew}!
     - run: make GITHUB=1 -kj10 artifact-push!
+
+  pack-artifacts:
+    name: pack artifacts
+    runs-on: ubuntu-latest
+    requires:
+    - gcc-c-torture-compile
+    - gcc-c-torture-execute
+    - gcc-c-torture-execute-builtins
+    - gcc-c-torture-execute-ieee
+    - gcc-dg-dg
+    - gcc-dg-misc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - run: make GITHUB=1 -kj10 gcc-testsuites-pack!
+    - run: make GITHUB=1 -kj10 artifact-push!
