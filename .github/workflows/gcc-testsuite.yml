@@ -15,6 +15,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/compile/compile.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!
 
   gcc-c-torture-execute:
     name: gcc.c-torture/execute
@@ -26,6 +27,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/execute.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!
 
   gcc-c-torture-execute-builtins:
     name: gcc.c-torture/execute/builtins
@@ -37,6 +39,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/builtins/builtins.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!
 
   gcc-c-torture-execute-ieee:
     name: gcc.c-torture/execute/ieee
@@ -48,6 +51,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.c-torture/execute/ieee/ieee.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!
 
   gcc-dg-dg:
     name: gcc.dg/dg.exp
@@ -59,6 +63,8 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/dg.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!
+
   gcc-dg-misc:
     name: gcc.dg/*
     runs-on: ubuntu-latest
@@ -77,3 +83,4 @@ jobs:
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/tls/tls.exp.{daily-dejanew}!
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/tm/tm.exp.{daily-dejanew}!
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) PATH=$PATH:$(pwd)/wasm32-unknown-none/bin make GITHUB=1 -kj10 gcc.dg/debug/weak/weak.exp.{daily-dejanew}!
+    - run: make GITHUB=1 -kj10 artifact-push!

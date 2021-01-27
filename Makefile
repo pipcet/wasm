@@ -818,7 +818,7 @@ artifact-push!:
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) bin/js
-	mkdir wasm
+	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -829,17 +829,15 @@ artifact-push!:
 	$(MAKE) artifacts artifact-timestamp
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
-	$(MAKE) artifact-push!
 
 %.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
-	mkdir wasm
+	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) build/wasm32/gcc-testsuite/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite/$*.{dejagnu}.tar artifacts/
-	$(MAKE) artifact-push!
 
 binutils-test!: install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
