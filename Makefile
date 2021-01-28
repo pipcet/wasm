@@ -119,7 +119,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set tmpdir $(PWD)/build/wasm32/gcc-testsuite' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
-build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc
+build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc build/wasm32/gcc-testsuite/site.exp
 	$(MKDIR) $(dir $@)
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
@@ -314,6 +314,8 @@ problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/dai
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) artifacts artifact-timestamp
+	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
+	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
 	cp build/wasm32/gcc-testsuite/problem.tar artifacts
 	$(MAKE) artifact-push!
