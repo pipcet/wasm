@@ -119,7 +119,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set tmpdir $(PWD)/build/wasm32/gcc-testsuite' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
-build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc src/gcc build/wasm32/gcc-testsuite/site.exp
+build/wasm32/gcc-testsuite/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite src/gcc build/wasm32/gcc-testsuite/site.exp
 	$(MKDIR) $(dir $@)
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
