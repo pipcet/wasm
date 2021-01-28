@@ -131,6 +131,12 @@ build/wasm32/gcc-testsuite/%.{dejagnu}.mk: built/wasm32/gcc | build/wasm32/gcc s
 	done; \
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
+build/wasm32/gcc-testsuite/gcc.c-torture/execute/%: build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
+	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
+
+build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/%: build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
+	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
+
 build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
