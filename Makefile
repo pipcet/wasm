@@ -316,7 +316,6 @@ problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/dai
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
 	$(MAKE) artifacts artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
-	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
 	cp build/wasm32/gcc-testsuite/problem.tar artifacts
 	$(MAKE) artifact-push!
