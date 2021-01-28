@@ -102,8 +102,8 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set target_triplet wasm32-unknown-none' >> $@
 	echo 'set target_alias wasm32-unknown-none' >> $@
 	echo 'set libiconv ""' >> $@
-	echo 'set CFLAGS " "' >> $@
-	echo 'set CXXFLAGS " "' >> $@
+	echo 'set CFLAGS ""' >> $@
+	echo 'set CXXFLAGS ""' >> $@
 	echo 'set HOSTCC "gcc"' >> $@
 	echo 'set HOSTCXX "g++"' >> $@
 	echo 'set HOSTCFLAGS "-g "' >> $@
