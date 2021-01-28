@@ -14,5 +14,5 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 problem!
-    - run: make GITHUB=1 -kj10 artifact-push!
+    - run: make GITHUB=1 -k problem!
+    - run: make GITHUB=1 -k artifact-push!
