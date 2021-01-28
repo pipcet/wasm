@@ -140,6 +140,9 @@ build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/%: build/wasm32/gcc-testsu
 build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
+build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/%: build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
+	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
+
 build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite/gcc.dg/tls/tls.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
