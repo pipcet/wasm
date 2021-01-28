@@ -310,9 +310,10 @@ build/wasm32/gcc-testsuite/problem.tar:
 	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=build/wasm32/gcc-testsuite/%.{dejagnu}/okay) || true
 	tar cf $@ build/wasm32/gcc-testsuite
 
-problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
+problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
+	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
 	$(MAKE) artifacts artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
