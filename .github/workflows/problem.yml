@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
-  problem
+  problem:
     name: problem
     runs-on: ubuntu-latest
     steps:
