@@ -307,12 +307,14 @@ GCC_PROBLEM_TESTS = \
 	gcc.c-torture/execute/nestfunc-6.c
 
 build/wasm32/gcc-testsuite/problem.tar:
-	$(MAKE) -kj10 $(GCC_PROBLEM_TESTS:%=build/wasm32/gcc-testsuite/%.{dejagnu}/okay) || true
+	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=build/wasm32/gcc-testsuite/%.{dejagnu}/okay) || true
 	tar cf $@ build/wasm32/gcc-testsuite
 
-problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
+problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
+	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
+	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) artifacts artifact-timestamp
-	$(MAKE) build/wasm32/gcc-testsuite/problem.tar
+	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
 	cp build/wasm32/gcc-testsuite/problem.tar artifacts
 	$(MAKE) artifact-push!
 
