@@ -310,7 +310,7 @@ build/wasm32/gcc-testsuite/problem.tar:
 	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=build/wasm32/gcc-testsuite/%.{dejagnu}/okay) || true
 	tar cf $@ build/wasm32/gcc-testsuite
 
-problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex
+problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
