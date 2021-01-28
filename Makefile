@@ -148,6 +148,7 @@ build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite-make/gcc.dg/
 
 build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
 	$(MKDIR) build/wasm32/gcc-testsuite-tar/$(dir $*)
+	$(MKDIR) build/wasm32/gcc-testsuite/$(dir $*)
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
