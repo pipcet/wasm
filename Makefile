@@ -126,8 +126,8 @@ build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite/mak
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay:" >> $@; \
-	    echo "\t@(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp src/gcc/gcc/testsuite/$(dir $*)/$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
-	    echo "\t@! egrep -q '^# of unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
+	    echo "\t(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp src/gcc/gcc/testsuite/$(dir $*)$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t! egrep -q '^# of unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
 	    echo >> $@; \
 	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
 	done; \
