@@ -1007,8 +1007,8 @@ artifact-push!:
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libstdc++.wasm
 	$(MAKE) artifacts artifact-timestamp
-	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/tar/$*.{dejagnu}.tar
-	cp build/wasm32/gcc-testsuite/tar/$*.{dejagnu}.tar artifacts/
+	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
+	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/
 
 %.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
