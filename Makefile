@@ -133,19 +133,19 @@ build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite/mak
 	done; \
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
-build/wasm32/gcc-testsuite/gcc.c-torture/execute/%: build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
+build/wasm32/gcc-testsuite/gcc.c-torture/execute/%: build/wasm32/gcc-testsuite-make/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/%: build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
+build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/%: build/wasm32/gcc-testsuite-make/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.mk
+build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite-make/gcc.dg/dg.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/%: build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
+build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/%: build/wasm32/gcc-testsuite-make/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite/gcc.dg/tls/tls.exp.{dejagnu}.mk
+build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite-make/gcc.dg/tls/tls.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
 build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
