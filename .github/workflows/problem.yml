@@ -1,0 +1,18 @@
+name: problem
+on:
+  push:
+    branches: [ master, daily, wasm ]
+  pull_request:
+    branches: [ master, daily, wasm ]
+jobs:
+  problem
+    name: problem
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 problem!
+    - run: make GITHUB=1 -kj10 artifact-push!
