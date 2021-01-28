@@ -436,7 +436,6 @@ long data_segment()
   unsigned long len;
   long delta0 = 0, delta = 0;
   long delta1;
-  char c;
 
   mputuleb128(mgetuleb128());
   mputchar(mgetchar());
@@ -477,8 +476,6 @@ long section_data()
 
 long func_type(void)
 {
-  unsigned long off0, off1;
-  unsigned long len;
   unsigned long count;
   long delta = 0;
 
@@ -747,7 +744,6 @@ long section_memory()
 
 long init_expr()
 {
-  unsigned long off0 = roff;
   unsigned long target_count;
   long delta = 0;
   long block = 0;
@@ -871,7 +867,7 @@ long init_expr()
   }
  out:
   if (block != -1) {
-    fprintf(stderr, "unbalanced %ld %lx %lx\n", block, roff, index);
+    fprintf(stderr, "unbalanced %ld %lx\n", block, roff);
     for(;;);
   }
 
@@ -931,7 +927,6 @@ long section_element()
 
 long section_name(long len)
 {
-  unsigned long off0, off1;
   unsigned long count;
   long delta = 0;
   long lcount = 0;
@@ -1007,7 +1002,7 @@ int main(int argc, char **argv)
   size_t res = 0;
   FILE *f = fopen(argv[1], "r");
 
-  while (res = fread(gbuf+off, 1, size-off, f)) {
+  while ((res = fread(gbuf+off, 1, size-off, f))) {
     off += res;
     size *= 2;
     gbuf = xrealloc(gbuf, size);
