@@ -148,7 +148,7 @@ build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/%: build/wasm32/gcc-testsuite-mak
 build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite-make/gcc.dg/tls/tls.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp
+build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
