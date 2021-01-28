@@ -796,7 +796,6 @@ long section_memory()
 
 long init_expr()
 {
-  unsigned long off0 = roff;
   unsigned long target_count;
   long delta = 0;
   long block = 0;
