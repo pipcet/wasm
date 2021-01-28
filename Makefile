@@ -40,8 +40,6 @@ test/wasm32: | test
 	$(MKDIR) $@
 build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash: | build/wasm32
 	$(MKDIR) $@
-build/wasm32/gcc-testsuite/make: | build/wasm32/gcc-testsuite
-	$(MKDIR) $@
 build/common/binaryen build/common/wabt: | build/common
 	$(MKDIR) $@
 
@@ -121,7 +119,7 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set tmpdir $(PWD)/build/wasm32/gcc-testsuite' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
-build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite/make src/gcc build/wasm32/gcc-testsuite/site.exp
+build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite/site.exp
 	$(MKDIR) $(dir $@)
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
@@ -149,6 +147,7 @@ build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite-make/gcc.dg/
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
 build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
+	$(MKDIR) build/wasm32/gcc-testsuite-tar/$(dir $*)
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
