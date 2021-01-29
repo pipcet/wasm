@@ -486,6 +486,7 @@ built/wasm32/glibc: | install/texinfo-bison-flex
 built/wasm32/ncurses: | install/texinfo-bison-flex
 built/wasm32/bash: | install/texinfo-bison-flex
 built/wasm32/miniperl: | install/texinfo-bison-flex
+built/wasm32/python: | install/texinfo-bison-flex
 built/wasm32/zsh: | install/texinfo-bison-flex
 built/wasm32/coreutils: | install/texinfo-bison-flex
 
@@ -498,6 +499,7 @@ built/wasm32/bash: | install/gcc-dependencies
 built/wasm32/miniperl: | install/gcc-dependencies
 built/wasm32/zsh: | install/gcc-dependencies
 built/wasm32/coreutils: | install/gcc-dependencies
+built/wasm32/python: | install/gcc-dependencies
 
 built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	$(MKDIR) build/wasm32/gcc/gcc
@@ -571,6 +573,9 @@ wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect |
 
 wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/miniperl
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/miniperl > $@
+
+wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/python
+	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/pyhon > $@
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
@@ -665,10 +670,12 @@ github/install/gettext: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
 
 artifact-miniperl!: | install/gettext
+artifact-python!: | install/gettext
 built/wasm32/bash: | install/gettext
 built/wasm32/coreutils: | install/gettext
 built/wasm32/coreutils: | install/gettext
 built/wasm32/miniperl: | install/gettext
+built/wasm32/python: | install/gettext
 built/wasm32/zsh: | install/gettext
 
 github/install/autopoint: | github/install
@@ -772,6 +779,17 @@ artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/tool
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
+	$(MAKE) artifact-push!
+
+artifact-python!: | install/binfmt_misc/elf32-wasm32
+artifact-python!: | install/binfmt_misc/wasm
+artifact-python!: | install/file-slurp
+
+artifact-python!: | subrepos/python/checkout! artifacts extracted/artifacts/toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
+	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/python wasm/python.wasm
+	cp wasm/python.wasm artifacts/
 	$(MAKE) artifact-push!
 
 # Create a file to be shipped
@@ -1075,6 +1093,7 @@ daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz ext
 daily-bash!: | install/file-slurp
 daily-coreutils!: | install/file-slurp
 daily-miniperl!: | install/file-slurp
+daily-python!: | install/file-slurp
 daily-ncurses!: | install/file-slurp
 daily-run-all-tests!: | install/file-slurp
 daily-run-all-tests!: | tools/bin/dyninfo
@@ -1119,6 +1138,16 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
+
+daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
+	$(MKDIR) wasm
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) built/wasm32/python wasm/python.wasm
 
 daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js
 	$(MKDIR) wasm
