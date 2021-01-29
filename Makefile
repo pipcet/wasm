@@ -40,7 +40,7 @@ test/wasm32: | test
 	$(MKDIR) $@
 build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python: | build/wasm32
 	$(MKDIR) $@
-build/common/binaryen build/common/wabt: | build/common
+build/common/binaryen build/common/wabt build/common/python: | build/common
 	$(MKDIR) $@
 
 # binutils-gdb requires source tree modification, so we copy the source.
@@ -70,6 +70,9 @@ build/wasm32/coreutils: | build/wasm32
 # We use /Makefile as a sentinel for whether the configure/cmake script has run.
 build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
 	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
+
+build/common/python/Makefile: | build/common/python src/python
+	(cd build/common/python; ../../../src/python/configure)
 
 build/common/wabt/Makefile: | src/wabt build/common/wabt
 	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
@@ -398,7 +401,7 @@ build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurs
 	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
 	touch $@
 
-build/wasm32/python/Makefile: | built/wasm32/gcc src/python build/wasm32/python
+build/wasm32/python/Makefile: | built/common/python built/wasm32/gcc src/python build/wasm32/python
 	(cd build/wasm32/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/python/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-ipv6 --with-ensurepip=no)
 	touch $@
 
@@ -452,6 +455,11 @@ built/common/wabt: build/common/wabt/Makefile | built/common bin
 	$(MAKE) -C build/common/wabt
 	$(MAKE) -C build/common/wabt install
 	(cd bin; ln -sf ../common/bin/* .)
+	touch $@
+
+built/common/python: build/common/python/Makefile | built/common bin
+	$(MAKE) -C build/common/python
+	sudo $(MAKE) -C build/common/python install
 	touch $@
 
 built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
@@ -620,7 +628,7 @@ built/common/all: built/common/binaryen built/common/wabt
 clean!:
 	rm -rf build built src wasm32-unknown-none
 
-.SECONDARY: build/common/binaryen/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
+.SECONDARY: build/common/binaryen/Makefile build/common/python/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
 .PRECIOUS: test/wasm32/%
 
 # Test framework
