@@ -399,7 +399,7 @@ build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurs
 	touch $@
 
 build/wasm32/python/Makefile: | built/wasm32/gcc src/python build/wasm32/python
-	(cd build/wasm32/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/python/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-ipv6)
+	(cd build/wasm32/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/python/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-ipv6 --with-ensurepip=no)
 	touch $@
 
 build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
