@@ -86,6 +86,17 @@ jobs:
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
     - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-miniperl!
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-python!
   run-wasm:
     name: Hello World (run with binfmt_misc)
     runs-on: ubuntu-latest
