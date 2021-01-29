@@ -324,6 +324,22 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    needs:
+      - glibc
+      - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: WASMDIR=$(pwd) JS=$(pwd)/bin/js make GITHUB=1 -k artifact-python!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   _001-hello-world-o:
     name: Hello World (assemble)
     runs-on: ubuntu-latest
