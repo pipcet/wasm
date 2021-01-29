@@ -583,7 +583,7 @@ wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmse
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/miniperl > $@
 
 wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/python
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/python > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/python3 > $@
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect | wasm built/wasm32/coreutils
