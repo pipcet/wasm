@@ -323,6 +323,7 @@ jobs:
     - run: WASMDIR=$(pwd) JS=$(pwd)/bin/js make GITHUB=1 -k artifact-miniperl!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - run: WASMDIR=$(pwd) JS=$(pwd)/bin/js ./wasm32-unknown-none/wasm32-unknown-none/bin/miniperl -e 'print 3+4+5 . "\n";' < /dev/null
 
   python:
     name: python
@@ -339,6 +340,7 @@ jobs:
     - run: WASMDIR=$(pwd) JS=$(pwd)/bin/js make GITHUB=1 -k artifact-python!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - run: WASMDIR=$(pwd) JS=$(pwd)/bin/js ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(6+7+8);' < /dev/null
 
   _001-hello-world-o:
     name: Hello World (assemble)
