@@ -163,7 +163,7 @@ GCC_PROBLEM_TESTS = \
 	gcc.c-torture/execute/ieee/copysign2.c \
 	gcc.c-torture/execute/ieee/copysign2.c \
 	gcc.c-torture/execute/nestfunc-5.c \
-	gcc.c-torture/execute/nestfunc-6.c
+	gcc.c-torture/execute/nestfunc-6.c \
 	gcc.dg/Warray-bounds-56.c \
 	gcc.dg/Warray-bounds-68.c \
 	gcc.dg/Wstringop-overflow-11.c \
