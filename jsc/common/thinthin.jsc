@@ -3005,7 +3005,7 @@ if (typeof(os) !== "undefined" &&
         this.HEAP32[bufptr+60>>2] = 0;
         this.HEAP32[bufptr+64>>2] = 0;
 
-        if (false) {
+        if (fd instanceof ThinThinDD) {
             this.HEAP32[bufptr+6*4>>2] = 4 << 12;
         } else {
             this.HEAP32[bufptr+6*4>>2] = 1 << 15;
@@ -3567,6 +3567,11 @@ ThinThin.readlinkat = function ()
 };
 
 ThinThin.unlinkat = function ()
+{
+    return 0;
+};
+
+ThinThin.mkdirat = function ()
 {
     return 0;
 };
