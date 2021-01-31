@@ -980,6 +980,7 @@ artifact-python!: | subrepos/python/checkout! artifacts extracted/artifacts/tool
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/python wasm/python.wasm
+	touch wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/encodings/.dir wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32-unknown-none/wasm32-unknown-none ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(3+4)' < /dev/null
 	cp wasm/python.wasm artifacts/
 	$(MAKE) artifact-push!
@@ -1341,6 +1342,7 @@ daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/python wasm/python.wasm
+	touch wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/encodings/.dir wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32-unknown-none/wasm32-unknown-none ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(3+4)' < /dev/null
 
 daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js
