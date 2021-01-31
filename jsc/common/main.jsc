@@ -96,7 +96,7 @@ if (false) if (typeof window !== "undefined") {
 var sys;
 var worker;
 
-var copyvars = ["HOME", "MAKE", "LIBPERL_A", "PERL_CORE", "PATH", "EMACSLOADPATH", "EMACS_LOADPATH", "PERL_MM_USE_DEFAULT", "INSTALLDIRS"];
+var copyvars = ["HOME", "MAKE", "LIBPERL_A", "PERL_CORE", "PATH", "EMACSLOADPATH", "EMACS_LOADPATH", "PERL_MM_USE_DEFAULT", "INSTALLDIRS", "PYTHONHOME"];
 
 var restart;
 
