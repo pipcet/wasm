@@ -96,7 +96,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-perl!
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj1 daily-perl!
   python:
     name: python
     runs-on: ubuntu-latest
