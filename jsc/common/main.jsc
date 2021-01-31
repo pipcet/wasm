@@ -7,7 +7,8 @@ if (args[0] === "--gdbpipes") {
     args.shift();
 }
 
-var path = args[0];
+var path = args.shift();
+args.unshift("../../miniperl");
 var remote;
 
 function CStringAt(heap, offset)
