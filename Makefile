@@ -829,6 +829,10 @@ run-all-tests!: | install/binfmt_misc/wasm
 run-all-tests!: | tools/bin/elf-to-wasm
 run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
 
+test/wasm32!: run-all-tests!
+
+test!: test/wasm32!
+
 # GitHub support
 # Check out a subrepo
 subrepos/%/checkout!:
