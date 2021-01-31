@@ -553,6 +553,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 
 function Wasm32Thread(kport, process, threadpage, vm)
 {
+    this.pwd = os.getenv("PWD") || ".";
     if (kport)
         this.kport = kport;
     else
@@ -856,6 +857,8 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 
         retv.then(r => {
             this.extcallRet[sp] = r;
+	    if (this.system.runqueue.indexOf(this) === -1)
+		this.system.runqueue.push(this);
             this.stop(0);
         }).catch(e => {
 	    console.log("exception");
@@ -1459,7 +1462,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     var thread;
     process = new Wasm32Process(this, fds);
     thread = new Wasm32Thread(kport, process, 8192);
-    thread.pwd = pwd;
+    thread.pwd = pwd || ".";
     thread.vm = vm;
     thread.extcallRet = extcallRet;
     process.vm = vm;
