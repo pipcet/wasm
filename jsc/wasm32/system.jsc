@@ -291,12 +291,12 @@ Wasm32VM.prototype.fork = function ()
 {
     let ret = new Wasm32VM(this.sizes);
     let count = 0;
-    let lim = 64 * 1024 * 1024;
-    for (let i = 0; i < lim; i++)
-	ret.HEAP8[i] = this.HEAP8[i];
+    let lim = %{zp[&zp->top_of_sbrk]};
+    for (let i = 0; i < lim/4; i++)
+	ret.HEAP32[i] = this.HEAP32[i];
     lim = this.sizes.memsize;
-    for (let i = this.sizes.stackbottom; i < lim; i++)
-	ret.HEAP8[i] = this.HEAP8[i];
+    for (let i = this.sizes.stackbottom/4; i < lim/4; i++)
+	ret.HEAP32[i] = this.HEAP32[i];
     return ret;
 };
 
@@ -1511,12 +1511,12 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     }
     let count = 0;
     var HEAP32 = heap32;
-    let lim = 64 * 1024 * 1024; //%{zp[&zp->top_of_sbrk]};
-    for (let i = 0; i < lim; i++)
-	vm.HEAP8[i] = heap[i];
+    let lim = %{zp[&zp->top_of_sbrk]};
+    for (let i = 0; i < lim/4; i++)
+	vm.HEAP32[i] = heap32[i];
     lim = vm.sizes.memsize;
-    for (let i = vm.sizes.stackbottom; i < lim; i++)
-	vm.HEAP8[i] = heap[i];
+    for (let i = vm.sizes.stackbottom/4; i < lim/4; i++)
+	vm.HEAP32[i] = heap32[i];
     this.runqueue.unshift(thread);
     thread.first = false;
     if (gRetrigger)
