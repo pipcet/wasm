@@ -45,4 +45,4 @@
 	url = https://github.com/pipcet/zsh
 [submodule "subrepos/python"]
 	path = subrepos/python
-	url = http://github.com/pipcet/python
+	url = https://github.com/pipcet/python
