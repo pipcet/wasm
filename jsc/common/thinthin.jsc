@@ -3598,3 +3598,8 @@ ThinThin.dup2 = function (oldfd, newfd) {
 
     return 0;
 };
+
+ThinThin.utimensat = function (fdno, pathptr, timesptr, flag)
+{
+    return 0;
+};
