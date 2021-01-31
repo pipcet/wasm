@@ -595,7 +595,7 @@ build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm
 	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure  --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 	touch $@
 
-build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
+build/wasm32/perl: | src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 	$(MKDIR) $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
