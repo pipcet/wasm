@@ -599,7 +599,7 @@ build/wasm32/perl: src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 	$(MKDIR) $@
 	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
-build/wasm32/perl/Makefile: src/perl | build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
+build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
 	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
 	touch build/wasm32/perl/config.sh
 	find build/wasm32/perl -type d | while read; do touch $REPLY/.dir; done
