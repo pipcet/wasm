@@ -979,6 +979,13 @@ artifact-python!: | subrepos/python/checkout! artifacts extracted/artifacts/tool
 	$(MAKE) built/common/python
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
+	$(MKDIR) wasm
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/python wasm/python.wasm
 	touch wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/encodings/.dir wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32-unknown-none/wasm32-unknown-none ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(3+4)' < /dev/null
