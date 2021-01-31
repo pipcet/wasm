@@ -3231,14 +3231,9 @@ if (typeof(os) !== "undefined" &&
 	if (this.pwd !== undefined)
 	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>tmp.out";
 	try {
-	    console.log("command",command);
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
 	    let output = os.file.readFile("tmp.out", "binary");
-	    for (let i = 0; i < output.length; i++)
-		if (output[i] === 32) output[i] = 10;
-	    console.log("output", output);
-            //this.fds[2].write(output, 0, 0);
             let ret = this.fds[1].write(output, 0, output.length);
 	    return new Promise(() => {});
 	} catch (e) {
