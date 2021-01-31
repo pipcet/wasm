@@ -291,7 +291,7 @@ Wasm32VM.prototype.fork = function ()
 {
     let ret = new Wasm32VM(this.sizes);
     let count = 0;
-    let lim = %{zp[&zp->top_of_sbrk]};
+    let lim = this.%{zp[&zp->top_of_sbrk]};
     for (let i = 0; i < lim/4; i++)
 	ret.HEAP32[i] = this.HEAP32[i];
     lim = this.sizes.memsize;
