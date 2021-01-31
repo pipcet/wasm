@@ -3229,11 +3229,11 @@ if (typeof(os) !== "undefined" &&
 	let args = CStringsAt(this.heap, argvptr);
 	let command = args.join(" ");
 	if (this.pwd !== undefined)
-	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>tmp.out";
+	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>/tmp/tmp.out";
 	try {
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
-	    let output = os.file.readFile("tmp.out", "binary");
+	    let output = os.file.readFile("/tmp/tmp.out", "binary");
             let ret = this.fds[1].write(output, 0, output.length);
 	    return new Promise(() => {});
 	} catch (e) {
