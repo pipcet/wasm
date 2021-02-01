@@ -5599,10 +5599,10 @@ ThinThin.unlinkat = function ()
     return 0;
 };
 
-ThinThin.mkdirat = function ()
+ThinThin.mkdirat = function (fdno, pathptr)
 {
     let path = CStringAt(this.HEAP8, pathptr);
-    os.spawn("mkdir " + path);
+    os.system("mkdir " + this.pwd + "/" + path);
     return 0;
 };
 
