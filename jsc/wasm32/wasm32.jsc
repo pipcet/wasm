@@ -5236,8 +5236,10 @@ if (typeof(os) !== "undefined" &&
 	try {
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
+	    console.log(timestamp);
 	    let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
-            let ret = this.fds[1].write(output, 0, output.length);
+	    let ret = this.fds[1].write(output, 0, output.length);
+	    this.kport.req("exit", [0]);
 	    return new Promise(() => {});
 	} catch (e) {
 	    console.log("OH NO!");
@@ -5247,7 +5249,6 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.wait4 = function(pid, wstatusp, options, rusage)
     {
-	return pid; // XXX, in the fork-exec-wait4 case this works okay.
         var ret = this.kport.req("wait4");
 
         if (wstatusp)
