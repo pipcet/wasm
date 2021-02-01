@@ -602,7 +602,7 @@ build/wasm32/perl: | src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
 	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
 	touch build/wasm32/perl/config.sh
-	find build/wasm32/perl -type d | while read; do touch $$REPLY/.dir; done
+	find build/wasm32/perl -type d | while read REPLY; do touch $$REPLY/.dir; done
 	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
 	touch $@
 
@@ -618,7 +618,7 @@ built/wasm32/miniperl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wa
 	touch $@
 
 built/wasm32/perl: built/wasm32/miniperl build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
-	(cd build/wasm32/perl; find -type d | while read; do touch $$REPLY/.dir; done)
+	(cd build/wasm32/perl; find -type d | while read REPLY; do touch $$REPLY/.dir; done)
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl
 	cp build/wasm32/perl/perl wasm32-unknown-none/wasm32-unknown-none/bin/miniperl
 	touch $@
@@ -1279,7 +1279,7 @@ binutils-test!: install/dejagnu
 	$(MAKE) artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) -k -C build/wasm32/binutils-gdb check || true
-	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read; do cp $REPLY artifacts/; done
+	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read REPLY; do cp $$REPLY artifacts/; done
 	$(MAKE) artifact-push!
 
 gcc-testsuite!: build/wasm32/gcc-testsuite/gcc.c-torture/compile/compile.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/execute.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/dg.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.dg/weak/weak.exp.{dejagnu}.tar build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.tar
