@@ -1651,6 +1651,7 @@ Wasm32Kernel.prototype.init_port = function (thread)
     this.ppids[1] = 1;
     this.threads_by_port.set(channel.port1, thread);
     this.threads_by_port.set(channel.port2, thread);
+    thread.pid = 1;
 
     return channel.port2;
 }
