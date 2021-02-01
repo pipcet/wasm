@@ -1707,9 +1707,12 @@ Wasm32Kernel.prototype.message = function (port, data)
 	if (this.ports_by_pid[ppid]) {
             this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
 	}
+	let thread = this.threads_by_port.get(this.ports_by_pid[ppid]);
+	thread.system.runqueue.push(thread);
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
+	    this.ports_by_pid[pid].postMessage(["response", this.wait4[pid], [data[1], 0]]);
     } else {
         console.log(data);
         throw "unknown message!";
@@ -5135,8 +5138,9 @@ if (typeof(os) !== "undefined" &&
             fd.readPosition = pos;
         else if (whence == %{SEEK_CUR})
             fd.readPosition += pos;
+	/*
         else if (whence == %{SEEK_END})
-            throw("SEEK_END not supported");
+            throw("SEEK_END not supported"); */
         else
             return -%{EINVAL};
 
@@ -5238,8 +5242,7 @@ if (typeof(os) !== "undefined" &&
 	    let o = os.waitpid(pid);
 	    let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
 	    let ret = this.fds[1].write(output, 0, output.length);
-	    this.kport.req("exit", [0]);
-	    return new Promise(() => {});
+	    return this.kport.req("exit", [0]);
 	} catch (e) {
 	    console.log("OH NO!");
 	    console.log(e);
