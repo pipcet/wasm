@@ -5613,7 +5613,7 @@ ThinThin.unlinkat = function ()
 ThinThin.mkdirat = function (fdno, pathptr)
 {
     let path = CStringAt(this.HEAP8, pathptr);
-    os.system("mkdir " + this.pwd + "/" + path);
+    os.system("mkdir -p " + this.pwd + "/" + path);
     return 0;
 };
 
