@@ -5473,12 +5473,11 @@ ThinThin.destroy_trampoline = function (mtramp)
 ThinThin.chdir = function (ptr)
 {
     var path = CStringAt(this.HEAPU8, ptr);
-    if (path === "./")
-	path = "..";
-    //if (path === "./")
-    //this.pwd = ".";
-    //else
-    this.pwd += "/" + path;
+    if (path[0] === "/")
+	this.pwd = path;
+    else
+	this.pwd += "/" + path;
+    console.log("cd " + this.pwd);
     while (this.pwd.match(/\/\.\.\//))
 	this.pwd = this.pwd.replace(/\/([^/]+)\/\.\.\//, "/");
     while (this.pwd.match(/\/\.\.$/))
@@ -5626,9 +5625,7 @@ ThinThin.fcntl_i = function () {
 };
 
 ThinThin.getcwd = function (addr, len) {
-    this.HEAP8[addr] = ".".charCodeAt(0);
-    this.HEAP8[addr+1] = "/".charCodeAt(0);
-    this.HEAP8[addr+2] = 0;
+    CStringTo(this.pwd, this.HEAP8, addr);
 
     return 0;
 };
