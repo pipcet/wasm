@@ -5236,7 +5236,6 @@ if (typeof(os) !== "undefined" &&
 	try {
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
-	    console.log(timestamp);
 	    let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
 	    let ret = this.fds[1].write(output, 0, output.length);
 	    this.kport.req("exit", [0]);
