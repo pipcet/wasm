@@ -1630,6 +1630,7 @@ function Wasm32Kernel()
     this.threads_by_port = new WeakMap();
     this.ppids = { 1: 1 };
     this.wait4 = {};
+    this.exited = {};
     this.seq = 0;
     this.requesters = {};
     this.responders = {};
@@ -1704,6 +1705,7 @@ Wasm32Kernel.prototype.message = function (port, data)
         var ppid = this.ppids[pid];
         var pport = this.ports_by_pid[ppid];
 
+	this.exited[pid] = true;
 	if (this.ports_by_pid[ppid]) {
             this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
 	}
@@ -1712,6 +1714,7 @@ Wasm32Kernel.prototype.message = function (port, data)
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
+	if (this.exited[pid])
 	    this.ports_by_pid[pid].postMessage(["response", this.wait4[pid], [data[1], 0]]);
     } else {
         console.log(data);
