@@ -1714,8 +1714,8 @@ Wasm32Kernel.prototype.message = function (port, data)
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
-	if (this.exited[pid])
-	    this.ports_by_pid[pid].postMessage(["response", this.wait4[pid], [data[1], 0]]);
+	if (this.exited[data[1]])
+	    this.ports_by_pid[data[1]].postMessage(["response", this.wait4[pid], [data[1], 0]]);
     } else {
         console.log(data);
         throw "unknown message!";
