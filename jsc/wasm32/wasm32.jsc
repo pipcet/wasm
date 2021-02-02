@@ -5488,7 +5488,6 @@ ThinThin.chdir = function (ptr)
 	this.pwd = path;
     else
 	this.pwd += "/" + path;
-    console.log("cd " + this.pwd);
     while (this.pwd.match(/\/\.\.\//))
 	this.pwd = this.pwd.replace(/\/([^/]+)\/\.\.\//, "/");
     while (this.pwd.match(/\/\.\.$/))
