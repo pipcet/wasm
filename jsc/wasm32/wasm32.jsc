@@ -1716,7 +1716,7 @@ Wasm32Kernel.prototype.message = function (port, data)
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
 	if (this.exited[data[2]]) {
-	    this.ports_by_pid[data[2]].postMessage(["response", this.wait4[pid], [data[2], 0]]);
+	    port.postMessage(["response", this.wait4[pid], [data[2], 0]]);
 	    delete this.wait4[pid];
 	}
     } else {
