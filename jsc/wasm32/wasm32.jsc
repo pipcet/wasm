@@ -4920,6 +4920,9 @@ if (typeof(os) !== "undefined" &&
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
         var dd = this.fds[fdno] || this.process.ddroot;
         var path = CStringAt(this.HEAPU8, pathstr);
+	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
+	    return ThinThin.fstat.call(this, fdno, statbufptr);
+	}
 	if (this.pwd && path[0] !== "/")
 	    path = this.pwd + "/" + path;
 
@@ -4931,9 +4934,6 @@ if (typeof(os) !== "undefined" &&
             %{statbufptr[&stat::st_blksize] = "fd.size()"}
             %{statbufptr[&stat::st_blocks] = "1"}
 	    return 0;
-	}
-	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
-	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
 
         if (!dd)
@@ -5242,7 +5242,7 @@ if (typeof(os) !== "undefined" &&
 	let command = args.join(" ");
 	let timestamp = Date.now();
 	if (this.pwd !== undefined)
-	    command = "(cd " + this.pwd + "; PWD=. " + command + ")|tee /tmp/tmp.out." + timestamp;
+	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>/tmp/tmp.out." + timestamp;
 	command = command.replace("sh -c ", "");
 	try {
 	    let pid = os.spawn(command);
