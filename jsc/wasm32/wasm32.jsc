@@ -1705,17 +1705,20 @@ Wasm32Kernel.prototype.message = function (port, data)
         var ppid = this.ppids[pid];
         var pport = this.ports_by_pid[ppid];
 
-	this.exited[pid] = true;
-	if (this.ports_by_pid[ppid]) {
+	this.exited[pid] = [pid, exitcode];
+	if (this.ports_by_pid[ppid] && (ppid in this.wait4)) {
             this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
+	    delete this.wait4[ppid]
 	}
 	let thread = this.threads_by_port.get(this.ports_by_pid[ppid]);
 	thread.system.runqueue.push(thread);
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
-	if (this.exited[data[1]])
-	    this.ports_by_pid[data[1]].postMessage(["response", this.wait4[pid], [data[1], 0]]);
+	if (this.exited[data[2]]) {
+	    this.ports_by_pid[data[2]].postMessage(["response", this.wait4[pid], [data[2], 0]]);
+	    delete this.wait4[pid];
+	}
     } else {
         console.log(data);
         throw "unknown message!";
@@ -5240,6 +5243,7 @@ if (typeof(os) !== "undefined" &&
 	let timestamp = Date.now();
 	if (this.pwd !== undefined)
 	    command = "(cd " + this.pwd + "; PWD=. " + command + ")|tee /tmp/tmp.out." + timestamp;
+	command = command.replace("sh -c ", "");
 	try {
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
@@ -5254,7 +5258,7 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.wait4 = function(pid, wstatusp, options, rusage)
     {
-        var ret = this.kport.req("wait4");
+        var ret = this.kport.req("wait4", pid);
 
         if (wstatusp)
             this.HEAP32[wstatusp>>2] = 0;
