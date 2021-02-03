@@ -5249,7 +5249,7 @@ if (typeof(os) !== "undefined" &&
 	    let o = os.waitpid(pid);
 	    let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
 	    let ret = this.fds[1].write(output, 0, output.length);
-	    return this.kport.req("exit", [0]);
+	    return this.kport.req("exit", [o.exitStatus]);
 	} catch (e) {
 	    console.log("OH NO!");
 	    console.log(e);
