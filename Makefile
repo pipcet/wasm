@@ -850,21 +850,30 @@ github/install/file-slurp: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
+
 github/install/nroff: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install groff-base
 	touch $@
+
 github/install/texinfo-bison-flex: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
+
 github/install/gcc-dependencies: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 	touch $@
+
 github/install/dejagnu: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
 
 github/install/gettext: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
+	touch $@
+
+github/install/sysctl/overcommit_memory: | github/install/sysctl
+	echo 1 | sudo tee /proc/sys/vm/overcommit_memory
+	touch $@
 
 artifact-miniperl!: | install/gettext
 artifact-perl!: | install/gettext
@@ -884,6 +893,9 @@ github/install/gperf: | github/install
 	tools/bin/locked --lockfile apt.lock sudo apt-get install gperf
 
 github/install/binfmt_misc: | github/install
+	$(MKDIR) $@
+
+github/install/sysctl: | github/install
 	$(MKDIR) $@
 
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
@@ -1360,7 +1372,7 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 
-daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js bin/js
+daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/sysctl/overcommit_memory js/wasm32.js bin/js
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
