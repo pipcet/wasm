@@ -1149,7 +1149,7 @@ test/wasm32/%.exe.wasm: test/wasm32/%.exe tools/bin/elf-to-wasm
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(JS) $(PWD)/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
+	JS=$(JS) WASMDIR=$(PWD) EXECUTABLE=$< $(JS) $(PWD)/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
 	@echo "STDOUT"
 	@cat $@
 	@echo "STDERR"
