@@ -619,8 +619,8 @@ built/wasm32/miniperl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wa
 
 built/wasm32/perl: built/wasm32/miniperl build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
 	(cd build/wasm32/perl; find -type d | while read REPLY; do touch $$REPLY/.dir; done)
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl < /dev/null
-	cp build/wasm32/perl/perl wasm32-unknown-none/wasm32-unknown-none/bin/miniperl
+	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl < /dev/null
+	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) install -C build/wasm32/perl < /dev/null
 	touch $@
 
 # Actually building a package and installing it: make && make install, plus package-specific workarounds.
