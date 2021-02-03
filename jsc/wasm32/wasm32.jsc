@@ -45,6 +45,21 @@ var path = args.shift();
 args.unshift(os.getenv("EXECUTABLE"));
 var remote;
 
+function backtick(command)
+{
+    let timestamp = Date.now();
+    try {
+	let pid = os.spawn(command);
+	let o = os.waitpid(pid);
+	let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
+	os.system("rm /tmp/tmp.out." + timestamp);
+	return output;
+    } catch (e) {
+	console.log("OH NO!");
+	console.log(e);
+    }
+}
+
 function CStringAt(heap, offset)
 {
     var ret = '';
