@@ -525,7 +525,7 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
     for (let [name, symbol] of symbols) {
 	this.symbols.set(name, symbol);
 	this.allsymbols.add(symbol);
-	module.symtab[symbol] = symbol.get_addr();
+	module.symtab[name] = symbol.get_addr();
     }
 };
 
