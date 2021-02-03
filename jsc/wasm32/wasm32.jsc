@@ -673,6 +673,7 @@ function Wasm32VM(sizes)
     this.HEAPF64 = new Float64Array(this.memory.buffer);
 
     this.base_lm = new Wasm32LM(this);
+    this.modules = gWasm32Modules;
 
     this.space_functions = new RangeAllocator(this.grow_functions.bind(this));
     this.space_pcs = new RangeAllocator(this.grow_pcs.bind(this));
