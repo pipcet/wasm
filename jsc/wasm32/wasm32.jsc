@@ -5362,18 +5362,45 @@ ThinThin.dlkill = function (modi)
     return module.kill(this, this.vm);
 };
 
-ThinThin.dlopen = function (cpath)
+ThinThin.open_dynamic = async function (cpath, who, libinfo)
 {
-    console.log('dlopen')
-    var path = CStringAt(this.HEAP8, cpath);
-    console.log('dlopen: ' + cpath + ' ' + path)
-    var module = new Wasm32Module(os.file.readFile(path, "binary"));
+    let path = CStringAt(this.HEAP8, cpath);
+    let module = new Wasm32Module(this.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + path + ".wasm", "binary"), path);
     console.log('dlopen: ' + module)
 
-    return module.instantiate(this, this.vm).then(() => {
-        console.log("success");
-        return 0;
-    });
+    await module.load(this, this.vm);
+
+    if (!module.dyninfo)
+	return -%{EIO};
+
+    this.HEAP32[libinfo>>2] = module.dyninfo.data;
+    this.HEAP32[libinfo+8>>2] = module.dyninfo.data_end;
+    this.HEAP32[libinfo+16>>2] = this.process.modules.length;
+    this.process.modules.push(module);
+
+    console.log("returning", this.HEAP32[libinfo+16>>2]);
+    return this.HEAP32[libinfo+16>>2];
+};
+
+ThinThin.load_dynamic = async function (modid, mem)
+{
+    let module = this.process.modules[modid];
+    await module.instantiate(this, this.vm, mem, true);
+    return 0;
+};
+
+ThinThin.dynamic_symbol = async function (resptr, modid, csymbol, cversion)
+{
+    let symbol = CStringAt(this.HEAP8, csymbol);
+    console.log("symbol",symbol);
+    let module = this.process.modules[modid];
+    console.log("module",module,module.symtab,module.symtab[symbol]);
+    if (module && (symbol in module.symtab)) {
+	this.HEAP32[resptr>>2] = module.symtab[symbol];
+	return 0;
+    } else {
+	return -%{ENOENT};
+    }
 };
 
 ThinThin.dlsym = function (modi, csym)
