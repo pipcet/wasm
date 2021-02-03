@@ -431,6 +431,31 @@ Wasm32Symbol.prototype.add_reference = function (reference)
     this.references.push(reference);
 };
 
+function Wasm32Modules()
+{
+    this.by_path = {};
+}
+
+Wasm32Modules.prototype.bytes = async function (name)
+{
+    let path;
+    if (name[0] === "/")
+	path = name;
+    else
+	path = os.getenv("WASMDIR") + "/wasm/" + name + ".wasm";
+    return os.readFile(path, "binary");
+};
+
+Wasm32Modules.prototype.module = async function (name)
+{
+    if (!this.by_path[path])
+	this.by_path[path] = new Wasm32Module(await this.bytes(name), name);
+
+    return this.by_path[path];
+};
+
+var gWasm32Modules = new Wasm32Modules();
+
 /* A link-map object. */
 function Wasm32LM(vm)
 {
