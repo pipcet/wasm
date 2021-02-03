@@ -5243,7 +5243,7 @@ if (typeof(os) !== "undefined" &&
 	let timestamp = Date.now();
 	if (this.pwd !== undefined)
 	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>/tmp/tmp.out." + timestamp;
-	command = command.replace("sh -c ", "");
+	command = command.replace(/\bsh -c /, "");
 	try {
 	    let pid = os.spawn(command);
 	    let o = os.waitpid(pid);
@@ -5515,6 +5515,13 @@ ThinThin.renameat2 = function (oldfdno, oldpathptr, newfdno, newpathptr, flags)
 {
     var oldpath = CStringAt(this.HEAPU8, oldpathptr);
     var newpath = CStringAt(this.HEAPU8, newpathptr);
+
+    if (this.pwd) {
+	if (oldpath[0] !== "/")
+	    oldpath = this.pwd + "/" + oldpath;
+	if (newpath[0] !== "/")
+	    newpath = this.pwd + "/" + newpath;
+    }
 
     os.system(`mv ${oldpath} ${newpath}`);
     return Promise.resolve(0);
