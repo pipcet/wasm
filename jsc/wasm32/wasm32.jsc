@@ -42,7 +42,7 @@ if (args[0] === "--gdbpipes") {
 }
 
 var path = args.shift();
-args.unshift("../../miniperl");
+args.unshift(os.getenv("EXECUTABLE"));
 var remote;
 
 function CStringAt(heap, offset)
