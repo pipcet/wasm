@@ -1,2 +1,3 @@
 #!/bin/bash
+export EXECUTABLE=${EXECUTABLE:-$1}
 exec $JS $(dirname "$0")/../../js/wasm32.js "$@"
