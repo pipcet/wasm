@@ -5537,6 +5537,18 @@ ThinThin.pipe2 = function (ptr, flags)
     return 0;
 };
 
+ThinThin.linkat = function (oldfdno, coldpath,
+			    newfdno, cnewpath,
+			    flags)
+{
+    let oldpath = CStringAt(this.HEAPU8, coldpath);
+    let newpath = CStringAt(this.HEAPU8, cnewpath);
+
+    console.log("linkat", oldpath, newpath);
+
+    return 0;
+};
+
 ThinThin.renameat2 = function (oldfdno, oldpathptr, newfdno, newpathptr, flags)
 {
     var oldpath = CStringAt(this.HEAPU8, oldpathptr);
