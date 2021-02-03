@@ -5706,36 +5706,6 @@ var module;
 var gRetrigger;
 var gExitStatus = 0;
 
-async function run() {
-    let process = new Wasm32Process(system);
-    module = await process.modules.module(path);
-    process.modules.push(module);
-    module.sizes = sizes;
-
-    system.instantiate(module, vm, args, environment_variables()).then(() => {
-        try {
-	    run = () => {
-                try {
-		    if (!system.step())
-			Promise.resolve().then(run);
-                } catch (e) {
-		    console.log(e);
-		    console.log(e.stack);
-                }
-	    };
-	    run();
-	    gRetrigger = run;
-        } catch (e) {
-	    console.log("exception");
-	    console.log(e);
-	    console.log(e.stack);
-        }
-    }).catch((e) => {
-        console.log("caught");
-        console.log(e);
-    });
-}
-
 if (remote) {
     fetch(path).then(response => {
         if (response.ok)
@@ -5777,6 +5747,73 @@ if (remote) {
         console.log("e2:" + e + "\n" + e.stack);
     });
 } else if (typeof os !== "undefined") {
-    run();
+    module = new Wasm32Module(new Wasm32Process(system), os.file.readFile(path, "binary"));
+    module.sizes = sizes;
+
+    system.instantiate(module, vm, args, environment_variables()).then(() => {
+        try {
+            run = () => {
+                try {
+		    if (!system.step())
+			Promise.resolve().then(run);
+                } catch (e) {
+                    console.log(e);
+		    console.log(e.stack);
+                }
+            };
+            run();
+	    gRetrigger = run;
+        } catch (e) {
+            console.log("exception");
+            console.log(e);
+            console.log(e.stack);
+        }
+    }).catch((e) => {
+        console.log("caught");
+        console.log(e);
+    });
+} else if (typeof fetch !== "undefined") {
+    caches.open("v3").then((cache) => {
+        var req = new Request(path);
+
+        return cache.match(req).then((response) => {
+            if (response === undefined)
+                return fetch(path);
+
+            return response;
+        }).then(response => {
+            cache.put(path, response.clone());
+
+            if (response.ok)
+                return response.arrayBuffer();
+
+            return Promise.reject(response);
+        });
+    }).then((ab) => {
+        module = new Wasm32Module(ab);
+
+        return system.instantiate(module, vm, args, []);
+    }).then(() => {
+        try {
+            run = () => {
+                try {
+                    system.step();
+                    Promise.resolve().then(run);
+                } catch (e) {
+                    console.log(e);
+		    console.log(e.stack);
+                }
+            };
+            run();
+        } catch (e) {
+            console.log("exception");
+            console.log(e);
+            console.log(e.stack);
+        }
+    }).catch((e) => {
+        console.log("caught");
+        console.log(e);
+        console.log(e.stack);
+    });
 }
 
