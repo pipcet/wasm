@@ -5739,6 +5739,9 @@ ThinThin.fcntl_p = function () {
 };
 
 ThinThin.getcwd = function (addr, len) {
+    if (this.pwd.length > len - 1)
+	return -%{ERANGE};
+
     CStringTo(this.pwd, this.HEAP8, addr);
 
     return 0;
