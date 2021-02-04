@@ -5400,9 +5400,9 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
     if (!module.dyninfo)
 	return -%{EIO};
 
-    this.%{libinfo[&libinfo->data] = "module.dyninfo.data"};
-    this.%{libinfo[&libinfo->data_end] = "module.dyninfo.data_end"};
-    this.%{libinfo[&libinfo->modid] = "this.process.modules.length"};
+    %{libinfo[&libinfo->data] = "module.dyninfo.data"};
+    %{libinfo[&libinfo->data_end] = "module.dyninfo.data_end"};
+    %{libinfo[&libinfo->modid] = "this.process.modules.length"};
     this.process.modules.push(module);
 
     console.log("returning", this.HEAP32[libinfo+16>>2]);
