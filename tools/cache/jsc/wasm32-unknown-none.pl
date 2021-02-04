@@ -13,6 +13,7 @@ $VAR1 = {
           'ENOENT' => '2',
           'ERANGE' => '34',
           'FIONREAD' => '21531',
+          'F_DUPFD' => '0',
           'F_GETFL' => '3',
           'F_SETFL' => '4',
           'O_CREAT' => '64',
