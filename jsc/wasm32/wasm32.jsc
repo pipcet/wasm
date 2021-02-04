@@ -5713,8 +5713,14 @@ ThinThin.readlinkat = function ()
     return -%{ENOENT};
 };
 
-ThinThin.unlinkat = function ()
+ThinThin.unlinkat = function (fdno, cpath)
 {
+    let fd = this.fd(fdno);
+    let path = CStringAt(this.HEAP8, cpath);
+
+    if (os.system("test -e " + this.pwd + "/" + path) !== 0)
+	return -%{ENOENT};
+
     return 0;
 };
 
