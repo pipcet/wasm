@@ -5759,6 +5759,16 @@ ThinThin.fcntl_i = function (fdno, control, value) {
 	ThinThin.dup2.call(this, fdno, newfdno);
 	return newfdno;
     }
+    if (typeof os !== "undefined" &&
+	os.getenv && os.getenv("WASM_STRACE")) {
+	console.log("a", a, "b", b, "c", c, "F_SETFL", %{F_GETFL}, %{F_DUPFD});
+	try {
+	    i.dont.exist++;
+	} catch (e) {
+	    console.log(e.stack);
+	}
+    }
+
     return 0;
 };
 
