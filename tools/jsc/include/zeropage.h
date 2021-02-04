@@ -1,3 +1,10 @@
+typedef struct libinfo
+{
+  unsigned long long data;
+  unsigned long long data_end;
+  unsigned long long modid;
+} libinfo_t;
+
 typedef struct zeropage {
   unsigned long long top_of_memory;
   unsigned long long top_of_sbrk;
