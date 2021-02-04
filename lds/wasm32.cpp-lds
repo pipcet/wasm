@@ -31,6 +31,24 @@
   __wasm_##name##_payload_end = .;
 
 #define SECTION_NAME(name)                                              \
+  *(.wasm.header_id.name)						\
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
+  __wasm_##name##_payload = .;                                          \
+  *(.wasm.header.name);							\
+  BYTE(1)                                                               \
+  LONGLEB128(__wasm_##name##_function_payload_end - __wasm_##name##_function_payload) \
+  __wasm_##name##_function_payload = .;                                 \
+  LONGLEB128(__wasm_space_##name##_function_end - __wasm_space_##name##_function); \
+  *(.wasm.name.function)						\
+  *(.wasm.name.function.plt)						\
+  __wasm_##name##_function_payload_end = .;                             \
+  BYTE(2)                                                               \
+  LONGLEB128(__wasm_##name##_local_payload_end - __wasm_##name##_local_payload) \
+  __wasm_##name##_local_payload = .;                                    \
+  LONGLEB128(__wasm_space_##name##_local_end - __wasm_space_##name##_local); \
+  *(.wasm.name.local)							\
+  __wasm_##name##_local_payload_end = .;                                \
+  __wasm_##name##_payload_end = .;
 
 #define SECTION_ELEMENT(name)                                           \
   *(.wasm.header_id.name)						\
