@@ -13,14 +13,12 @@
 #{#include <sys/uio.h>}
 #{#include <unistd.h>}
 
-#{#include "zeropage.h"}
-#{#include "js3.h"}
 #{#define AT_FDROOTD -101}
-#{#define offsetof(type, field) ((unsigned)&((type *)0)->field)}
 
 #{JSV<dirent*> direntp("direntp");}
 #{JSV<int*> intptr("intptr");}
 #{JSV<iovec*> iov("iov");}
+#{JSV<libinfo*> libinfo("libinfo");}
 #{JSV<pollfd*> fdsptr("fdsptr");}
 #{JSV<size_t> i("i");}
 #{JSV<struct stat*> statbufptr("statbufptr");}
@@ -5388,9 +5386,9 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
     if (!module.dyninfo)
 	return -%{EIO};
 
-    this.HEAP32[libinfo>>2] = module.dyninfo.data;
-    this.HEAP32[libinfo+8>>2] = module.dyninfo.data_end;
-    this.HEAP32[libinfo+16>>2] = this.process.modules.length;
+    this.%{libinfo[&libinfo->data] = "module.dyninfo.data"};
+    this.%{libinfo[&libinfo->data_end] = "module.dyninfo.data_end"};
+    this.%{libinfo[&libinfo->modid] = "this.process.modules.length"};
     this.process.modules.push(module);
 
     console.log("returning", this.HEAP32[libinfo+16>>2]);
