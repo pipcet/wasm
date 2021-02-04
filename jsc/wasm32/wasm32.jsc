@@ -5604,10 +5604,10 @@ ThinThin.linkat = function (oldfdno, coldpath,
     return 0;
 };
 
-ThinThin.renameat2 = function (oldfdno, oldpathptr, newfdno, newpathptr, flags)
+ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 {
-    var oldpath = CStringAt(this.HEAPU8, oldpathptr);
-    var newpath = CStringAt(this.HEAPU8, newpathptr);
+    var oldpath = CStringAt(this.HEAPU8, coldpath);
+    var newpath = CStringAt(this.HEAPU8, cnewpath);
 
     if (this.pwd) {
 	if (oldpath[0] !== "/")
@@ -5615,9 +5615,16 @@ ThinThin.renameat2 = function (oldfdno, oldpathptr, newfdno, newpathptr, flags)
 	if (newpath[0] !== "/")
 	    newpath = this.pwd + "/" + newpath;
     }
-
     os.system(`mv ${oldpath} ${newpath}`);
     return Promise.resolve(0);
+
+    let oldfd = this.fd(oldfdno);
+    let newfd = this.fd(newfdno);
+    var oldpath = oldfd.at_resolve(CStringAt(this.HEAPU8, coldpath), flags,
+				   this);
+    var newpath = newfd.at_resolve(CStringAt(this.HEAPU8, cnewpath), flags,
+				   this);
+
 };
 
 ThinThin.openat = function (fdno, ptr, flags, mode) {
