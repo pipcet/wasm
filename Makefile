@@ -38,13 +38,19 @@ built/wasm32: | built
 	$(MKDIR) $@
 test/wasm32: | test
 	$(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils: | build/wasm32
 	$(MKDIR) $@
 build/common/binaryen build/common/wabt build/common/python: | build/common
 	$(MKDIR) $@
 
 # binutils-gdb requires source tree modification, so we copy the source.
 src/wasm32/binutils-gdb: | src/wasm32
+	$(MKDIR) $@T
+	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
+	mv $@T $@
+
+# binutils-gdb requires source tree modification, so we copy the source.
+src/wasm32/native-binutils: | src/wasm32
 	$(MKDIR) $@T
 	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
 	mv $@T $@
@@ -80,6 +86,10 @@ build/common/wabt/Makefile: | src/wabt build/common/wabt
 build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binutils-gdb
 	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
 	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+
+build/wasm32/native-binutils/Makefile: | src/wasm32/native-binutils build/wasm32/native-binutils
+	(cd src/wasm32/native-binutils/gas; aclocal; automake; autoreconf)
+	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_WASM))
 
 build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
 	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
@@ -648,6 +658,11 @@ built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
 	touch $@
 
+built/wasm32/native-binutils: build/wasm32/native-binutils/Makefile | bin built/wasm32
+	$(MAKE) -C build/wasm32/native-binutils
+	$(MAKE) -C build/wasm32/native-binutils install
+	touch $@
+
 built/wasm32/gdb: build/wasm32/gdb/Makefile built/wasm32/gcc | bin built/wasm32
 	$(MAKE) -C build/wasm32/gdb
 	$(MAKE) -C build/wasm32/gdb install
@@ -670,6 +685,7 @@ built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
 built/wasm32/gcc-preliminary: | install/texinfo-bison-flex
 built/wasm32/gcc: | install/texinfo-bison-flex
 built/wasm32/binutils-gdb: | install/texinfo-bison-flex
+built/wasm32/native-binutils: | install/texinfo-bison-flex
 built/wasm32/glibc: | install/texinfo-bison-flex
 built/wasm32/ncurses: | install/texinfo-bison-flex
 built/wasm32/bash: | install/texinfo-bison-flex
@@ -682,6 +698,7 @@ built/wasm32/coreutils: | install/texinfo-bison-flex
 built/wasm32/gcc-preliminary: | install/gcc-dependencies
 built/wasm32/gcc: | install/gcc-dependencies
 built/wasm32/binutils-gdb: | install/gcc-dependencies
+built/wasm32/native-binutils: | install/gcc-dependencies
 built/wasm32/glibc: | install/gcc-dependencies
 built/wasm32/ncurses: | install/gcc-dependencies
 built/wasm32/bash: | install/gcc-dependencies
