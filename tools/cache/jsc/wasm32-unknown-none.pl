@@ -21,8 +21,8 @@ $VAR1 = {
           'S_IFDIR + 0777' => '16895',
           '__S_IFCHR + 0777' => '8703',
           '__S_IFREG + 0777' => '33279',
-          'default_sizes.memsize' => '134217728',
-          'default_sizes.stackbottom' => '133169152',
+          'default_sizes.memsize' => '536870912',
+          'default_sizes.stackbottom' => '535822336',
           'default_sizes.stacksize' => '1048576',
           'default_sizes.tablesize' => '65536',
           'direntp + &dirent::d_name' => 'direntp+19',
@@ -89,6 +89,7 @@ $VAR1 = {
           'zp[&zp->thread_list]' => 'HEAP32[4096+16>>2]',
           'zp[&zp->top_of_memory]' => 'HEAP32[4096>>2]',
           'zp[&zp->top_of_memory] = "module.top_of_memory"' => 'HEAP32[4096>>2] = module.top_of_memory;',
+          'zp[&zp->top_of_memory] = 512 * 1024 * 1024LL' => 'HEAP32[4096>>2] = 536870912; HEAP32[4096+4>>2] = 0;',
           'zp[&zp->top_of_sbrk]' => 'HEAP32[4096+8>>2]',
           'zp[&zp->top_of_sbrk] = "tom"' => 'HEAP32[4096+8>>2] = tom;',
           'zp[&zp->top_of_sbrk] = "tos"' => 'HEAP32[4096+8>>2] = tos;'
