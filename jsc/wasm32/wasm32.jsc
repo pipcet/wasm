@@ -1916,7 +1916,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 
         var HEAP32 = vm.HEAP32;
 
-	thread.%{zp[&zp->top_of_memory] = "module.top_of_memory"}
+	thread.%{zp[&zp->top_of_memory] = 512 * 1024 * 1024LL}
 	thread.%{zp[&zp->thread_list]} = %{tp1};
 	thread.%{zp[&zp->bottom_of_sbrk] = "module.start_of_sbrk"}
 
@@ -1982,7 +1982,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
 
             var HEAP32 = vm.HEAP32;
 
-            %{zp[&zp->top_of_memory] = "module.top_of_memory"}
+	    %{zp[&zp->top_of_memory] = 512 * 1024 * 1024LL}
             %{zp[&zp->thread_list]} = %{tp1};
             %{zp[&zp->bottom_of_sbrk] = "module.start_of_sbrk"}
 
