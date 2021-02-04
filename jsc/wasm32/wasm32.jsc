@@ -5718,9 +5718,12 @@ ThinThin.unlinkat = function ()
     return 0;
 };
 
-ThinThin.mkdirat = function (fdno, pathptr)
+ThinThin.mkdirat = function (fdno, cpath)
 {
-    let path = CStringAt(this.HEAP8, pathptr);
+    let path = CStringAt(this.HEAP8, cpath);
+    if (os.system("test -d " + this.pwd + "/" + path) === 0)
+	return -%{EEXIST};
+
     os.system("mkdir -p " + this.pwd + "/" + path);
     return 0;
 };
