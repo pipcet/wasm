@@ -981,6 +981,15 @@ artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifact
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
+artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+	$(MAKE) artifacts/jsshell-linux-x86_64.zip
+	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/emacs
+	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
+	cp $(patsubst %,wasm/%.wasm,temacs emacs) artifacts/
+	$(MAKE) artifact-push!
+
 artifact-miniperl!: | install/binfmt_misc/elf32-wasm32
 artifact-miniperl!: | install/binfmt_misc/wasm
 artifact-miniperl!: | install/file-slurp
