@@ -739,6 +739,7 @@ built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
 # Emacs has a Makefile, so we configure it in the "built" step.
 built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	(cd build/wasm32/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=none --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
+	find build/wasm32/emacs -type d | while read REPLY; do touch $$REPLY/.dir; done
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
