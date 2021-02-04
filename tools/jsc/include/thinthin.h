@@ -14,3 +14,11 @@ const struct {
   thinthin_stacksize_default,
   thinthin_stackbot_default,
 };
+
+typedef struct {
+  long long fp;
+  long long a0;
+  long long a1;
+  long long a2;
+  long long a3;
+} thinthin_eh_frame;
