@@ -41,7 +41,8 @@ if (args[0] === "--gdbpipes") {
 }
 
 var path = args.shift();
-args.unshift(os.getenv("EXECUTABLE"));
+if (typeof os !== "undefined")
+    args.unshift(os.getenv("EXECUTABLE"));
 var remote;
 
 function backtick(command)
@@ -5789,6 +5790,38 @@ var module;
 
 var gRetrigger;
 var gExitStatus = 0;
+
+var os;
+var fs;
+var putstr;
+var readline;
+if (typeof os === "undefined") {
+    fs = require("fs");
+    os = {
+	file: {
+	    readFile: (path, mode) => {
+		if (mode === "binary") {
+		    return fs.readFileSync(path);
+		}
+		return fs.readFileSync(path, {
+		    encoding: "utf-8",
+		});
+	    },
+	},
+	getenv: v => process.env[v],
+	kill: () => {
+	    process.exit(0);
+	},
+	getpid: () => null,
+    };
+    putstr = function (str) {
+	console.log(str);
+    };
+    readline = function () {
+	return null;
+    };
+}
+
 
 if (remote) {
     fetch(path).then(response => {
