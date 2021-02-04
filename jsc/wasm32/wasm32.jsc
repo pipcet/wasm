@@ -698,11 +698,11 @@ Wasm32VM.prototype.fork = function ()
 {
     let ret = new Wasm32VM(this.sizes);
     let count = 0;
-    let lim = this.%{zp[&zp->top_of_sbrk]};
-    for (let i = 0; i < lim/4; i++)
+    let lim = this.%{zp[&zp->top_of_sbrk]}/4;
+    for (let i = 0; i < lim; i++)
 	ret.HEAP32[i] = this.HEAP32[i];
-    lim = this.sizes.memsize;
-    for (let i = this.sizes.stackbottom/4; i < lim/4; i++)
+    lim = this.sizes.memsize/4;
+    for (let i = this.sizes.stackbottom/4; i < lim; i++)
 	ret.HEAP32[i] = this.HEAP32[i];
     return ret;
 };
@@ -1186,8 +1186,6 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     var funstr = c;
     var mod = CStringAt(this.HEAPU8, modstr);
     var fun = CStringAt(this.HEAPU8, funstr);
-
-    //console.log("//mod " + mod + " fun " + fun + "("+modstr+"/"+funstr+")");
 
     if (sp in this.extcallRet) {
         var ret = this.extcallRet[sp];
@@ -5726,7 +5724,7 @@ ThinThin.unlinkat = function (fdno, cpath)
     let path = CStringAt(this.HEAP8, cpath);
 
     if (os.system("test -e " + this.pwd + "/" + path) !== 0)
-	return -%{ENOENT};
+	return 0; // -%{ENOENT};
 
     return 0;
 };
@@ -5735,7 +5733,7 @@ ThinThin.mkdirat = function (fdno, cpath)
 {
     let path = CStringAt(this.HEAP8, cpath);
     if (os.system("test -d " + this.pwd + "/" + path) === 0)
-	return -%{EEXIST};
+	return 0; //-%{EEXIST};
 
     os.system("mkdir -p " + this.pwd + "/" + path);
     return 0;
