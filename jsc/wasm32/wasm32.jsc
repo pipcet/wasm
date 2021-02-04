@@ -5753,7 +5753,12 @@ ThinThin.fcntl_v = function ()
     return %{O_RDWR};
 };
 
-ThinThin.fcntl_i = function () {
+ThinThin.fcntl_i = function (fdno, control, value) {
+    if (control === %{F_DUPFD}) {
+	let newfdno = this.fds.length;
+	ThinThin.dup2.call(this, fdno, newfdno);
+	return newfdno;
+    }
     return 0;
 };
 
