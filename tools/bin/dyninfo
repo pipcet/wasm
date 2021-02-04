@@ -112,29 +112,29 @@ for my $file (@ARGV) {
 	}
     }
 
-    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-objdump -t $file|" or die;
+    open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-objdump -tT $file|" or die;
 
     while (<$fh>) {
         s/[ \t]+/ /g;
         s/[ \t]+/ /g;
         chomp;
-            if (/^([0-9a-f]*) [gl] ([a-zA-Z0-9._*]*) [0-9a-f]* ([a-zA-Z0-9_.\$]*)$/) {
-                my ($value, $symbol) = (hex $1,$3);
+	if (/^([0-9a-f]*) [gl] D[FO]? ([a-zA-Z0-9._*]*) [0-9a-f]* Base ([a-zA-Z0-9_.\$]*)$/) {
+	    my ($value, $symbol) = (hex $1,$3);
 
-                if ($symbol eq ".wasm.plt_bias") {
-                    $plt_bias = $value;
-                } elsif ($symbol eq ".wasm.plt_end") {
-                    $plt_end = $value;
-                } elsif ($symbol eq ".wasm.data") {
-                    $data = $value;
-                } elsif ($symbol eq ".wasm.data_end") {
-                    $data_end = $value;
-                } elsif ($symbol eq ".wasm.pc_end") {
-                    $pc_end = $value;
-                } elsif ($symbol eq "_start") {
-                    $entry = $value;
-                }
-            }
+	    if ($symbol eq ".wasm.plt_bias") {
+		$plt_bias = $value;
+	    } elsif ($symbol eq ".wasm.plt_end") {
+		$plt_end = $value;
+	    } elsif ($symbol eq ".wasm.data") {
+		$data = $value;
+	    } elsif ($symbol eq ".wasm.data_end") {
+		$data_end = $value;
+	    } elsif ($symbol eq ".wasm.pc_end") {
+		$pc_end = $value;
+	    } elsif ($symbol eq "_start") {
+		$entry = $value;
+	    }
+	}
     }
 
     open $fh, "$path/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d $file|" or die;
