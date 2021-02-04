@@ -11,6 +11,7 @@ SECTIONS
       *(.ctors)
       *(.dtors)
       *(.output.named)
+      *(.output.target_features)
   }
   /DISCARD/ : { *(.discard*) *(*) }
 }
