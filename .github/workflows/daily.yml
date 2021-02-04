@@ -148,3 +148,13 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 daily-zsh!
+  emacs:
+    name: emacs
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 daily-emacs!
