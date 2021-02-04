@@ -4977,6 +4977,10 @@ if (typeof(os) !== "undefined" &&
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
         var dd = this.fds[fdno] || this.process.ddroot;
         var path = CStringAt(this.HEAPU8, pathstr);
+	if (typeof os !== "undefined" &&
+	    os.getenv && os.getenv("WASM_STRACE"))
+	    console.log("newfstatat", fdno, "path", path);
+
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
