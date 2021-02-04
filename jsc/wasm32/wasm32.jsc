@@ -5142,7 +5142,7 @@ if (typeof(os) !== "undefined" &&
     ThinThin.ppoll = function (fdsptr, nfds, tvptr, sigmaskptr) {
         var incall = true;
         var retval = 0;
-        var retry = function () {
+        var retry = () => {
             if (incall)
                 return ThinThin.ppoll.call(this,
                                            fdsptr, nfds, tvptr, sigmaskptr);
@@ -5216,7 +5216,7 @@ if (typeof(os) !== "undefined" &&
         return fd.readPosition;
     };
     ThinThin.access = function (ptr, mode) {
-        return ThinThin.stat.call(this, ptr, 0);
+        return ThinThin.newfstatat.call(this, %{AT_FDCWD}, ptr, 0, 0);
     };
     //ThinThin.unlink =       Module._unlink;
     //ThinThin.rename =       Module._rename;
