@@ -5283,13 +5283,13 @@ if (typeof(os) !== "undefined" &&
     {
         return this.restart(dst, src, len, entry);
     };
-    ThinThin.execve = function (pathptr, argvptr, envpptr)
+    ThinThin.execve = function (cpath, argvptr, envpptr)
     {
-        return ThinThin.execveat.call(this, 0, pathptr, argvptr, envpptr, 0);
+        return ThinThin.execveat.call(this, 0, cpath, argvptr, envpptr, 0);
     };
-    ThinThin.execveat = function (dirfdno, pathptr, argvptr, envpptr, flags)
+    ThinThin.execveat = function (dirfdno, cpath, argvptr, envpptr, flags)
     {
-        if (this.HEAP8[pathptr] === "/".charCodeAt(0))
+        if (this.HEAP8[cpath] === "/".charCodeAt(0))
             dirfdno = %{AT_FDROOTD};
 
 	let args = CStringsAt(this.heap, argvptr);
@@ -5762,7 +5762,7 @@ ThinThin.dup2 = function (oldfd, newfd) {
     return 0;
 };
 
-ThinThin.utimensat = function (fdno, pathptr, timesptr, flag)
+ThinThin.utimensat = function (fdno, cpath, timesptr, flag)
 {
     return 0;
 };
