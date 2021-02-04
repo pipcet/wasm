@@ -1039,6 +1039,11 @@ function Wasm32Thread(kport, process, threadpage, vm)
         this.kport.start();
 }
 
+Wasm32Thread.prototype.fd = function (fdno)
+{
+    return this.fds[fdno];
+};
+
 Wasm32Thread.prototype.find_type = function (typeid)
 {
     typeid = typeid.replace(/^P/, "");
@@ -3369,6 +3374,15 @@ ThinThinFD.prototype.clone = function ()
 ThinThinFD.prototype.freeze = function ()
 {
     return new FrozenThinThinFD(this);
+};
+
+ThinThinFD.prototype.at_resolve = function (path, flags, thread)
+{
+    if (path[0] === "/")
+	return path;
+    if (path === "" && (flags & %{AT_EMPTY_PATH}))
+	return this.path;
+    return this.path + "/" + path;
 };
 //** ThinThinFDReader
 function ThinThinFDReader(fd, len)
