@@ -111,8 +111,9 @@
   }
 
 #define SECTION_TARGET_FEATURES(name)					\
+  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_start);	\
+  __wasm_##name##_start = .;						\
   *(.wasm.header_id.name)						\
-  LONGLEB128(__wasm_##name##_payload_end - __wasm_##name##_payload);    \
   __wasm_##name##_payload = .;                                          \
   *(.wasm.header.name);							\
   *(.wasm.target_features);						\
