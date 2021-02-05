@@ -57,8 +57,9 @@ long msetuleb128(unsigned long off, unsigned long value)
   return delta;
 }
 
-void mputuleb128(unsigned long value)
+unsigned long mputuleb128(unsigned long value)
 {
+  unsigned long ret = 0;
   do {
     u8 c = value & 0x7fL;
     value >>= 7;
@@ -69,7 +70,10 @@ void mputuleb128(unsigned long value)
     gbuf[woff] = (c | (value?0x80:0));
     gmask[woff] = 0xff;
     woff++;
+    ret++;
   } while(value);
+
+  return ret;
 }
 
 unsigned long mgetuleb128(void)
@@ -202,18 +206,21 @@ char *mpeekstring(void)
   return ret;
 }
 
-void mputstring(char *string)
+unsigned long mputstring(char *string)
 {
   unsigned long len = strlen(string);
   char *p = string;
   unsigned long i = 0;
+  unsigned long ret;
 
-  mputuleb128(len);
+  ret = mputuleb128(len);
 
   while (i++ < len)
     mputchar(*p++);
 
   free(string);
+
+  return ret + i;
 }
 
 char *mgetbytes(unsigned long len)
@@ -1051,6 +1058,15 @@ long section_named(void)
   if (strcmp(str, "name") == 0) {
     mputstring(str);
     delta += section_name(len);
+  } else if (strcmp(str, "target_features") == 0) {
+    unsigned long off = roff;
+    len -= roff - off1;
+    mputstring(str);
+    while (len) {
+      mputstring(mgetstring());
+      len -= roff - off;
+      off = roff;
+    }
   } else {
     len -= roff - woff;
     mputstring(str);
