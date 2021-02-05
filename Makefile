@@ -1115,7 +1115,7 @@ ship-problem/%!: ship/problem.tar.gz github/assets/%.json | ship github github/r
 
 
 github/release/list!: | github/release
-	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
+	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases?per_page=100 | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
 	ls -l github/release/
 
 github/check-release!: | github
