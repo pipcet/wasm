@@ -5637,6 +5637,10 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 ThinThin.openat = function (fdno, ptr, flags, mode) {
     var path = CStringAt(this.HEAPU8, ptr);
 
+    if (flags & %{O_DIRECTORY}) {
+	if (path.match(/\.(el|tit|elc|b5)$/))
+	    return -%{ENOTDIR};
+    }
     if (typeof os !== "undefined" &&
 	os.getenv && os.getenv("WASM_STRACE"))
 	console.log("openat", path);
@@ -5688,7 +5692,8 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 };
 
 ThinThin.faccessat = function (fdno, ptr, flags, mode) {
-    return 0;
+    let ret =  ThinThin.newfstatat.call(this, fdno, ptr, 0, 0);
+    return ret;
 };
 
 var gExitStatus;
@@ -5802,6 +5807,12 @@ ThinThin.utimensat = function (fdno, cpath, timesptr, flag)
 
 ThinThin.fchmodat = function ()
 {
+    return 0;
+};
+
+ThinThin.fchmod = function ()
+{
+    /* XXX should go through fchmodat */
     return 0;
 };
 var sizes = {
