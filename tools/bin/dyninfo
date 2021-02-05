@@ -118,8 +118,8 @@ for my $file (@ARGV) {
         s/[ \t]+/ /g;
         s/[ \t]+/ /g;
         chomp;
-	if (/^([0-9a-f]*) [gl] D[FO]? ([a-zA-Z0-9._*]*) [0-9a-f]* Base ([a-zA-Z0-9_.\$]*)$/) {
-	    my ($value, $symbol) = (hex $1,$3);
+	if (/^([0-9a-f]*) [gl] (D[FO]? )?([a-zA-Z0-9._*]*) [0-9a-f]* (Base )?([a-zA-Z0-9_.\$]*)$/) {
+	    my ($value, $symbol) = (hex $1,$5);
 
 	    if ($symbol eq ".wasm.plt_bias") {
 		$plt_bias = $value;
