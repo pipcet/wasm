@@ -10,6 +10,7 @@ $VAR1 = {
           'EINVAL' => '22',
           'EIO' => '5',
           'EISDIR' => '21',
+          'ENAMETOOLONG' => '36',
           'ENOENT' => '2',
           'ERANGE' => '34',
           'FIONREAD' => '21531',
