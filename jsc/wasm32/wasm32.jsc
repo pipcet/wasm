@@ -3203,21 +3203,25 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
 
     if (this.readData.length > this.readPosition ||
         this.readEOF) {
-        var i;
+        var i = 0;
 
-        for (i=0; i<len && i<this.readData.length - this.readPosition; i++) {
-            var cc = this.readData.charCodeAt(this.readPosition+i);
-            heap[ptr+i] = cc;
+	let data = this.readData.substr(this.readPosition, this.readPosition + len);
+	for (let c of data) {
+            let cc = c.charCodeAt(0);
+            heap[ptr+i++] = cc;
         }
         this.consume(i);
 
-        if (i == 0 || i == len)
+        if (i == 0 || i == len) {
             return i;
+	}
 
         if (true || this.readUnbuffered)
             return Promise.resolve(i);
 
-        return Promise.resolve(this.read(heap, ptr+i, len-i)).then(j => i+j);
+        return Promise.resolve(this.read(heap, ptr+i, len-i)).then(j => {
+	    return i+j;
+	});
     }
 
     if (this.readPosition >= this.readData.length)
