@@ -46,3 +46,6 @@
 [submodule "subrepos/python"]
 	path = subrepos/python
 	url = https://github.com/pipcet/python
+[submodule "subrepos/gmp"]
+	path = subrepos/gmp
+	url = ../gmp
