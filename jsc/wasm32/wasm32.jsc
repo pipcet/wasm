@@ -3296,8 +3296,15 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 
     var data = "";
 
-    for (let i=0; i<len; i++)
-        data += String.fromCharCode(heap[ptr+i]);
+    if (this.writePosition !== undefined) {
+	for (let i = 0; i < len; i++) {
+	    data = data.substr(0, this.writePosition) + String.fromCharCode(heap[ptr+i]) + data.substr(this.writePosition + 1);
+	    this.writePosition++;
+	}
+    } else {
+	for (let i=0; i<len; i++)
+            data += String.fromCharCode(heap[ptr+i]);
+    }
 
     if (this.half)
         return this.half[0].write(data);
