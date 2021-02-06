@@ -3205,7 +3205,7 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
         this.readEOF) {
         var i = 0;
 
-	let data = this.readData.substr(this.readPosition, this.readPosition + len);
+	let data = this.readData.substr(this.readPosition, len);
 	for (let c of data) {
             let cc = c.charCodeAt(0);
             heap[ptr+i++] = cc;
@@ -3300,11 +3300,15 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 
     var data = "";
 
-    if (this.writePosition !== undefined) {
+    if (this.writePosition !== undefined && this.writeData) {
+	let data = this.writeData.substr(0, this.writePosition);
 	for (let i = 0; i < len; i++) {
-	    data = data.substr(0, this.writePosition) + String.fromCharCode(heap[ptr+i]) + data.substr(this.writePosition + 1);
-	    this.writePosition++;
+	    data += String.fromCharCode(heap[ptr+i]);
 	}
+	this.writePosition += len;
+	data += this.writeData.substr(this.writePosition);
+	this.writeData = data;
+	return len;
     } else {
 	for (let i=0; i<len; i++)
             data += String.fromCharCode(heap[ptr+i]);
@@ -5214,10 +5218,9 @@ if (typeof(os) !== "undefined" &&
 
         if (whence === %{SEEK_SET}) {
             fd.readPosition = (pos || 0);
-	    if (pos < fd.readData.length) {
-		fd.writePosition = pos;
+	    fd.writePosition = pos;
+	    if (fd.readData.length > fd.writeData.length)
 		fd.writeData = fd.readData;
-	    }
 	} else if (whence === %{SEEK_CUR})
             fd.readPosition += pos;
 	else if (whence === %{SEEK_END})
