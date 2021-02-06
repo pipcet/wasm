@@ -1,8 +1,8 @@
 #!/bin/bash
 for a in *; do
     if [ -d $a ]; then
-       echo -n "$a" && echo -n "/" && echo -e "\0"
+       echo -n "$a" && echo -n "/" && echo -ne "\0"
     else
-       echo -n "$a" && echo -e "\0"
+       echo -n "$a" && echo -ne "\0"
     fi
 done
