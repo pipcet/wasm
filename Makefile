@@ -38,7 +38,7 @@ built/wasm32: | built
 	$(MKDIR) $@
 test/wasm32: | test
 	$(MKDIR) $@
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils build/wasm32/gmp: | build/wasm32
 	$(MKDIR) $@
 build/common/binaryen build/common/wabt build/common/python: | build/common
 	$(MKDIR) $@
@@ -56,7 +56,7 @@ src/wasm32/native-binutils: | src/wasm32
 	mv $@T $@
 
 # These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh python
+good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh python gmp
 
 $(patsubst %,src/%,$(good-repos)): src/%: | src
 	test -L $@ || ln -sf ../subrepos/$* $@
@@ -89,7 +89,7 @@ build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binut
 
 build/wasm32/native-binutils/Makefile: | src/wasm32/native-binutils build/wasm32/native-binutils
 	(cd src/wasm32/native-binutils/gas; aclocal; automake; autoreconf)
-	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_WASM))
+	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_WASM))
 
 build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
 	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
@@ -615,6 +615,9 @@ build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/l
 	find build/wasm32/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
 	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
 	touch $@
+
+build/wasm32/gmp/Makefile: | src/gmp build/wasm32/gmp built/wasm32/gcc
+	(cd build/wasm32/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/gmp/configure)
 
 built/wasm32/python: build/wasm32/python/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/python
