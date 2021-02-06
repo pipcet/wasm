@@ -2837,6 +2837,8 @@ ThinThinDD.prototype.openat = function (path, flags)
 	let data = os.file.readFile(path + "/.dir", "binary");
 	if (data !== null) {
 	    let ret = new ThinThinDD(this.process);
+	    ret.data = data;
+	    ret.read = ThinThinFD.prototype.read;
 	    ret.path = path;
 	    return Promise.resolve(ret);
 	}
