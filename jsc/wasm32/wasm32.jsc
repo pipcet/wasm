@@ -5199,12 +5199,15 @@ if (typeof(os) !== "undefined" &&
         });
     };
     ThinThin.lseek = function (fdno, pos, whence) {
-        //console.log("lseek " + fdno + " " + pos + " " + whence);
         var fd = this.fds[fdno];
 
-        if (whence === %{SEEK_SET})
-            fd.readPosition = pos;
-        else if (whence === %{SEEK_CUR})
+        if (whence === %{SEEK_SET}) {
+            fd.readPosition = (pos || 0);
+	    if (pos < fd.readData.length) {
+		fd.writePosition = pos;
+		fd.writeData = fd.readData;
+	    }
+	} else if (whence === %{SEEK_CUR})
             fd.readPosition += pos;
 	else if (whence === %{SEEK_END})
 	    return 0;
