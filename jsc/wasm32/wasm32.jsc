@@ -5662,9 +5662,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (path.match(/^\/dev\/urandom/))
 	return 1;
 
-    if (path.match(/\.pdmp$/))
-	return -%{ENOENT};
-
     if (path.match(/loadup\.el$/)) {
 	path = "/home/pip/g/wasm/build/wasm32/emacs/lisp/loadup.el";
     }
