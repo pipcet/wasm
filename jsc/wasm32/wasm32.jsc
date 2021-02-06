@@ -4969,7 +4969,9 @@ if (typeof(os) !== "undefined" &&
         if (!fd)
             return -%{EBADF};
 
-        return fd.close();
+        let ret = fd.close();
+	delete this.fds[fdno];
+	return ret;
     };
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
         var dd = this.fds[fdno] || this.process.ddroot;
