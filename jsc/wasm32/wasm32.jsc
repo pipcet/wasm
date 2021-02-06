@@ -5673,7 +5673,11 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 	try {
 	    dd = this.process.ddroot;
 	    let ret = dd.openat(path, flags, mode);
-	    return ret.then(fd => (typeof fd === "object") ? fd.fdno : fd);
+	    return ret.then(fd => {
+		if (typeof fd === "object")
+		    return fd.fdno;
+		return fd;
+	    });
 	} catch (e) {
 	    console.log("exception!");
 	    return -%{ENOENT};
