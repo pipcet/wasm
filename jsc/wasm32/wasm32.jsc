@@ -2834,10 +2834,10 @@ ThinThinDD.prototype.openat = function (path, flags)
     } catch (e) {
     }
     try {
-	let data = os.file.readFile(path + "/.dir", "binary");
+	let data = os.file.readFile(path + "/.dir", "utf-8");
 	if (data !== null) {
 	    let ret = new ThinThinDD(this.process);
-	    ret.data = data;
+	    ret.readData = data;
 	    ret.read = ThinThinFD.prototype.read;
 	    ret.path = path;
 	    return Promise.resolve(ret);
