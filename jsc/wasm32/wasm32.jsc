@@ -5734,7 +5734,7 @@ ThinThin.isatty = function (fdno) {
 
 ThinThin.readlinkat = function ()
 {
-    return -%{ENOENT};
+    return -%{EINVAL};
 };
 
 ThinThin.unlinkat = function (fdno, cpath)
