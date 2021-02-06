@@ -5605,6 +5605,7 @@ ThinThin.linkat = function (oldfdno, coldpath,
     let oldpath = CStringAt(this.HEAPU8, coldpath);
     let newpath = CStringAt(this.HEAPU8, cnewpath);
 
+    os.system(`cp ${oldpath} ${newpath}`)
     console.log("linkat", oldpath, newpath);
 
     return 0;
