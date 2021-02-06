@@ -5028,6 +5028,8 @@ if (typeof(os) !== "undefined" &&
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
                 %{statbufptr[&stat::st_blocks] = "1"}
 
+		this.fds[fd.fdno].close();
+		delete this.fds[fd.fdno];
                 return 0;
             });
 	} else {
