@@ -612,7 +612,7 @@ build/wasm32/perl: | src/perl wasm/libcrypt.wasm wasm/libutil.wasm
 build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
 	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
 	touch build/wasm32/perl/config.sh
-	find build/wasm32/perl -type d | while read REPLY; do touch $$REPLY/.dir; done
+	find build/wasm32/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
 	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
 	touch $@
 
@@ -628,7 +628,7 @@ built/wasm32/miniperl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wa
 	touch $@
 
 built/wasm32/perl: built/wasm32/miniperl build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
-	(cd build/wasm32/perl; find -type d | while read REPLY; do touch $$REPLY/.dir; done)
+	find build/wasm32/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) install -C build/wasm32/perl < /dev/null
 	touch $@
@@ -739,7 +739,7 @@ built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
 # Emacs has a Makefile, so we configure it in the "built" step.
 built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	(cd build/wasm32/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=none --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
-	find build/wasm32/emacs -type d | while read REPLY; do touch $$REPLY/.dir; done
+	(cd build/wasm32/emacs; find -type d | while read REPLY; do touch $$REPLY/.dir; done)
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
