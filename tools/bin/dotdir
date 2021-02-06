@@ -1,0 +1,8 @@
+#!/bin/bash
+for a in *; do
+    if [ -d $a ]; then
+       echo -n "$a" && echo -n "/" && echo -e "\0"
+    else
+       echo -n "$a" && echo -e "\0"
+    fi
+done
