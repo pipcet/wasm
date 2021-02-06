@@ -617,7 +617,7 @@ build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/l
 	touch $@
 
 build/wasm32/gmp/Makefile: | src/gmp build/wasm32/gmp built/wasm32/gcc
-	(cd build/wasm32/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/gmp/configure)
+	(cd build/wasm32/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/gmp/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
 built/wasm32/python: build/wasm32/python/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/python
@@ -655,6 +655,11 @@ built/common/python: build/common/python/Makefile | built/common bin
 	sudo $(MAKE) -C build/common/python install
 	touch $@
 
+built/wasm32/gmp: build/wasm32/gmp/Makefile | bin built/wasm32
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gmp
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gmp install
+	touch $@
+
 built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	$(MAKE) -C build/wasm32/binutils-gdb
 	$(MAKE) -C build/wasm32/binutils-gdb install
@@ -662,8 +667,8 @@ built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
 	touch $@
 
 built/wasm32/native-binutils: build/wasm32/native-binutils/Makefile | bin built/wasm32
-	$(MAKE) -C build/wasm32/native-binutils
-	$(MAKE) -C build/wasm32/native-binutils install
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-binutils
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-binutils install
 	touch $@
 
 built/wasm32/gdb: build/wasm32/gdb/Makefile built/wasm32/gcc | bin built/wasm32
