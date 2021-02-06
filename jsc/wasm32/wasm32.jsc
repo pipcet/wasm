@@ -2812,11 +2812,6 @@ ThinThinDD.prototype.openat = function (path, flags)
 {
     if (path[0] !== "/")
 	path = this.path + "/" + path;
-    if (path.match(/(emacs-lisp|progmodes|language|international|textmodes|vc)$/)) {
-	let ret = new ThinThinDD(this.process);
-	ret.path = path;
-	return Promise.resolve(ret);
-    }
     if (path.match(/^\/dev\/(u?random)$/))
 	return Promise.resolve(-%{ENOENT});
     try {
@@ -5664,13 +5659,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 
     if (path.match(/\.pdmp$/))
 	return -%{ENOENT};
-
-    if (path.match(/lisp$/) &&
-	!path.match(/emacs-lisp.lisp/)) {
-	let ret = new ThinThinDD(this);
-	ret.path = ".";
-	return ret.fdno;
-    }
 
     if (path.match(/loadup\.el$/)) {
 	path = "/home/pip/g/wasm/build/wasm32/emacs/lisp/loadup.el";
