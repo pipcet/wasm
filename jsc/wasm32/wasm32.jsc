@@ -5233,7 +5233,7 @@ if (typeof(os) !== "undefined" &&
 
 	fd.readEOF = false;
 
-        return fd.readPosition;
+        return fd.readPosition || fd.writePosition;
     };
     ThinThin.access = function (ptr, mode) {
         return ThinThin.newfstatat.call(this, %{AT_FDCWD}, ptr, 0, 0);
