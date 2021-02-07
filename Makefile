@@ -109,6 +109,9 @@ build/wasm32/glibc/Makefile: | built/wasm32/gcc-preliminary src/glibc build/wasm
 build/wasm32/gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
+build/wasm32/native-gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/native-gcc
+	(cd build/wasm32/native-gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+
 build/wasm32/gcc-testsuite/site.exp: | build
 	$(MKDIR) $(dir $@)
 	> $@
@@ -728,6 +731,14 @@ built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc install
 	touch $@
 
+built/wasm32/native-gcc: build/wasm32/native-gcc/Makefile | built/wasm32
+	$(MKDIR) build/wasm32/native-gcc/gcc
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-gcc
+	cp build/wasm32/native-gcc/gcc/libgcc.a build/wasm32/native-gcc/gcc/libgcc_eh.a
+	cp build/wasm32/native-gcc/gcc/libgcc.a build/wasm32/native-gcc/gcc/libgcc_s.a
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-gcc install
+	touch $@
+
 built/wasm32/ncurses: build/wasm32/ncurses/Makefile | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
@@ -854,7 +865,7 @@ built/common/all: built/common/binaryen built/common/wabt
 clean!:
 	rm -rf build built src wasm32-unknown-none
 
-.SECONDARY: build/common/binaryen/Makefile build/common/python/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs build/wasm32/emacs-native-comp
+.SECONDARY: build/common/binaryen/Makefile build/common/python/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/native-gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs build/wasm32/emacs-native-comp
 .PRECIOUS: test/wasm32/%
 
 # Test framework
