@@ -822,6 +822,9 @@ wasm/perl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect b
 wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/python | wasm
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/python3 > $@
 
+wasm/libgmp.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/gmp | wasm
+	tools/bin/elf-to-wasm --library wasm32-unknown-none/wasm32-unknown-none/lib/libgmp.a > $@
+
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/coreutils | wasm
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
