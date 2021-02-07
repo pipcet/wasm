@@ -5111,6 +5111,8 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.fstat = function (fdno, bufptr) {
         var fd = this.fds[fdno];
+	if (!fd)
+	    return -%{EINVAL};
         this.HEAP32[bufptr+ 0>>2] = 0;
         this.HEAP32[bufptr+ 4>>2] = 0;
         this.HEAP32[bufptr+ 8>>2] = 0;
@@ -5223,6 +5225,8 @@ if (typeof(os) !== "undefined" &&
     ThinThin.lseek = function (fdno, pos, whence) {
         var fd = this.fds[fdno];
 
+	if (!fd)
+	    return -%{EINVAL};
         if (whence === %{SEEK_SET}) {
             fd.readPosition = (pos || 0);
 	    fd.writePosition = pos;
@@ -5685,10 +5689,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 
     if (path.match(/^\/dev\/urandom/))
 	return 1;
-
-    if (path.match(/loadup\.el$/)) {
-	path = "/home/pip/g/wasm/build/wasm32/emacs/lisp/loadup.el";
-    }
 
     if (path.match(/^\//)) {
 	try {
