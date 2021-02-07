@@ -58,3 +58,6 @@
 [submodule "subrepos/mpfr"]
 	path = subrepos/mpfr
 	url = https://github.com/pipcet/mpfr
+[submodule "subrepos/zlib"]
+	path = subrepos/zlib
+	url = https://github.com/pipcet/zlib
