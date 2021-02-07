@@ -5816,7 +5816,7 @@ ThinThin.getcwd = function (addr, len) {
 
     CStringTo(this.pwd, this.HEAP8, addr);
 
-    return this.pwd.length;
+    return this.pwd.length + 1;
 };
 
 ThinThin.dup2 = function (oldfd, newfd) {
