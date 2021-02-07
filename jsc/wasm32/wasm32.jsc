@@ -5363,7 +5363,7 @@ ThinThin.getuid = ThinThin.geteuid = ThinThin.getgid = ThinThin.getegid = functi
 
 ThinThin.getpid = ThinThin.getppid = function ()
 {
-    return this.pid;
+    return this.pid || 1;
 };
 
 ThinThin.dlload = function (addr, len, memp)
