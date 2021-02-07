@@ -5796,7 +5796,6 @@ ThinThin.fcntl_i = function (fdno, control, value) {
     }
     if (typeof os !== "undefined" &&
 	os.getenv && os.getenv("WASM_STRACE")) {
-	console.log("a", a, "b", b, "c", c, "F_SETFL", %{F_GETFL}, %{F_DUPFD});
 	try {
 	    i.dont.exist++;
 	} catch (e) {
