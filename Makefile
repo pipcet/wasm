@@ -122,7 +122,7 @@ build/wasm32/gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/gcc
 	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
 build/wasm32/native-gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/native-gcc
-	(cd build/wasm32/native-gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --enable-libgccjit --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	(cd build/wasm32/native-gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
 build/wasm32/gcc-testsuite/site.exp: | build
 	$(MKDIR) $(dir $@)
