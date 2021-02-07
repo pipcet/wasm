@@ -93,7 +93,7 @@ build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binut
 
 build/wasm32/native-binutils/Makefile: | src/wasm32/native-binutils build/wasm32/native-binutils
 	(cd src/wasm32/native-binutils/gas; aclocal; automake; autoreconf)
-	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_WASM))
+	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none CFLAGS=$(OPT_WASM))
 
 build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
 	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
