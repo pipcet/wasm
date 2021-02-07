@@ -44,7 +44,7 @@ built/wasm32: | built
 test/wasm32: | test
 	$(MKDIR) $@
 
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils build/wasm32/gmp build/wasm32/mpc build/wasm32/mpfr build/wasm32/native-gcc: | build/wasm32
+build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils build/wasm32/gmp build/wasm32/mpc build/wasm32/mpfr build/wasm32/native-gcc build/wasm32/zlib: | build/wasm32
 	$(MKDIR) $@
 
 build/common/binaryen build/common/wabt build/common/python: | build/common
@@ -68,7 +68,7 @@ src/wasm32/mpfr: | src/wasm32
 	mv $@T $@
 
 # These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh python gmp mpc
+good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh python gmp mpc zlib
 
 $(patsubst %,src/%,$(good-repos)): src/%: | src
 	test -L $@ || ln -sf ../subrepos/$* $@
@@ -641,6 +641,9 @@ build/wasm32/gmp/Makefile: | src/gmp build/wasm32/gmp built/wasm32/gcc
 build/wasm32/mpc/Makefile: | src/mpc build/wasm32/mpc built/wasm32/gcc
 	(cd build/wasm32/mpc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/mpc/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
+build/wasm32/zlib/Makefile: | src/zlib build/wasm32/zlib built/wasm32/gcc
+	(cd build/wasm32/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/zlib/configure --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+
 build/wasm32/mpfr/Makefile: | src/wasm32/mpfr build/wasm32/mpfr built/wasm32/gcc
 	(cd src/wasm32/mpfr; libtoolize && sh autogen.sh)
 	(cd build/wasm32/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/mpfr/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
@@ -694,6 +697,11 @@ built/wasm32/mpfr: build/wasm32/mpfr/Makefile | bin built/wasm32
 built/wasm32/mpc: build/wasm32/mpc/Makefile | bin built/wasm32 built/wasm32/gmp built/wasm32/gmp
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpc
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpc install
+	touch $@
+
+built/wasm32/zlib: build/wasm32/zlib/Makefile | bin built/wasm32
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zlib
+	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zlib install
 	touch $@
 
 built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
