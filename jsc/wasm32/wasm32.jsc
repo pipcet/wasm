@@ -4986,6 +4986,9 @@ if (typeof(os) !== "undefined" &&
         return fd.write(this.HEAPU8, ptr, len);
     };
     ThinThin.close = function (fdno) {
+	if (fdno < 3)
+	    return 0;
+
         var fd = this.fds[fdno];
 
         if (!fd)
