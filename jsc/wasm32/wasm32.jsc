@@ -2798,6 +2798,11 @@ function ThinThinDD(process, fdno)
 }
 ThinThinDD.prototype = Object.create(ThinThinFD.prototype);
 
+ThinThinDD.prototype.close = function ()
+{
+    return 0;
+};
+
 ThinThinDD.prototype.mode = function ()
 {
     return %{S_IFDIR + 0777};
