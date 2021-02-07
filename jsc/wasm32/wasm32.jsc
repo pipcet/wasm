@@ -3312,6 +3312,7 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
     } else {
 	for (let i=0; i<len; i++)
             data += String.fromCharCode(heap[ptr+i]);
+	this.writePosition = len;
     }
 
     if (this.half)
