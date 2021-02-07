@@ -2963,7 +2963,7 @@ ThinThinFD.prototype.close = function ()
 
     //delete this.process.fds[this.fdno];
 
-    if (this.fdno >= 3 && this.writeData !== "") {
+    if (this.fdno >= 3 && this.written && this.writeData !== "") {
 	let buf = new ArrayBuffer(this.writeData.length);
 	let arr = new Uint8Array(buf);
 	for (let i = 0; i < this.writeData.length; i++) {
@@ -3305,6 +3305,7 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 
     var data = "";
 
+    this.written = true;
     if (this.writePosition !== undefined && this.writeData) {
 	let data = this.writeData.substr(0, this.writePosition);
 	for (let i = 0; i < len; i++) {
