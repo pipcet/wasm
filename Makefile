@@ -65,6 +65,10 @@ $(patsubst %,src/%,$(good-repos)): src/%: | src
 build/wasm32/emacs: | build/wasm32
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
+# Emacs is _built_ in the source directory, so copy that.
+build/wasm32/emacs-native-comp: | build/wasm32
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs-native-comp; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+
 # Zsh is spe-shell.
 build/wasm32/zsh: | build/wasm32
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
@@ -752,6 +756,14 @@ built/wasm32/emacs: build/wasm32/emacs built/wasm32/ncurses | built/wasm32
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
 	touch $@
 
+# Emacs has a Makefile, so we configure it in the "built" step.
+built/wasm32/emacs-native-comp: build/wasm32/emacs-native-comp built/wasm32/ncurses built/wasm32/gmp | built/wasm32
+	(cd build/wasm32/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=pdumper --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-all)
+	find build/wasm32/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp install
+	touch $@
+
 tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds | bin
 	gcc -Wall -g3 $< -o $@
 
@@ -842,7 +854,7 @@ built/common/all: built/common/binaryen built/common/wabt
 clean!:
 	rm -rf build built src wasm32-unknown-none
 
-.SECONDARY: build/common/binaryen/Makefile build/common/python/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs
+.SECONDARY: build/common/binaryen/Makefile build/common/python/Makefile build/common/wabt/Makefile build/wasm32/binutils-gdb/Makefile build/wasm32/gdb/Makefile build/wasm32/gcc-preliminary/Makefile build/wasm32/glibc/Makefile build/wasm32/gcc/Makefile build/wasm32/ncurses/Makefile build/wasm32/bash/Makefile build/wasm32/emacs build/wasm32/emacs-native-comp
 .PRECIOUS: test/wasm32/%
 
 # Test framework
@@ -1364,6 +1376,7 @@ daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz ext
 daily-bash!: | install/file-slurp
 daily-coreutils!: | install/file-slurp
 daily-emacs!: | install/file-slurp
+daily-emacs-native-comp!: | install/file-slurp
 daily-miniperl!: | install/file-slurp
 daily-perl!: | install/file-slurp
 daily-python!: | install/file-slurp
@@ -1412,6 +1425,16 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	$(MAKE) wasm/libncurses.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/emacs
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
+
+daily-emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) wasm/libncurses.wasm
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) built/wasm32/emacs-native-comp
 
 daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js bin/js
 	$(MAKE) wasm/ld.wasm
