@@ -842,6 +842,7 @@ Wasm32Module.prototype.fill_table = function (thread, vm, got, plt)
         pc++;
     } while (true);
 };
+let last_tom = 16384;
 
 Wasm32Module.prototype.check_libs = function (thread)
 {
@@ -858,17 +859,11 @@ Wasm32Module.prototype.check_libs = function (thread)
                 if (typeof os !== "undefined") {
                     var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib, "binary"), lib);
                     return module.load(thread, this.vm).then(() => {
-                        var mem = this.vm.%{zp[&zp->top_of_sbrk]};
+                        var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+			last_tom = tom;
                         this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
                         var ret = module.instantiate(thread, this.vm, mem, true);
-			ret.then(() => {
-			    let last = 16384;
-			    for (let header = 16384; header;
-				 header = this.vm.HEAP32[(header + 8)>>2]) {
-				last = header;
-			    }
-			});
                         this.vm.base_lm.dep[lib] = 0;
 
                         return ret;
@@ -965,7 +960,15 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 	    if (mem !== 16384) {
 		this.vm.HEAP32[(last + 8) >> 2] = mem;
 		let header = mem;
+		vm.HEAP32[(header + 16) >> 2] += header - 16384;
+		vm.HEAP32[(header + 24) >> 2] += header - 16384;
+		vm.HEAP32[(header + 32) >> 2] += header - 16384;
+		vm.HEAP32[(header + 40) >> 2] += header - 16384;
+		vm.HEAP32[(header + 48) >> 2] += header - 16384;
+		vm.HEAP32[(header + 56) >> 2] += header - 16384;
 	    }
+            var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+	    last_tom = tom;
             if (recurse)
                 return this.check_libs(thread);
             else
@@ -2111,6 +2114,7 @@ var ThinThin = {};
 
 ThinThin.recopy = function ()
 {
+    return 0;
     let vm = this.vm;
 
     for (let [dst, src, size, symbol] of vm.copies) {
