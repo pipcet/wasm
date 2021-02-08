@@ -98,6 +98,7 @@ $VAR1 = {
           'zp[&zp->top_of_memory] = "module.top_of_memory"' => 'HEAP32[4096>>2] = module.top_of_memory;',
           'zp[&zp->top_of_memory] = 512 * 1024 * 1024LL' => 'HEAP32[4096>>2] = 536870912; HEAP32[4096+4>>2] = 0;',
           'zp[&zp->top_of_sbrk]' => 'HEAP32[4096+8>>2]',
+          'zp[&zp->top_of_sbrk] = "32 * 1024 * 1024"' => 'HEAP32[4096+8>>2] = 32 * 1024 * 1024;',
           'zp[&zp->top_of_sbrk] = "tom"' => 'HEAP32[4096+8>>2] = tom;',
           'zp[&zp->top_of_sbrk] = "tos"' => 'HEAP32[4096+8>>2] = tos;'
         };
