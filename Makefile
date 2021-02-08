@@ -807,8 +807,8 @@ built/wasm32/emacs: | built/wasm32/ncurses build/wasm32/emacs built/wasm32 wasm/
 	touch $@
 
 # Emacs has a Makefile, so we configure it in the "built" step.
-built/wasm32/emacs-native-comp: | built/wasm32/ncurses built/wasm32/gmp built/wasm32 build/wasm32/emacs-native-comp
-	(cd build/wasm32/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=pdumper --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all)
+built/wasm32/emacs-native-comp: | built/wasm32/ncurses built/wasm32 build/wasm32/emacs-native-comp
+	(cd build/wasm32/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=pdumper --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
 	find build/wasm32/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp install
