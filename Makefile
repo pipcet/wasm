@@ -849,6 +849,12 @@ wasm/libdl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect 
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/bash | wasm
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/bash > $@
 
+wasm/libz.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/zlib | wasm
+	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libz.so > $@
+
+wasm/libgccjit.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/native-gcc | wasm
+	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libgccjit.so > $@
+
 wasm/zsh.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/zsh | wasm
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/zsh > $@
 
@@ -1064,6 +1070,12 @@ artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/toolchai
 artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/zsh
+	$(MAKE) artifact-push!
+
+artifact-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/toolchain.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/zlib wasm/libz.wasm
+	cp wasm/libz.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm
