@@ -862,6 +862,13 @@ Wasm32Module.prototype.check_libs = function (thread)
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
                         this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
                         var ret = module.instantiate(thread, this.vm, mem, true);
+			ret.then(() => {
+			    let last = 16384;
+			    for (let header = 16384; header;
+				 header = this.vm.HEAP32[(header + 8)>>2]) {
+				last = header;
+			    }
+			});
                         this.vm.base_lm.dep[lib] = 0;
 
                         return ret;
@@ -950,13 +957,22 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
             lastdonetime = this.donetime = Date.now();
 
 	    this.instance = instance;
+	    let last = 0;
+	    for (let header = 16384; header;
+		 header = vm.HEAP32[(header + 8)>>2]) {
+		last = header;
+	    }
+	    if (mem !== 16384) {
+		this.vm.HEAP32[(last + 8) >> 2] = mem;
+		let header = mem;
+	    }
             if (recurse)
                 return this.check_libs(thread);
             else
                 return true;
-    }).catch((e) => {
-        console.log("died instantiating: " + e + "\n" + e.stack);
-    });
+	}).catch((e) => {
+            console.log("died instantiating: " + e + "\n" + e.stack);
+	});
 };
 
 function Wasm32Thread(kport, process, threadpage, vm)
