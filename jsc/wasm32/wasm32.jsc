@@ -967,7 +967,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 		vm.HEAP32[(header + 48) >> 2] += header - 16384;
 		vm.HEAP32[(header + 56) >> 2] += header - 16384;
 	    }
-            var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+            var tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
 	    last_tom = tom;
             if (recurse)
                 return this.check_libs(thread);
