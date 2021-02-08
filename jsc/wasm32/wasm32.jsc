@@ -633,7 +633,8 @@ Wasm32LM.prototype.dyninfo_misc =
     function (dyninfo, imports, module)
 {
     for (let lib of dyninfo.libs || []) {
-        this.dep[lib] = -1;
+	if (!(lib in this.dep))
+            this.dep[lib] = -1;
     }
 
     if ("lazy" in dyninfo) {
@@ -862,7 +863,7 @@ Wasm32Module.prototype.check_libs = function (thread)
                         var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
 			last_tom = tom;
-                        this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
+                        //this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
                         var ret = module.instantiate(thread, this.vm, mem, true);
                         this.vm.base_lm.dep[lib] = 0;
 
@@ -966,6 +967,12 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 		vm.HEAP32[(header + 40) >> 2] += header - 16384;
 		vm.HEAP32[(header + 48) >> 2] += header - 16384;
 		vm.HEAP32[(header + 56) >> 2] += header - 16384;
+		if (this.name === "ld.wasm" ||
+		    this.name === "libc.wasm") {
+		    vm.HEAP32[header + 56 >> 2] = vm.HEAP32[header + 48 >> 2];
+		    vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
+		    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
+		}
 	    }
             var tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
 	    last_tom = tom;
@@ -1912,11 +1919,11 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     process.vm = vm;
     for (let module of [modules[0]]) {
         var tos = (module.dyninfo.data_end + 4095) & -4096;
-        vm.%{zp[&zp->top_of_sbrk] = "tos"}
+        //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 	await module.load(thread, vm);
         var ret = await module.instantiate(thread, vm, 0x4000, true);
         var tos = (module.dyninfo.data_end + 4095) & -4096;
-        vm.%{zp[&zp->top_of_sbrk] = "tos"}
+        //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 
         process.HEAP8 = vm.HEAP8;
         process.HEAP16 = vm.HEAP16;
@@ -1980,7 +1987,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
             var ret = module.instantiate(thread, vm, 0x4000, true);
             var tos = (module.dyninfo.data_end + 4095) & -4096;
 
-            vm.%{zp[&zp->top_of_sbrk] = "tos"}
+            vm.%{zp[&zp->top_of_sbrk] = "32 * 1024 * 1024"}
 
             return ret;
         }).then(() => {
@@ -2114,7 +2121,6 @@ var ThinThin = {};
 
 ThinThin.recopy = function ()
 {
-    return 0;
     let vm = this.vm;
 
     for (let [dst, src, size, symbol] of vm.copies) {
