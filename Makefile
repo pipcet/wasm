@@ -1,3 +1,10 @@
+# wasm32/cross: build=host=x86_64-pc-linux-gnu target=wasm32-unknown-none
+# wasm32/native: build=x86_64-pc-linux-gnu host=target=wasm32-unknown-none
+# wasm32/wasm: wasm versions of wasm32/native
+# wasm32/pure: build=host=target=wasm32-unknown-none
+
+native-triplet = x86_64-pc-linux-gnu
+
 # $(MKDIR) command
 MKDIR ?= mkdir -p
 # $(PWD) is the top-level directory. No recursion here (except for subrepos).
@@ -8,16 +15,17 @@ WASMDIR ?= $(PWD)
 JS ?= $$JS
 
 .SECONDEXPANSION:
+
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
 all!: lds/wasm32.cpp-lds.lds built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-bin build built extracted github/assets github/release github/install install js lib ship src stamp test wasm:
+bin built extracted github/assets github/release github/install install js lib ship src stamp test wasm:
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf artifacts bin build built daily extracted github/assets github/release github/install tools/bin/wasmrewrite tools/bin/wasmsect install js lib ship src stamp test wasm wasm32-unknown-none lds/*.cpp-lds.lds
+	rm -rf artifacts bin built daily extracted github/assets github/release github/install tools/bin/wasmrewrite tools/bin/wasmsect install js lib ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
 
 # environment for bash shells
 env:
@@ -25,126 +33,352 @@ env:
 	@echo "export LANG=C"
 	@echo "export JS=$(JS)"
 
-# subsidiary directories. Nothing interesting here.
-src/wasm32: | src
+wasm32:
 	$(MKDIR) $@
 
-build/common: | build
+wasm32/native: | wasm32
+	$(MKDIR) $@
+	$(MKDIR) $@/lib
+
+wasm32/native/stamp: | wasm32/cross
 	$(MKDIR) $@
 
-built/common: | built
+wasm32/cross: | wasm32 wasm32/native
+	$(MKDIR) $@
+	$(MKDIR) $@/wasm32-unknown-none
+	ln -sf ../../native/include $@/wasm32-unknown-none/include
+	ln -sf ../../native/lib $@/wasm32-unknown-none/lib
+
+wasm32/cross/src wasm32/cross/stamp: | wasm32/cross
 	$(MKDIR) $@
 
-build/wasm32: | build
-	$(MKDIR) $@
-
-built/wasm32: | built
-	$(MKDIR) $@
-
-test/wasm32: | test
-	$(MKDIR) $@
-
-build/wasm32/binutils-gdb build/wasm32/gcc-preliminary build/wasm32/gdb build/wasm32/glibc build/wasm32/gcc build/wasm32/gcc-testsuite build/wasm32/gcc-testsuite-tar build/wasm32/gcc-testsuite-make build/wasm32/ncurses build/wasm32/bash build/wasm32/python build/wasm32/native-binutils build/wasm32/gmp build/wasm32/mpc build/wasm32/mpfr build/wasm32/native-gcc build/wasm32/zlib: | build/wasm32
-	$(MKDIR) $@
-
-build/common/binaryen build/common/wabt build/common/python: | build/common
-	$(MKDIR) $@
+# Binutils/GDB
 
 # binutils-gdb requires source tree modification, so we copy the source.
-src/wasm32/binutils-gdb: | src/wasm32
+wasm32/cross/src/binutils-gdb: | wasm32/cross/src
 	$(MKDIR) $@T
 	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
 	mv $@T $@
 
-# binutils-gdb requires source tree modification, so we copy the source.
-src/wasm32/native-binutils: | src/wasm32
-	$(MKDIR) $@T
-	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
-	mv $@T $@
+wasm32/cross/build/binutils-gdb/Makefile: | wasm32/cross/src/binutils-gdb wasm32/cross/build/binutils-gdb
+	(cd wasm32/cross/src/binutils-gdb/gas; aclocal; automake; autoreconf)
+	(cd wasm32/cross/build/binutils-gdb; ../../src/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/cross CFLAGS=$(OPT_NATIVE))
 
-src/wasm32/mpfr: | src/wasm32
+wasm32/cross/stamp/binutils-gdb: wasm32/cross/build/binutils-gdb/Makefile | bin wasm32/cross/stamp
+	$(MAKE) -C wasm32/cross/build/binutils-gdb
+	$(MAKE) -C wasm32/cross/build/binutils-gdb install
+	touch $@
+
+# GCC (preliminary compilation, C only)
+
+wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
+	test -L $@ || ln -sf ../../../subrepos/gcc $@
+
+wasm32/cross/build/gcc-preliminary/Makefile: | wasm32/cross/stamp/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc
+	(cd wasm32/cross/build/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32/cross)
+
+wasm32/cross/stamp/gcc-preliminary: wasm32/cross/build/gcc-preliminary/Makefile | wasm32/cross/stamp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary install
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
+	touch $@
+
+# Glibc
+
+wasm32/native/src: | wasm32/native
+	$(MKDIR) $@
+
+# These repos do not require source tree modification.
+$(patsubst %,wasm32/native/src/%,gcc glibc ncurses bash wabt binaryen python gmp mpc zlib): wasm32/native/src/%: | wasm32/native/src
+	test -L $@ || ln -sf ../../../subrepos/$* $@
+
+$(patsubst %,wasm32/cross/src/%,gcc wabt binaryen): wasm32/cross/src/%: | wasm32/cross/src
+	test -L $@ || ln -sf ../../../subrepos/$* $@
+
+$(patsubst %,wasm32/cross/build/%,binutils-gdb gcc-preliminary gcc wabt binaryen): wasm32/cross/build/%: | wasm32/cross/src
+	$(MKDIR) $@
+
+$(patsubst %,wasm32/native/build/%,binutils-gdb gcc glibc ncurses bash wabt binaryen python gmp mpc zlib): wasm32/native/build/%: | wasm32/native/build
+	$(MKDIR) $@
+
+wasm32/native/build/glibc/Makefile: | wasm32/cross/stamp/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc
+	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -Os -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/glibc: wasm32/native/build/glibc/Makefile | wasm32/native/stamp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc install
+	touch $@
+
+# GCC (final build, C/C++/LTO, no libgccjit)
+
+wasm32/cross/build/gcc/Makefile: | wasm32/native/stamp/glibc wasm32/cross/stamp/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc
+	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross)
+
+wasm32/cross/stamp/gcc: wasm32/cross/build/gcc/Makefile | wasm32/cross/stamp wasm32/cross/src/gcc
+	$(MKDIR) wasm32/cross/build/gcc/gcc
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc
+	cp wasm32/cross/build/gcc/gcc/libgcc.a wasm32/cross/build/gcc/gcc/libgcc_eh.a
+	cp wasm32/cross/build/gcc/gcc/libgcc.a wasm32/cross/build/gcc/gcc/libgcc_s.a
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc install
+	touch $@
+
+# ncurses
+
+wasm32/native/build/ncurses/Makefile: | wasm32/cross/stamp/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses
+	(cd wasm32/native/build/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-stripping --with-shared)
+	touch $@
+
+wasm32/native/stamp/ncurses: wasm32/native/build/ncurses/Makefile | wasm32/native/stamp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses install
+	touch $@
+
+# bash
+
+wasm32/native/build/bash/Makefile: | wasm32/native/stamp/ncurses wasm32/native/src/bash wasm32/native/build/bash
+	(cd wasm32/native/build/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/bash/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-bash-malloc)
+	touch $@
+
+wasm32/native/stamp/bash: wasm32/native/build/bash/Makefile | wasm32/native/stamp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/bash
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/bash install
+	touch $@
+
+# zsh
+
+# Zsh is spe-shell.
+wasm32/native/build/zsh: | wasm32/native/build
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+
+wasm32/native/build/zsh/Makefile: | wasm32/native/stamp/ncurses wasm32/native/src/zsh wasm32/native/build/zsh
+	(cd wasm32/native/build/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
+	touch $@
+
+wasm32/native/stamp/zsh: wasm32/native/build/zsh/Makefile | wasm32/native/stamp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh install
+	touch $@
+
+# coreutils
+
+# Coreutils requires its own destructive bootstrap script
+wasm32/native/build/coreutils: | wasm32/native/build
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+
+wasm32/native/build/coreutils/Makefile: | wasm32/native/stamp/ncurses wasm32/native/src/coreutils wasm32/native/build/coreutils
+	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
+	touch $@
+
+wasm32/native/stamp/coreutils: wasm32/native/build/coreutils/Makefile | wasm32/native/stamp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils install
+	touch $@
+
+# Python
+
+wasm32/native/build/python/Makefile: | wasm32/cross/stamp/gcc wasm32/native/src/python wasm32/native/build/python
+	(cd wasm32/native/build/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/python/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-ipv6 --with-ensurepip=no)
+	touch $@
+
+wasm32/native/stamp/python: wasm32/native/build/python/Makefile | wasm32/native/stamp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python install
+	touch $@
+
+# Perl
+
+wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
+	$(MKDIR) $@
+	(cd wasm32/native/src/perl; tar c --exclude .git .) | (cd $@; tar x)
+
+wasm32/native/build/perl/Makefile: | wasm32/native/build/perl wasm32/cross/stamp/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm tools/bin/dotdir
+	test -f wasm32/native/build/perl/config.sh && mv wasm32/native/build/perl/config.sh wasm32/native/build/perl/config.sh.old || true
+	touch wasm32/native/build/perl/config.sh
+	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	(cd wasm32/native/build/perl; PATH=$(PWD)/wasm32/cross/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32/native')
+	touch $@
+
+wasm32/native/stamp/miniperl: wasm32/native/build/perl/Makefile | install/binfmt_misc/elf32-wasm32
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl miniperl
+	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
+	touch $@
+
+wasm32/native/stamp/perl: wasm32/native/stamp/miniperl wasm32/native/build/perl/Makefile | install/binfmt_misc/elf32-wasm32 js/wasm32.js tools/bin/dotdir
+	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
+	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
+	touch $@
+
+# zlib
+
+wasm32/native/build/zlib/Makefile: | wasm32/native/build/zlib wasm32/native/src/zlib wasm32/cross/stamp/gcc
+	(cd wasm32/native/build/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/zlib/configure --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/zlib: wasm32/native/build/zlib/Makefile | bin built/wasm32
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib install
+	touch $@
+
+# GMP
+
+wasm32/native/build/gmp/Makefile: | wasm32/native/build/gmp wasm32/native/src/gmp wasm32/cross/stamp/gcc
+	(cd wasm32/native/build/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gmp/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/gmp: wasm32/native/build/gmp/Makefile | wasm32/native/stamp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp install
+	touch $@
+
+# MPC
+
+wasm32/native/build/mpc/Makefile: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/gcc
+	(cd wasm32/native/build/mpc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpc/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/mpc: wasm32/native/build/mpc/Makefile | wasm32/native/stamp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc install
+	touch $@
+
+# MPFR
+
+wasm32/native/src/mpfr: | wasm32/native/src
 	$(MKDIR) $@T
 	(cd subrepos/mpfr; tar c --exclude .git .) | (cd $@T; tar x)
 	mv $@T $@
 
-# These repos do not require source tree modification.
-good-repos = gcc glibc ncurses bash wabt binaryen coreutils perl zsh python gmp mpc zlib
+wasm32/native/build/mpfr: | wasm32/native/build
+	$(MKDIR) $@
 
-$(patsubst %,src/%,$(good-repos)): src/%: | src
-	test -L $@ || ln -sf ../subrepos/$* $@
+wasm32/native/build/mpfr/Makefile: | wasm32/native/src/mpfr wasm32/native/build/mpfr wasm32/cross/stamp/gcc
+	(cd wasm32/native/src/mpfr; libtoolize && sh autogen.sh)
+	(cd wasm32/native/build/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpfr/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/mpfr: wasm32/native/build/mpfr/Makefile wasm32/native/stamp/gmp | wasm32/native/stamp
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
+	touch $@
+
+# Binutils (native)
+
+wasm32/native/src/binutils-gdb: | wasm32/cross/src
+	$(MKDIR) $@T
+	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
+	mv $@T $@
+
+wasm32/native/build/binutils-gdb/Makefile: | wasm32/native/src/binutils-gdb wasm32/native/build/binutils-gdb
+	(cd wasm32/native/src/binutils-gdb/gas; aclocal; automake; autoreconf)
+	(cd wasm32/native/build/binutils-gdb; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/binutils-gdb/configure --build=$(native-triplet) --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/native CFLAGS=$(OPT_WASM))
+
+wasm32/native/stamp/binutils-gdb: wasm32/native/build/binutils-gdb/Makefile
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb install
+	touch $@
+
+# GCC (native)
+
+wasm32/native/build/gcc/Makefile: | wasm32/native/stamp/glibc wasm32/cross/stamp/gcc wasm32/native/build/gcc wasm32/native/src/gcc
+	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
+
+wasm32/native/stamp/gcc: wasm32/native/build/gcc/Makefile | wasm32/native/stamp wasm32/native/src/gcc
+	$(MKDIR) wasm32/native/build/gcc/gcc
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gcc
+	cp wasm32/native/build/gcc/gcc/libgcc.a wasm32/native/build/gcc/gcc/libgcc_eh.a
+	cp wasm32/native/build/gcc/gcc/libgcc.a wasm32/native/build/gcc/gcc/libgcc_s.a
+	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gcc install
+	touch $@
+
+# Emacs
+
+wasm32/cross/build/emacs: | wasm32/cross/build
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); rm $@T/Makefile; mv $@T $@)
+
+wasm32/cross/build/emacs/Makefile: | wasm32/cross/build/emacs
+	(cd wasm32/native/build/emacs; sh autogen.sh; ./configure --build=$(native-triplet) --host=$(native-triplet) --prefix=$(PWD)/wasm32/cross --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
+
+wasm32/cross/stamp/emacs: wasm32/cross/build/emacs/Makefile
+	$(MAKE) -C wasm32/cross/build/emacs
+	touch $@
 
 # Emacs is _built_ in the source directory, so copy that.
-build/wasm32/emacs: | build/wasm32
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+wasm32/native/build/emacs: | wasm32/native/build
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); rm $@T/Makefile; mv $@T $@)
+
+wasm32/native/build/emacs/Makefile: | wasm32/native/build/emacs tools/bin/dotdir
+	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
+	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+
+wasm32/native/stamp/emacs: wasm32/native/build/emacs/Makefile | wasm32/native/stamp/ncurses
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs install
+	touch $@
+
+# Needs runtime
+wasm32/native/stamp/emacs: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
+
+# Emacs with native compilation
 
 # Emacs is _built_ in the source directory, so copy that.
-build/wasm32/emacs-native-comp: | build/wasm32
+wasm32/native/build/emacs-native-comp: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs-native-comp; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-# Zsh is spe-shell.
-build/wasm32/zsh: | build/wasm32
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+# Emacs has a Makefile, so we configure it in the "built" step.
+wasm32/native/stamp/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/native/stamp/ncurses tools/bin/dotdir
+	(cd wasm32/native/build/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=pdumper --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
+	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp
+	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp install
+	touch $@
 
-# Coreutils requires its own destructive bootstrap script
-build/wasm32/coreutils: | build/wasm32
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+wasm32/native/stamp/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
 
-# We use /Makefile as a sentinel for whether the configure/cmake script has run.
-build/common/binaryen/Makefile: | build/common/binaryen src/binaryen
-	(cd build/common/binaryen; cmake ../../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
+# wabt
 
-build/common/python/Makefile: | build/common/python src/python
-	(cd build/common/python; ../../../src/python/configure)
+wasm32/cross/build/wabt/Makefile: | wasm32/cross/build/wabt wasm32/cross/src/wabt
+	(cd wasm32/cross/build/wabt; cmake ../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 
-build/common/wabt/Makefile: | src/wabt build/common/wabt
-	(cd build/common/wabt; cmake ../../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/common -DCMAKE_BUILD_TYPE=Debug)
+wasm32/cross/stamp/wabt: wasm32/cross/build/wabt/Makefile | wasm32/cross/stamp
+	$(MAKE) -C wasm32/cross/build/wabt
+	$(MAKE) -C wasm32/cross/build/wabt install
+	touch $@
 
-build/wasm32/binutils-gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/binutils-gdb
-	(cd src/wasm32/binutils-gdb/gas; aclocal; automake; autoreconf)
-	(cd build/wasm32/binutils-gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+# Binaryen
 
-build/wasm32/native-binutils/Makefile: | src/wasm32/native-binutils build/wasm32/native-binutils
-	(cd src/wasm32/native-binutils/gas; aclocal; automake; autoreconf)
-	(cd build/wasm32/native-binutils; ../../../src/wasm32/native-binutils/configure --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none CFLAGS=$(OPT_WASM))
+wasm32/cross/build/binaryen/Makefile: | wasm32/cross/build/binaryen wasm32/cross/src/binaryen
+	(cd wasm32/cross/build/binaryen; cmake ../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 
-build/wasm32/gdb/Makefile: | src/wasm32/binutils-gdb build/wasm32/gdb
-	(cd build/wasm32/gdb; ../../../src/wasm32/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32-unknown-none CFLAGS=$(OPT_NATIVE))
+wasm32/cross/stamp/binaryen: wasm32/cross/build/binaryen/Makefile | wasm32/cross/stamp
+	$(MAKE) -C wasm32/cross/build/binaryen
+	$(MAKE) -C wasm32/cross/build/binaryen install
+	touch $@
 
-# Note that src/gcc is shared between the gcc-preliminary and gcc targets.
+########################################
 
-build/wasm32/gcc-preliminary/Makefile: | built/wasm32/binutils-gdb build/wasm32/gcc-preliminary src/gcc
-	(cd build/wasm32/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
-build/wasm32/glibc/Makefile: | built/wasm32/gcc-preliminary src/glibc build/wasm32/glibc
-	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -Os -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
-gcc-target-def = \
-	$(2)_FOR_TARGET=$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(1)
 
-gcc-target-defs = \
-	$(call gcc-target-def,ar,AR) \
-	$(call gcc-target-def,as,AS) \
-	$(call gcc-target-def,nm,NM) \
-	$(call gcc-target-def,ld,LD) \
-	$(call gcc-target-def,objdump,OBJDUMP) \
-	$(call gcc-target-def,objcopy,OBJCOPY) \
-	$(call gcc-target-def,ranlib,RANLIB) \
-	$(call gcc-target-def,readelf,READELF) \
-	$(call gcc-target-def,strip,STRIP)
 
-build/wasm32/gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/gcc
-	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" $(gcc-target-defs) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
-build/wasm32/native-gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/native-gcc
-	(cd build/wasm32/native-gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
-build/wasm32/gcc-testsuite/site.exp: | build
+
+
+
+
+
+
+
+
+
+
+
+
+wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc
 	$(MKDIR) $(dir $@)
 	> $@
-	echo 'set rootme "$(PWD)/build/wasm32/gcc-testsuite/"' >> $@
-	echo 'set srcdir "$(PWD)/src/gcc/gcc"' >> $@
-	echo 'set host_triplet x86_64-pc-linux-gnu' >> $@
-	echo 'set build_triplet x86_64-pc-linux-gnu' >> $@
+	echo 'set rootme "$(PWD)/wasm32/cross/test/gcc"' >> $@
+	echo 'set srcdir "$(PWD)/wasm32/cross/src/gcc/gcc"' >> $@
+	echo 'set host_triplet $(native-triplet)' >> $@
+	echo 'set build_triplet $(native-triplet)' >> $@
 	echo 'set target_triplet wasm32-unknown-none' >> $@
 	echo 'set target_alias wasm32-unknown-none' >> $@
 	echo 'set libiconv ""' >> $@
@@ -155,48 +389,42 @@ build/wasm32/gcc-testsuite/site.exp: | build
 	echo 'set HOSTCFLAGS "-g "' >> $@
 	echo 'set HOSTCXXFLAGS "-g  "' >> $@
 	echo 'set TEST_ALWAYS_FLAGS ""' >> $@
-	echo 'set TEST_GCC_EXEC_PREFIX "$(PWD)/wasm32-unknown-none/lib/gcc/"' >> $@
+	echo 'set TEST_GCC_EXEC_PREFIX "$(PWD)/wasm32/cross/lib/gcc/"' >> $@
 	echo 'set TESTING_IN_BUILD_TREE 0' >> $@
 	echo 'set HAVE_LIBSTDCXX_V3 1' >> $@
 	echo 'set ENABLE_PLUGIN 1' >> $@
 	echo 'set PLUGINCC "g++"' >> $@
 	echo 'set PLUGINCFLAGS "-g  "' >> $@
 	echo 'set GMPINC ""' >> $@
-	echo 'set tmpdir $(PWD)/build/wasm32/gcc-testsuite' >> $@
+	echo 'set tmpdir $(PWD)/wasm32/cross/test/tmp' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
-build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk: | build/wasm32/gcc-testsuite/site.exp
+wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
 	$(MKDIR) $(dir $@)
 	> $@
 	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay:" >> $@; \
-	    echo "\t(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp src/gcc/gcc/testsuite/$(dir $*)$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/bin:$(PWD)/wasm32-unknown-none/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp src/gcc/gcc/testsuite/$(dir $*)$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
 	    echo "\t! egrep -q '^# of unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
 	    echo >> $@; \
 	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
 	done; \
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
-build/wasm32/gcc-testsuite/gcc.c-torture/execute/%: build/wasm32/gcc-testsuite-make/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
+wasm32/cross/test/gcc/results/gcc.c-torture/execute/%: wasm32/cross/test/gcc/make/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.c-torture/execute/ieee/%: build/wasm32/gcc-testsuite-make/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
+wasm32/cross/test/gcc/results/gcc.c-torture/execute/ieee/%: wasm32/cross/test/gcc/make/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/%: build/wasm32/gcc-testsuite-make/gcc.dg/dg.exp.{dejagnu}.mk
+wasm32/cross/test/gcc/results/gcc.dg/%: wasm32/cross/test/gcc/make/gcc.dg/dg.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/debug/dwarf2/%: build/wasm32/gcc-testsuite-make/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
+wasm32/cross/test/gcc/results/gcc.dg/debug/dwarf2/%: wasm32/cross/test/gcc/make/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
-build/wasm32/gcc-testsuite/gcc.dg/tls/%: build/wasm32/gcc-testsuite-make/gcc.dg/tls/tls.exp.{dejagnu}.mk
+wasm32/cross/test/gcc/results/gcc.dg/tls/%: wasm32/cross/test/gcc/make/gcc.dg/tls/tls.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
-
-build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
-	$(MKDIR) build/wasm32/gcc-testsuite-tar/$(dir $*)
-	$(MKDIR) build/wasm32/gcc-testsuite/$(dir $*)
-	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
-	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
 GCC_PROBLEM_TESTS = \
 	gcc.c-torture/compile/20080625-1.c \
@@ -532,21 +760,11 @@ GCC_PROBLEM_TESTS = \
 	gcc.dg/var-expand1.c \
 	gcc.dg/varpool-1.c
 
-build/wasm32/gcc-testsuite/problem.tar:
-	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=build/wasm32/gcc-testsuite/%.{dejagnu}/okay) || true
-	tar cf $@ build/wasm32/gcc-testsuite
+# This rule isn't perfect, it tars up data it might not have written.
+wasm32/test/gcc/problem.tar:
+	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=wasm32/test/gcc/results/%/okay) || true
+	tar cf $@ wasm32/test/gcc/results
 
-problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js
-	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
-	$(MAKE) extracted/daily/gcc.tar.gz
-	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
-	$(MAKE) artifacts artifact-timestamp
-	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
-	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
-	cp build/wasm32/gcc-testsuite/problem.tar artifacts
-	$(MAKE) artifact-push!
-
-# Trampolines are currently broken
 # No sibcalls yet
 GCC_BAD_TESTS = \
 	gcc.dg/lto/20091216-1_0.c \
@@ -616,306 +834,104 @@ GCC_TESTSUITES = \
 	gcc.dg/vect/vect.exp \
 	gcc.dg/weak/weak.exp
 
-gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
-
-build/wasm32/ncurses/Makefile: | built/wasm32/gcc src/ncurses build/wasm32/ncurses
-	(cd build/wasm32/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-stripping --with-shared)
-	touch $@
-
-build/wasm32/python/Makefile: | built/wasm32/gcc src/python build/wasm32/python
-	(cd build/wasm32/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/python/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --disable-ipv6 --with-ensurepip=no)
-	touch $@
-
-build/wasm32/bash/Makefile: | built/wasm32/ncurses src/bash build/wasm32/bash
-	(cd build/wasm32/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/bash/configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-bash-malloc)
-	touch $@
-
-build/wasm32/zsh/Makefile: | built/wasm32/ncurses src/zsh build/wasm32/zsh
-	(cd build/wasm32/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-	touch $@
-
-build/wasm32/coreutils/Makefile: | built/wasm32/ncurses src/coreutils build/wasm32/coreutils
-	(cd build/wasm32/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure  --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-	touch $@
-
-build/wasm32/perl: | src/perl wasm/libcrypt.wasm wasm/libutil.wasm
-	$(MKDIR) $@
-	(cd src/perl; tar c --exclude .git .) | (cd $@; tar x)
-
-build/wasm32/perl/Makefile: | src/perl build/wasm32/perl built/wasm32/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm
-	test -f build/wasm32/perl/config.sh && mv build/wasm32/perl/config.sh build/wasm32/perl/config.sh.old || true
-	touch build/wasm32/perl/config.sh
-	find build/wasm32/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
-	(cd build/wasm32/perl; PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/include' -Dlibpth='$(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/include-fixed $(PWD)/wasm32-unknown-none/lib/gcc/wasm32-unknown-none/8.0.0/../../../../wasm32-unknown-none/lib' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32-unknown-none/wasm32-unknown-none')
-	touch $@
-
-build/wasm32/gmp/Makefile: | src/gmp build/wasm32/gmp built/wasm32/gcc
-	(cd build/wasm32/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/gmp/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-
-build/wasm32/mpc/Makefile: | src/mpc build/wasm32/mpc built/wasm32/gcc
-	(cd build/wasm32/mpc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/mpc/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-
-build/wasm32/zlib/Makefile: | src/zlib build/wasm32/zlib built/wasm32/gcc
-	(cd build/wasm32/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/zlib/configure --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-
-build/wasm32/mpfr/Makefile: | src/wasm32/mpfr build/wasm32/mpfr built/wasm32/gcc
-	(cd src/wasm32/mpfr; libtoolize && sh autogen.sh)
-	(cd build/wasm32/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/wasm32/mpfr/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
-
-built/wasm32/python: build/wasm32/python/Makefile
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/python
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/python install
-	touch $@
-
-
-built/wasm32/miniperl: build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl miniperl
-	cp build/wasm32/perl/miniperl wasm32-unknown-none/wasm32-unknown-none/bin/miniperl
-	touch $@
-
-built/wasm32/perl: built/wasm32/miniperl build/wasm32/perl/Makefile | install/binfmt_misc/elf32-wasm32 js/wasm32.js
-	find build/wasm32/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
-	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/perl < /dev/null
-	PERL_CORE=1 PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) install -C build/wasm32/perl < /dev/null
-	touch $@
-
-# Actually building a package and installing it: make && make install, plus package-specific workarounds.
-
-built/common/binaryen: build/common/binaryen/Makefile | built/common bin
-	$(MAKE) -C build/common/binaryen
-	$(MAKE) -C build/common/binaryen install
-	(cd bin; ln -sf ../common/bin/* .)
-	touch $@
-
-built/common/wabt: build/common/wabt/Makefile | built/common bin
-	$(MAKE) -C build/common/wabt
-	$(MAKE) -C build/common/wabt install
-	(cd bin; ln -sf ../common/bin/* .)
-	touch $@
-
-built/common/python: build/common/python/Makefile | built/common bin
-	$(MAKE) -C build/common/python
-	sudo $(MAKE) -C build/common/python install
-	touch $@
-
-built/wasm32/gmp: build/wasm32/gmp/Makefile | bin built/wasm32
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gmp
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gmp install
-	touch $@
-
-built/wasm32/mpfr: build/wasm32/mpfr/Makefile | bin built/wasm32
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpfr
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpfr install
-	touch $@
-
-built/wasm32/mpc: build/wasm32/mpc/Makefile | bin built/wasm32 built/wasm32/gmp built/wasm32/gmp
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpc
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/mpc install
-	touch $@
-
-built/wasm32/zlib: build/wasm32/zlib/Makefile | bin built/wasm32
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zlib
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zlib install
-	touch $@
-
-built/wasm32/binutils-gdb: build/wasm32/binutils-gdb/Makefile | bin built/wasm32
-	$(MAKE) -C build/wasm32/binutils-gdb
-	$(MAKE) -C build/wasm32/binutils-gdb install
-	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
-	touch $@
-
-built/wasm32/native-binutils: build/wasm32/native-binutils/Makefile | bin built/wasm32
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-binutils
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-binutils install
-	touch $@
-
-built/wasm32/gdb: build/wasm32/gdb/Makefile built/wasm32/gcc | bin built/wasm32
-	$(MAKE) -C build/wasm32/gdb
-	$(MAKE) -C build/wasm32/gdb install
-	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
-	touch $@
-
-built/wasm32/gcc-preliminary: build/wasm32/gcc-preliminary/Makefile | built/wasm32 bin
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C build/wasm32/gcc-preliminary install
-	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
-	cp wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32-unknown-none/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
-	(cd bin; ln -sf ../wasm32-unknown-none/bin/wasm32-unknown-none-* .)
-	touch $@
-
-built/wasm32/glibc: build/wasm32/glibc/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/glibc install
-	touch $@
-
-built/wasm32/gcc-preliminary: | install/texinfo-bison-flex
-built/wasm32/gcc: | install/texinfo-bison-flex
-built/wasm32/binutils-gdb: | install/texinfo-bison-flex
-built/wasm32/native-binutils: | install/texinfo-bison-flex
-built/wasm32/native-gcc: | install/texinfo-bison-flex
-built/wasm32/glibc: | install/texinfo-bison-flex
-built/wasm32/ncurses: | install/texinfo-bison-flex
-built/wasm32/bash: | install/texinfo-bison-flex
-built/wasm32/miniperl: | install/texinfo-bison-flex
-built/wasm32/perl: | install/texinfo-bison-flex
-built/wasm32/python: | install/texinfo-bison-flex
-built/wasm32/zsh: | install/texinfo-bison-flex
-built/wasm32/coreutils: | install/texinfo-bison-flex
-
-built/wasm32/gcc-preliminary: | install/gcc-dependencies
-built/wasm32/gcc: | install/gcc-dependencies
-built/wasm32/binutils-gdb: | install/gcc-dependencies
-built/wasm32/native-binutils: | install/gcc-dependencies
-built/wasm32/native-gcc: | install/gcc-dependencies
-built/wasm32/glibc: | install/gcc-dependencies
-built/wasm32/ncurses: | install/gcc-dependencies
-built/wasm32/bash: | install/gcc-dependencies
-built/wasm32/miniperl: | install/gcc-dependencies
-built/wasm32/perl: | install/gcc-dependencies
-built/wasm32/zsh: | install/gcc-dependencies
-built/wasm32/coreutils: | install/gcc-dependencies
-built/wasm32/python: | install/gcc-dependencies
-
-built/wasm32/gcc: build/wasm32/gcc/Makefile | built/wasm32
-	$(MKDIR) build/wasm32/gcc/gcc
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc
-	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_eh.a
-	cp build/wasm32/gcc/gcc/libgcc.a build/wasm32/gcc/gcc/libgcc_s.a
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/gcc install
-	touch $@
-
-built/wasm32/native-gcc: build/wasm32/native-gcc/Makefile | built/wasm32
-	$(MKDIR) build/wasm32/native-gcc/gcc
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-gcc
-	cp build/wasm32/native-gcc/gcc/libgcc.a build/wasm32/native-gcc/gcc/libgcc_eh.a
-	cp build/wasm32/native-gcc/gcc/libgcc.a build/wasm32/native-gcc/gcc/libgcc_s.a
-	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/native-gcc install
-	touch $@
-
-built/wasm32/ncurses: build/wasm32/ncurses/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/ncurses install
-	touch $@
-
-built/wasm32/bash: build/wasm32/bash/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/bash install
-	touch $@
-
-built/wasm32/zsh: build/wasm32/zsh/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zsh
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/zsh install
-	touch $@
-
-built/wasm32/coreutils: build/wasm32/coreutils/Makefile | built/wasm32
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) --trace -C build/wasm32/coreutils install
-	touch $@
-
-# Emacs has a Makefile, so we configure it in the "built" step.
-built/wasm32/emacs: | built/wasm32/ncurses build/wasm32/emacs built/wasm32 wasm/libncurses.wasm
-	(cd build/wasm32/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=none --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
-	find build/wasm32/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs install
-	touch $@
-
-# Emacs has a Makefile, so we configure it in the "built" step.
-built/wasm32/emacs-native-comp: | built/wasm32/ncurses built/wasm32 build/wasm32/emacs-native-comp
-	(cd build/wasm32/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ./configure --with-dumping=pdumper --build=x86_64-pc-linux-gnu --host=wasm32-unknown-none --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
-	find build/wasm32/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/emacs-native-comp install
-	touch $@
-
-tools/bin/%: tools/src/%.c lds/wasm32.cpp-lds.lds | bin
+TOOLS_c = bitpush wasmextract wasmrewrite wasmsect
+TOOLS_cc =
+TOOLS_script = cflags dotdir dyninfo elf32-wasm32 elf-to-wasm jsc locked run-elf-wasm32 testsuite-make-fragment wasm
+wasm32/cross/bin/$(TOOLS_c): wasm32/cross/bin/%: tools/src/%
 	gcc -Wall -g3 $< -o $@
 
-tools/bin/%: tools/src/%.cc lds/wasm32.cpp-lds.lds | bin
+wasm32/cross/bin/$(TOOLS_cc): wasm32/cross/bin/%: tools/src/%
 	g++ -Wall -g3 $< -o $@
+
+wasm32/cross/bin/$(TOOLS_script): wasm32/cross/bin/%: tools/bin/%
+	cp -a $< $@ && chmod u+x $@
+
+wasm32/wasm/bin/%: wasm32/native/bin/%
+	$(MKDIR) $(dir wasm32/wasm/$*)
+	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+
+wasm32/wasm/%.so: wasm32/native/%.so | tools/bin/elf-to-wasm
+	$(MKDIR) $(dir wasm32/wasm/$*)
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
+
+wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm
+	$(MKDIR) $(dir wasm32/wasm/$*)
+	tools/bin/elf-to-wasm --library --dynamic $< > $@
+
+
+
 
 # wasm/ targets.
 
-wasm/ld.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/ld.so.1 > $@
+wasm/ld.wasm: wasm32/wasm/lib/ld.so.1
+	ln -sf ../$< $@
 
-wasm/libc.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libc.so > $@
+wasm/libc.wasm: wasm32/wasm/lib/libc.so
+	ln -sf ../$< $@
 
-wasm/libm.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libm.so > $@
+wasm/libm.wasm: wasm32/wasm/lib/libm.so
+	ln -sf ../$< $@
 
-wasm/libcrypt.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libcrypt.so > $@
+wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so
+	ln -sf ../$< $@
 
-wasm/libutil.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libutil.so > $@
+wasm/libutil.wasm: wasm32/wasm/lib/libutil.so
+	ln -sf ../$< $@
 
-wasm/libstdc++.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/gcc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libstdc++.so > $@
+wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so
+	ln -sf ../$< $@
 
-wasm/libncurses.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/ncurses | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libncurses.so > $@
+wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so
+	ln -sf ../$< $@
 
-wasm/libdl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/glibc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libdl.so > $@
+wasm/libdl.wasm: wasm32/wasm/lib/libdl.so
+	ln -sf ../$< $@
 
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/bash | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/bash > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/bash > $@
 
 wasm/libz.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/zlib | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libz.so > $@
+	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libz.so > $@
 
 wasm/libgmp.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/gmp | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libgmp.so > $@
+	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgmp.so > $@
 
 wasm/libmpfr.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/mpfr | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libmpfr.so > $@
+	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpfr.so > $@
 
 wasm/libmpc.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/mpc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libmpc.so > $@
+	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpc.so > $@
 
 wasm/libgccjit.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/native-gcc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libgccjit.so > $@
+	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgccjit.so > $@
 
 wasm/zsh.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/zsh | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/zsh > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/zsh > $@
 
 wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/miniperl | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/miniperl > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/miniperl > $@
 
 wasm/perl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/perl | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/perl > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/perl > $@
 
 wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/python | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/python3 > $@
+	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/python3 > $@
 
 COREUTILS = echo true false
-$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/coreutils | wasm
-	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/coreutils | wasm
+	ln -sf $< $@
 
-ifeq (${GITHUB},1)
-bin/js:
-	wget --quiet http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
-	unzip jsshell-linux-x86_64.zip -d bin
-endif
+wasm32/native/lib/js/wasm32.js: jsc/wasm32/wasm32.jsc
+	(echo "//autogenerated from $<, do not edit"; echo '"use strict";'; tools/bin/jsc wasm32-unknown-none) < $< > $@
 
-# JSC->js substitution
-js/wasm32-%.jsc.js: jsc/wasm32/%.jsc | js install/file-slurp
-	tools/bin/jsc wasm32-unknown-none < $< > $@
-js/wasm32-%.jsc.js: jsc/common/%.jsc | js install/file-slurp
+js/wasm32.js: wasm32/native/lib/wasm32.js
+	ln -sf $< $@
 
-# fixme: don't use a wildcard here.
-jsc = $(wildcard jsc/wasm32/*.jsc) $(wildcard jsc/common/*.jsc)
 
-js/wasm32.js: install/file-slurp
 
-# build the runtime JS
-js/wasm32.js: jsc/wasm32/wasm32.jsc
-	$(MKDIR) js
-	echo "// autogenerated from $^, do not edit" > $@.new
-	tools/bin/jsc wasm32-unknown-none < $< >> $@.new
-	mv $@.new $@
+
+
+
 
 # build-everything rules
 built/all: built/wasm32/all built/common/all
@@ -1172,8 +1188,8 @@ artifact-python!: | subrepos/python/checkout! artifacts extracted/artifacts/tool
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/python wasm/python.wasm
-	touch wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/encodings/.dir wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/.dir
-	PYTHONHOME=$(PWD)/wasm32-unknown-none/wasm32-unknown-none ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(3+4)' < /dev/null
+	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
+	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 	cp wasm/python.wasm artifacts/
 	$(MAKE) artifact-push!
 
@@ -1274,13 +1290,13 @@ github/latest: | github
 cflags = $(shell tools/bin/cflags $(1) $(2))
 
 test/wasm32/%.c.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
 
 test/wasm32/%.c.{debug}.exe: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*.c.{debug},$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map $< -o $@ -lstdc++ -lm
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c.{debug},$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map $< -o $@ -lstdc++ -lm
 
 test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
 	cat $< > $@
@@ -1289,7 +1305,7 @@ test/wasm32/%.c.{static}.exe.wasm.out.exp.pl: test/wasm32/%.c.exe.wasm.out.exp.p
 	cat $< > $@
 
 test/wasm32/%.cc.{static}.exe: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
 
 test/wasm32/%.cc.{static}.exe.wasm.out.exp: test/wasm32/%.cc.exe.wasm.out.exp
 	cat $< > $@
@@ -1330,13 +1346,13 @@ test/wasm32/%.cc.exe: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
 
 test/wasm32/%.c.s: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc -S $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc -S $< -o $@
 
 test/wasm32/%.S.o: test/wasm32/%.S
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.c.o: test/wasm32/%.c
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.c.i: test/wasm32/%.c
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
@@ -1345,7 +1361,7 @@ test/wasm32/%.cc.i: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
 
 test/wasm32/%.cc.s: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -S $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ -S $< -o $@
 
 test/wasm32/%.cc.o: test/wasm32/%.cc
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
@@ -1579,8 +1595,8 @@ daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) built/wasm32/python wasm/python.wasm
-	touch wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/encodings/.dir wasm32-unknown-none/wasm32-unknown-none/lib/python3.10/.dir
-	PYTHONHOME=$(PWD)/wasm32-unknown-none/wasm32-unknown-none ./wasm32-unknown-none/wasm32-unknown-none/bin/python3 -c 'print(3+4)' < /dev/null
+	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
+	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 
 daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js
 	$(MKDIR) wasm
@@ -1625,7 +1641,59 @@ gcc-testsuites-pack!: | artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.ex
 	cd tmp; tar cvf ../artifacts/dejagnu.tar .
 
 clean: clean!
+
+sequence: \
+	wasm32/cross/stamp/binutils-gdb \
+	wasm32/cross/stamp/gcc-preliminary \
+	wasm32/native/stamp/glibc \
+	wasm32/cross/stamp/gcc \
+	wasm32/native/stamp/ncurses \
+	wasm32/native/stamp/bash \
+	wasm32/native/stamp/zsh \
+	wasm32/native/stamp/coreutils \
+	wasm32/native/stamp/python \
+	wasm32/native/stamp/miniperl \
+	wasm32/native/stamp/zlib \
+	wasm32/native/stamp/gmp \
+	wasm32/native/stamp/mpc \
+	wasm32/native/stamp/mpfr \
+	wasm32/native/stamp/binutils-gdb \
+	wasm32/native/stamp/gcc \
+	wasm32/native/stamp/emacs \
+	wasm32/native/stamp/emacs-native-comp \
+	wasm32/cross/stamp/wabt \
+	wasm32/cross/stamp/binaryen
+
 all: built/all
 
 .PHONY: %! clean all
 .SUFFIXES:
+build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
+	$(MKDIR) build/wasm32/gcc-testsuite-tar/$(dir $*)
+	$(MKDIR) build/wasm32/gcc-testsuite/$(dir $*)
+	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
+	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
+
+problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js
+	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
+	$(MAKE) extracted/daily/gcc.tar.gz
+	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
+	$(MAKE) artifacts artifact-timestamp
+	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
+	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
+	cp build/wasm32/gcc-testsuite/problem.tar artifacts
+	$(MAKE) artifact-push!
+
+host/native/stamp/python: host/native/build/python/Makefile | host/native/stamp
+	$(MAKE) -C host/native/build/python
+	$(MAKE) -C host/native/build/python install
+	touch $@
+
+gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
+
+ifeq (${GITHUB},1)
+bin/js:
+	wget --quiet http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
+	unzip jsshell-linux-x86_64.zip -d bin
+endif
+
