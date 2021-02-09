@@ -299,7 +299,7 @@ wasm32/cross/build/emacs/Makefile: | wasm32/cross/build/emacs
 
 wasm32/cross/stamp/emacs: wasm32/cross/build/emacs/Makefile
 	$(MAKE) -C wasm32/cross/build/emacs
-	(cd wasm32/cross/build/emacs; tar cvf wasm32/cross/build/emacs/elc.tar $$(find -name '*.elc'))
+	(cd wasm32/cross/build/emacs; tar cvf elc.tar $$(find -name '*.elc'))
 	touch $@
 
 # Emacs is _built_ in the source directory, so copy that.
