@@ -1063,3 +1063,64 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  zlib:
+    name: zlib
+    runs-on: ubuntu-latest
+    needs:
+      - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-zlib!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  gmp:
+    name: gmp
+    runs-on: ubuntu-latest
+    needs:
+      - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-gmp!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  mpfr:
+    name: mpfr
+    runs-on: ubuntu-latest
+    needs:
+      - gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-mpfr!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  mpc:
+    name: mpc
+    runs-on: ubuntu-latest
+    needs:
+      - gcc
+      - gmp
+      - mpfr
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-mpc!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
