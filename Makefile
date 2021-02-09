@@ -118,8 +118,22 @@ build/wasm32/gcc-preliminary/Makefile: | built/wasm32/binutils-gdb build/wasm32/
 build/wasm32/glibc/Makefile: | built/wasm32/gcc-preliminary src/glibc build/wasm32/glibc
 	(cd build/wasm32/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/glibc/configure CFLAGS="-fPIC -Os -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
+gcc-target-def = \
+	$(2)_FOR_TARGET=$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(1)
+
+gcc-target-defs = \
+	$(call gcc-target-def,ar,AR) \
+	$(call gcc-target-def,as,AS) \
+	$(call gcc-target-def,nm,NM) \
+	$(call gcc-target-def,ld,LD) \
+	$(call gcc-target-def,objdump,OBJDUMP) \
+	$(call gcc-target-def,objcopy,OBJCOPY) \
+	$(call gcc-target-def,ranlib,RANLIB) \
+	$(call gcc-target-def,readelf,READELF) \
+	$(call gcc-target-def,strip,STRIP)
+
 build/wasm32/gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/gcc
-	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
+	(cd build/wasm32/gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" $(gcc-target-defs) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none)
 
 build/wasm32/native-gcc/Makefile: | built/wasm32/glibc src/gcc build/wasm32/native-gcc
 	(cd build/wasm32/native-gcc; ../../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
