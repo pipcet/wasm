@@ -56,6 +56,20 @@ jobs:
     - run: make GITHUB=1 -kj10 artifact-wasm32-cross-gcc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ncurses:
+    name: ncurses
+    runs-on: ubuntu-latest
+    needs: cross-gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 artifact-wasm32-native-ncurses!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
@@ -200,20 +214,6 @@ jobs:
   #     env:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-  # ncurses:
-  #   name: ncurses
-  #   runs-on: ubuntu-latest
-  #   needs: gcc
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 artifact-ncurses!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # bash:
   #   name: bash
