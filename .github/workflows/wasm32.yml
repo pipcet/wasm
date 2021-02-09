@@ -97,6 +97,113 @@ jobs:
     - run: make GITHUB=1 -k artifact-wasm32-native-zsh!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  zlib:
+    name: zlib
+    runs-on: ubuntu-latest
+    needs:
+      - cross-gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-zlib!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  gmp:
+    name: gmp
+    runs-on: ubuntu-latest
+    needs:
+      - cross-gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-gmp!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  mpfr:
+    name: mpfr
+    runs-on: ubuntu-latest
+    needs:
+      - cross-gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-mpfr!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  mpc:
+    name: mpc
+    runs-on: ubuntu-latest
+    needs:
+      - cross-gcc
+      - gmp
+      - mpfr
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-mpc!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  binutils-gdb:
+    name: binutils-gdb
+    runs-on: ubuntu-latest
+    needs:
+    - cross-gcc
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 artifact-wasm32-native-binutils-gdb!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  gcc:
+    name: gcc
+    runs-on: ubuntu-latest
+    needs:
+    - cross-gcc
+    - gmp
+    - mpc
+    - mpfr
+    - zlib
+    - binutils-gdb
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 artifact-wasm32-native-gcc!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  coreutils:
+    name: coreutils
+    runs-on: ubuntu-latest
+    needs:
+      - cross-gcc
+      - ncurses
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run:
+        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-coreutils!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
@@ -1032,21 +1139,6 @@ jobs:
   #     uses: ./github/env/
   #   - run: make GITHUB=1 -kj10 binutils-test!
 
-  # coreutils:
-  #   name: coreutils
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - ncurses
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run:
-  #       JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-coreutils!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # emacs:
   #   name: emacs
@@ -1063,64 +1155,5 @@ jobs:
   #     env:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # zlib:
-  #   name: zlib
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - cross-gcc
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-zlib!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # gmp:
-  #   name: gmp
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - cross-gcc
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-gmp!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # mpfr:
-  #   name: mpfr
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - cross-gcc
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-mpfr!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # mpc:
-  #   name: mpc
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - cross-gcc
-  #     - gmp
-  #     - mpfr
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-mpc!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

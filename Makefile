@@ -1491,35 +1491,35 @@ artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifa
 	$(MAKE) wasm32/native/stamp/zsh
 	$(MAKE) artifact-push!
 
-artifact-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/toolchain.tar
+artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/zlib wasm/libz.wasm
+	$(MAKE) wasm32/native/stamp/zlib wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/toolchain.tar
+artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/gmp wasm/libgmp.wasm
+	$(MAKE) wasm32/native/stamp/gmp wasm/libgmp.wasm
 	cp wasm/libgmp.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/toolchain.tar
+artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/mpfr wasm/libmpfr.wasm
+	$(MAKE) wasm32/native/stamp/mpfr wasm/libmpfr.wasm
 	cp wasm/libmpfr.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/toolchain.tar
+artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/mpc wasm/libmpc.wasm
+	$(MAKE) wasm32/native/stamp/mpc wasm/libmpc.wasm
 	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/coreutils
+	$(MAKE) wasm32/native/stamp/coreutils
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
