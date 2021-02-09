@@ -33,99 +33,96 @@ jobs:
 
 
 
-
-
-
-  tests:
-    name: Run tests
-    runs-on: ubuntu-latest
-    needs:
-    - jsshell
-    - glibc
-    - gcc
-    - wasm32-js
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Download wasm32.js
-      uses: actions/download-artifact@v1
-      with:
-        name: wasm32.js
-    - run: mkdir js
-    - name: Unpack wasm32.js
-      run: cp wasm32.js/wasm32.js js/wasm32.js
-    - name: Download jsshell
-      uses: actions/download-artifact@v1
-      with:
-        name: jsshell-linux-x86_64.zip
-    - name: Unpack jsshell
-      run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
-    - name: Download binutils
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          binutils.tar
-    - name: Download gcc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc.tar
-    - name: Download gcc-preliminary
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          gcc-preliminary.tar
-    - name: Download glibc
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          glibc.tar
-    - name: Download libc.wasm
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          libc.wasm
-    - name: Download libstdc++.wasm
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          libstdc++.wasm
-    - name: Download libm.wasm
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          libm.wasm
-    - name: Download ld.wasm
-      uses: actions/download-artifact@v1
-      with:
-        name:
-          ld.wasm
-    - name: Unpack binutils
-      run:
-        tar xf binutils.tar/binutils.tar
-    - name: Unpack gcc-preliminary
-      run:
-        tar xf gcc-preliminary.tar/gcc-preliminary.tar
-    - name: Unpack glibc
-      run:
-        tar xf glibc.tar/glibc.tar
-    - name: Unpack gcc
-      run:
-        tar xf gcc.tar/gcc.tar
-    - name: Build wasmrewrite
-      run: make GITHUB=1 tools/bin/wasmrewrite
-    - name: Build wasmssect
-      run: make GITHUB=1 tools/bin/wasmsect
-    - name: Directory shuffle
-      run: mkdir wasm-dirs && mv *.wasm wasm-dirs
-    - name: Copy *.wasm
-      run: cp wasm-dirs/*.wasm/*.wasm .
-    - name: Copy *.wasm to wasm/
-      run: mkdir wasm; cp *.wasm wasm
-    - name: Run tests
-      run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k run-all-tests!
+  # tests:
+  #   name: Run tests
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - jsshell
+  #   - native-glibc
+  #   - cross-gcc-preliminary
+  #   - wasm32-js
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Download wasm32.js
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name: wasm32.js
+  #   - run: mkdir js
+  #   - name: Unpack wasm32.js
+  #     run: cp wasm32.js/wasm32.js js/wasm32.js
+  #   - name: Download jsshell
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name: jsshell-linux-x86_64.zip
+  #   - name: Unpack jsshell
+  #     run: unzip jsshell-linux-x86_64.zip/jsshell-linux-x86_64.zip -d bin
+  #   - name: Download binutils
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         binutils.tar
+  #   - name: Download gcc
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         gcc.tar
+  #   - name: Download gcc-preliminary
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         gcc-preliminary.tar
+  #   - name: Download glibc
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         glibc.tar
+  #   - name: Download libc.wasm
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         libc.wasm
+  #   - name: Download libstdc++.wasm
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         libstdc++.wasm
+  #   - name: Download libm.wasm
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         libm.wasm
+  #   - name: Download ld.wasm
+  #     uses: actions/download-artifact@v1
+  #     with:
+  #       name:
+  #         ld.wasm
+  #   - name: Unpack binutils
+  #     run:
+  #       tar xf binutils.tar/binutils.tar
+  #   - name: Unpack gcc-preliminary
+  #     run:
+  #       tar xf gcc-preliminary.tar/gcc-preliminary.tar
+  #   - name: Unpack glibc
+  #     run:
+  #       tar xf glibc.tar/glibc.tar
+  #   - name: Unpack gcc
+  #     run:
+  #       tar xf gcc.tar/gcc.tar
+  #   - name: Build wasmrewrite
+  #     run: make GITHUB=1 tools/bin/wasmrewrite
+  #   - name: Build wasmssect
+  #     run: make GITHUB=1 tools/bin/wasmsect
+  #   - name: Directory shuffle
+  #     run: mkdir wasm-dirs && mv *.wasm wasm-dirs
+  #   - name: Copy *.wasm
+  #     run: cp wasm-dirs/*.wasm/*.wasm .
+  #   - name: Copy *.wasm to wasm/
+  #     run: mkdir wasm; cp *.wasm wasm
+  #   - name: Run tests
+  #     run:
+  #       JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k run-all-tests!
 
   binaryen:
     name: binaryen
