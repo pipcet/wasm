@@ -38,6 +38,7 @@ wasm32:
 
 wasm32/native: | wasm32
 	$(MKDIR) $@
+	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
 	$(MKDIR) $@/lib
 
 wasm32/native/stamp: | wasm32/cross
@@ -45,7 +46,7 @@ wasm32/native/stamp: | wasm32/cross
 
 wasm32/cross: | wasm32 wasm32/native
 	$(MKDIR) $@
-	$(MKDIR) $@/wasm32-unknown-none
+	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
 	ln -sf ../../native/include $@/wasm32-unknown-none/include
 	ln -sf ../../native/lib $@/wasm32-unknown-none/lib
 
