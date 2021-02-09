@@ -11,7 +11,7 @@ if [ x"$WASMGDB" != x ]; then
     mkfifo "$TMPD/wakeup"
     $(dirname "$0")/wasm $GDBARGS "$TMPD/wasm" "$@" &
     echo $! > $TMPD/pid
-    $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-gdb -ex 'file '"$EXECUTABLE" -ex ' target extended-remote | '"$WASMDIR"'/tools/bin/bitpush '"$TMPD"
+    $WASMDIR/wasm32/cross/bin//wasm32-unknown-none-gdb -ex 'file '"$EXECUTABLE" -ex ' target extended-remote | '"$WASMDIR"'/tools/bin/bitpush '"$TMPD"
 else
     EXECUTABLE=$EXECUTABLE $(dirname "$0")/wasm "$TMPD/wasm" "$@"
 fi
