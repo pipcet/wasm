@@ -1471,11 +1471,11 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifac
 	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/toolchain.tar
+artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/ncurses
+	$(MAKE) wasm32/native/stamp/ncurses
 	$(MAKE) wasm/libncurses.wasm
-	tar cf artifacts/ncurses.tar built wasm32-unknown-none -N ./artifact-timestamp
+	tar cf artifacts/ncurses.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
