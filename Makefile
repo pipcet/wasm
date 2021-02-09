@@ -852,6 +852,15 @@ wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect b
 wasm/libz.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/zlib | wasm
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libz.so > $@
 
+wasm/libgmp.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/gmp | wasm
+	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libgmp.so > $@
+
+wasm/libmpfr.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/mpfr | wasm
+	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libmpfr.so > $@
+
+wasm/libmpc.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/mpc | wasm
+	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libmpc.so > $@
+
 wasm/libgccjit.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/native-gcc | wasm
 	tools/bin/elf-to-wasm --library --dynamic wasm32-unknown-none/wasm32-unknown-none/lib/libgccjit.so > $@
 
@@ -1076,6 +1085,24 @@ artifact-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/toolchai
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/zlib wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/
+	$(MAKE) artifact-push!
+
+artifact-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/toolchain.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/gmp wasm/libgmp.wasm
+	cp wasm/libgmp.wasm artifacts/
+	$(MAKE) artifact-push!
+
+artifact-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/toolchain.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/mpfr wasm/libmpfr.wasm
+	cp wasm/libmpfr.wasm artifacts/
+	$(MAKE) artifact-push!
+
+artifact-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/toolchain.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) built/wasm32/mpc wasm/libmpc.wasm
+	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm
