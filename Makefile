@@ -646,7 +646,7 @@ build/wasm32/zlib/Makefile: | src/zlib build/wasm32/zlib built/wasm32/gcc
 
 build/wasm32/mpfr/Makefile: | src/wasm32/mpfr build/wasm32/mpfr built/wasm32/gcc
 	(cd src/wasm32/mpfr; libtoolize && sh autogen.sh)
-	(cd build/wasm32/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/mpfr/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
+	(cd build/wasm32/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH ../../../src/wasm32/mpfr/configure --host=wasm32-unknown-none --build=x86_64-pc-linux-gnu --prefix=$(PWD)/wasm32-unknown-none/wasm32-unknown-none)
 
 built/wasm32/python: build/wasm32/python/Makefile
 	PATH=$(PWD)/wasm32-unknown-none/bin:$$PATH $(MAKE) -C build/wasm32/python
@@ -875,9 +875,6 @@ wasm/perl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect b
 
 wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/python | wasm
 	tools/bin/elf-to-wasm --executable --dynamic wasm32-unknown-none/wasm32-unknown-none/bin/python3 > $@
-
-wasm/libgmp.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/gmp | wasm
-	tools/bin/elf-to-wasm --library wasm32-unknown-none/wasm32-unknown-none/lib/libgmp.a > $@
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32-unknown-none/wasm32-unknown-none/bin/% tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/coreutils | wasm
