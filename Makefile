@@ -1438,8 +1438,9 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 	$(MAKE) run-all-tests!
 
 # Build the various artifacts
-artifact-wasm32.js!: | js/wasm32.js artifacts
+artifact-wasm32-native!: | js/wasm32.js artifacts
 	$(MAKE) artifact-timestamp
+	tar cvf artifacts/wasm32-native.tar js/wasm32.js bin/js
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
 
@@ -1449,13 +1450,13 @@ artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts
 	tar cf artifacts/wasm32-cross-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils.tar
+artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/cross/stamp/gcc-preliminary
 	tar cf artifacts/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar
+artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/glibc
 	tar cf artifacts/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
