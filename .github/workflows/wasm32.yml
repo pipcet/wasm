@@ -5,6 +5,18 @@ on:
   pull_request:
     branches: [ master, wasm ]
 jobs:
+  native:
+    name: native environment
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 artifact-wasm32-native!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   cross-binutils-gdb:
     name: cross/binutils-gdb
     runs-on: ubuntu-latest
@@ -54,18 +66,6 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 artifact-wasm32-cross-gcc!
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  native:
-    name: native environment
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkotu@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 artifact-wasm32-native!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   ncurses:
