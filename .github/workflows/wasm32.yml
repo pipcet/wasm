@@ -69,6 +69,34 @@ jobs:
     - run: make GITHUB=1 -kj10 artifact-wasm32-native-ncurses!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  bash:
+    name: bash
+    runs-on: ubuntu-latest
+    needs:
+      - ncurses
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -k artifact-wasm32-native-bash!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  zsh:
+    name: zsh
+    runs-on: ubuntu-latest
+    needs:
+      - ncurses
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -k artifact-wasm32-native-zsh!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
@@ -215,21 +243,6 @@ jobs:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
-  # bash:
-  #   name: bash
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     # bash fails to compile unless ncurses is there, too.
-  #     - ncurses
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -k artifact-bash!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # bash-run:
   #   name: Run bash
@@ -294,20 +307,6 @@ jobs:
   #   - name: Run
   #     run: WASMDIR=. JS=`pwd`/bin/js `pwd`/bash.wasm -c 'echo $((3*4*5))'
 
-  # zsh:
-  #   name: zsh
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - ncurses
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -k artifact-zsh!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # miniperl:
   #   name: miniperl

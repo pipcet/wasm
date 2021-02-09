@@ -1475,19 +1475,19 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracte
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/ncurses
 	$(MAKE) wasm/libncurses.wasm
-	tar cf artifacts/ncurses.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	tar cf artifacts/wasm32-native-ncurses.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar
+artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/bash wasm/bash.wasm
+	$(MAKE) wasm32/native/stamp/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar
+artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) built/wasm32/zsh
+	$(MAKE) wasm32/native/stamp/zsh
 	$(MAKE) artifact-push!
 
 artifact-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/toolchain.tar
