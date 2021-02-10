@@ -232,6 +232,29 @@ jobs:
         JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-python!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  preship:
+    name: pre-ship
+    runs-on: ubuntu-latest
+    needs:
+    - python
+    - coreutils
+    - gcc
+    steps:
+    - run: true
+  ship-toolchain:
+    name: ship toolchain
+    runs-on: ubuntu-latest
+    needs:
+    - preship
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 ship/wasm32-cross-toolchain/latest!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # # tests:
   # #   name: Run tests
@@ -965,22 +988,6 @@ jobs:
   #     env:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ship_toolchain:
-  #   name: ship toolchain
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #   - ncurses
-  #   - bash
-  #   - tests
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 ship-toolchain/latest!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # release:
   #   name: release
