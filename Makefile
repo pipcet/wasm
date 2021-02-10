@@ -1146,13 +1146,13 @@ endif
 #  foo.c.{static}.exe: an executable compiled statically, from foo.c
 cflags = $(shell wasm32/cross/bin/cflags $(1) $(2))
 
-test/wasm32/%.c.exe: test/wasm32/%.c
+test/wasm32/%.c.exe: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
 
-test/wasm32/%.c.{static}.exe: test/wasm32/%.c
+test/wasm32/%.c.{static}.exe: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
 
-test/wasm32/%.c.{debug}.exe: test/wasm32/%.c
+test/wasm32/%.c.{debug}.exe: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c.{debug},$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map $< -o $@ -lstdc++ -lm
 
 test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
@@ -1161,7 +1161,7 @@ test/wasm32/%.c.{static}.exe.wasm.out.exp: test/wasm32/%.c.exe.wasm.out.exp
 test/wasm32/%.c.{static}.exe.wasm.out.exp.pl: test/wasm32/%.c.exe.wasm.out.exp.pl
 	cat $< > $@
 
-test/wasm32/%.cc.{static}.exe: test/wasm32/%.cc
+test/wasm32/%.cc.{static}.exe: test/wasm32/%.cc | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.cc.{static}.map $< -lstdc++ -o $@
 
 test/wasm32/%.cc.{static}.exe.wasm.out.exp: test/wasm32/%.cc.exe.wasm.out.exp
@@ -1205,16 +1205,16 @@ test/wasm32/%.cc.exe: test/wasm32/%.cc
 test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc -S $< -o $@
 
-test/wasm32/%.S.o: test/wasm32/%.S
+test/wasm32/%.S.o: test/wasm32/%.S | wasm32/cross/bin/cflags
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
-test/wasm32/%.c.o: test/wasm32/%.c
+test/wasm32/%.c.o: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
-test/wasm32/%.c.i: test/wasm32/%.c
+test/wasm32/%.c.i: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
 
-test/wasm32/%.cc.i: test/wasm32/%.cc
+test/wasm32/%.cc.i: test/wasm32/%.cc | wasm32/cross/bin/cflags
 	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
 
 test/wasm32/%.cc.s: test/wasm32/%.cc
