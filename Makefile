@@ -21,7 +21,7 @@ JS ?= $$JS
 all!: lds/wasm32.cpp-lds.lds built/all js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-bin built extracted github/assets github/release github/install install js lib ship src stamp test wasm:
+bin built extracted github/assets github/release github/install install lib ship src stamp test wasm:
 	$(MKDIR) $@
 
 start-over!:
@@ -170,11 +170,11 @@ wasm32/native/stamp/build/bash: wasm32/native/stamp/configure/bash | wasm32/nati
 wasm32/native/build/zsh: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/native/build/zsh/Makefile: | wasm32/native/stamp/build/ncurses wasm32/native/src/zsh wasm32/native/build/zsh
+wasm32/native/stamp/configure/zsh: | wasm32/native/stamp/build/ncurses wasm32/native/src/zsh wasm32/native/build/zsh wasm32/native/stamp/configure
 	(cd wasm32/native/build/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/zsh: wasm32/native/build/zsh/Makefile | wasm32/native/stamp/build
+wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native/stamp/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh install
 	touch $@
@@ -185,22 +185,22 @@ wasm32/native/stamp/build/zsh: wasm32/native/build/zsh/Makefile | wasm32/native/
 wasm32/native/build/coreutils: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/native/build/coreutils/Makefile: | wasm32/native/stamp/build/ncurses wasm32/native/src/coreutils wasm32/native/build/coreutils
+wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/src/coreutils wasm32/native/build/coreutils wasm32/native/stamp/configure
 	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/coreutils: wasm32/native/build/coreutils/Makefile | wasm32/native/stamp/build
+wasm32/native/stamp/build/coreutils: wasm32/native/stamp/configure/coreutils | wasm32/native/stamp/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils install
 	touch $@
 
 # Python
 
-wasm32/native/build/python/Makefile: | wasm32/cross/stamp/build/gcc wasm32/native/src/python wasm32/native/build/python
+wasm32/native/stamp/configure/python: | wasm32/cross/stamp/build/gcc wasm32/native/src/python wasm32/native/build/python wasm32/native/stamp/configure
 	(cd wasm32/native/build/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/python/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-ipv6 --with-ensurepip=no)
 	touch $@
 
-wasm32/native/stamp/build/python: wasm32/native/build/python/Makefile | wasm32/native/stamp/build
+wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/native/stamp/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python install
 	touch $@
@@ -296,10 +296,10 @@ wasm32/native/stamp/build/binutils-gdb: wasm32/native/build/binutils-gdb/Makefil
 
 # GCC (native)
 
-wasm32/native/build/gcc/Makefile: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc
+wasm32/native/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc wasm32/native/stamp/configure
 	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
 
-wasm32/native/stamp/build/gcc: wasm32/native/build/gcc/Makefile | wasm32/native/stamp/build wasm32/native/src/gcc
+wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native/stamp/build wasm32/native/src/gcc
 	$(MKDIR) wasm32/native/build/gcc/gcc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gcc
 	cp wasm32/native/build/gcc/gcc/libgcc.a wasm32/native/build/gcc/gcc/libgcc_eh.a
@@ -310,26 +310,28 @@ wasm32/native/stamp/build/gcc: wasm32/native/build/gcc/Makefile | wasm32/native/
 # Emacs
 
 wasm32/cross/build/emacs: | wasm32/cross/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); rm $@T/Makefile; mv $@T $@)
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/cross/build/emacs/Makefile: | wasm32/cross/build/emacs
+wasm32/cross/stamp/configure/emacs: | wasm32/cross/build/emacs wasm32/cross/stamp/configure
 	(cd wasm32/native/build/emacs; sh autogen.sh; ./configure --build=$(native-triplet) --host=$(native-triplet) --prefix=$(PWD)/wasm32/cross --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
+	touch $@
 
-wasm32/cross/stamp/build/emacs: wasm32/cross/build/emacs/Makefile
+wasm32/cross/stamp/build/emacs: wasm32/cross/stamp/configureemacs
 	$(MAKE) -C wasm32/cross/build/emacs
 	(cd wasm32/cross/build/emacs; tar cvf elc.tar $$(find lisp/leim/quail -name '*.el') lisp/leim/ja-dic/ja-dic.el lisp/cedet/semantic/bovine/make-by.el lisp/cedet/semantic/wisent/python-wy.el $$(find -name '*.elc'))
 	touch $@
 
 # Emacs is _built_ in the source directory, so copy that.
 wasm32/native/build/emacs: | wasm32/native/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); rm $@T/Makefile; mv $@T $@)
+	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
-wasm32/native/build/emacs/Makefile: | wasm32/native/build/emacs tools/bin/dotdir
+wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs tools/bin/dotdir wasm32/native/stamp/configure
 	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
 	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	touch $@
 
-wasm32/native/stamp/build/emacs: wasm32/native/build/emacs/Makefile | wasm32/native/stamp/ncurses wasm32/native/stamp/build
+wasm32/native/stamp/build/emacs: wasm32/native/stamp/configure/emacs | wasm32/native/stamp/ncurses wasm32/native/stamp/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs install
 	touch $@
@@ -355,20 +357,22 @@ wasm32/native/stamp/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurs
 
 # wabt
 
-wasm32/cross/build/wabt/Makefile: | wasm32/cross/build/wabt wasm32/cross/src/wabt
+wasm32/cross/stamp/configure/wabt: | wasm32/cross/build/wabt wasm32/cross/src/wabt wasm32/cross/stamp/configure
 	(cd wasm32/cross/build/wabt; cmake ../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
+	touch $@
 
-wasm32/cross/stamp/wabt: wasm32/cross/build/wabt/Makefile | wasm32/cross/stamp
+wasm32/cross/stamp/wabt: wasm32/cross/stamp/configure/wabt | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/wabt
 	$(MAKE) -C wasm32/cross/build/wabt install
 	touch $@
 
 # Binaryen
 
-wasm32/cross/build/binaryen/Makefile: | wasm32/cross/build/binaryen wasm32/cross/src/binaryen
+wasm32/cross/stamp/configure/binaryen: | wasm32/cross/build/binaryen wasm32/cross/src/binaryen wasm32/cross/stamp/configure
 	(cd wasm32/cross/build/binaryen; cmake ../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
+	touch $@
 
-wasm32/cross/stamp/binaryen: wasm32/cross/build/binaryen/Makefile | wasm32/cross/stamp
+wasm32/cross/stamp/binaryen: wasm32/cross/stamp/configure/binaryen | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/binaryen
 	$(MAKE) -C wasm32/cross/build/binaryen install
 	touch $@
@@ -1299,7 +1303,7 @@ build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
-wasm32/cross/stamp/python: wasm32/cross/build/python/Makefile | wasm32/cross/stamp
+wasm32/cross/stamp/python: wasm32/cross/stamp/configure/python | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/python
 	$(MAKE) -C wasm32/cross/build/python install
 	touch $@
