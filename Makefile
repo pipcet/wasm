@@ -1608,7 +1608,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extr
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
 	$(MAKE) wasm32/cross/stamp/build/python
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
