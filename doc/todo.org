@@ -1,5 +1,5 @@
 * TODO NULL pointers
-* TODO DWARF errors
+* DONE DWARF errors
 * DONE release assets
 * DONE elf32-wasm32
 * TODO glibc stub warnings
@@ -14,14 +14,15 @@
 * DONE elf-to-wasm: detect dynamicness automatically
 * TODO work out why glibc is rebuilt in a loop
 * DONE isprint('a') is 0
+AGAIN.
 * DONE C++ copy relocations don't work, get called before constructors run
 ** avoiding them entirely with -fPIC helps
 currently have a workaround: a recopy() syscall that we call very often, including just before starting main.
 * TODO disable building gdb again in the initial binutils build
-* TODO rename .asmjs.header to .wasm.something
-* TODO rename other "asmjs" leftovers
-* TODO don't produce invalid wasm for impossible alignments (pr36093.c)
-* TODO work out why this appears in most tests
+* DONE rename .asmjs.header to .wasm.something
+* DONE rename other "asmjs" leftovers
+* DONE don't produce invalid wasm for impossible alignments (pr36093.c)
+* DONE work out why this appears in most tests
 #+begin
 Executing on host: wasm32-unknown-none-gcc offload_gcn716358.c    -fno-diagnostics-show-caret -fno-diagnostics-show-line-numbers -fdiagnostics-color=never  -fdiagnostics-urls=never  -foffload=amdgcn-amdhsa -S -o offload_gcn716358.s    (timeout = 300)
 spawn -ignore SIGHUP wasm32-unknown-none-gcc offload_gcn716358.c -fno-diagnostics-show-caret -fno-diagnostics-show-line-numbers -fdiagnostics-color=never -fdiagnostics-urls=never -foffload=amdgcn-amdhsa -S -o offload_gcn716358.s
