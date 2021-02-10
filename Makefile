@@ -1078,6 +1078,9 @@ github/install/sysctl/overcommit_memory: | github/install/sysctl
 	echo 1 | sudo tee /proc/sys/vm/overcommit_memory
 	touch $@
 
+github/install/wasm32-environment: | github/install/sysctl/overcommit_memory github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp tools/bin/elf-to-wasm tools/bin/elf32-wasm32 tools/bin/wasm
+	touch $@
+
 artifact-miniperl!: | install/gettext
 artifact-perl!: | install/gettext
 artifact-python!: | install/gettext
@@ -1317,7 +1320,7 @@ wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cr
 	touch $@
 
 ifeq (${GITHUB},1)
-problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp
+problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm js/wasm32.js
 	$(MAKE) artifacts artifact-timestamp
 	$(MKDIR) wasm32/cross/stamp/build/gcc
