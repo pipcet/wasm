@@ -949,7 +949,7 @@ $(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/
 	$(LN) ../../$< $@
 
 wasm32/wasm/bin/%: wasm32/native/bin/%
-	$(MKDIR) $(dir wasm32/wasm/$*)
+	$(MKDIR) $(dir wasm32/wasm/bin/$*)
 	wasm32/cross/bin/elf-to-wasm --executable --dynamic $< > $@
 
 wasm32/wasm/%.so: wasm32/native/%.so | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo lds/wasm32.cpp-lds.lds wasm32/cross/lib/wasm32-lds/wasm32.lds
@@ -987,35 +987,26 @@ wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
 wasm/libdl.wasm: wasm32/wasm/lib/libdl.so | wasm
 	$(LN) ../$< $@
 
-wasm/bash.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/bash | wasm
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/bash > $@
+wasm/bash.wasm: wasm32/wasm/bin/bash | wasm
+	$(LN) ../$< $@
 
-wasm/libz.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/zlib | wasm
-	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libz.so > $@
+wasm/libz.wasm: wasm32/wasm/lib/libz.so | wasm
+	$(LN) ../$< $@
 
-wasm/libgmp.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/gmp | wasm
-	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgmp.so > $@
+wasm/libgccjit.wasm: wasm32/wasm/lib/libgccjit.so | wasm
+	$(LN) ../$< $@
 
-wasm/libmpfr.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/mpfr | wasm
-	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpfr.so > $@
+wasm/zsh.wasm: wasm32/wasm/bin/zsh | wasm
+	$(LN) ../$< $@
 
-wasm/libmpc.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/mpc | wasm
-	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpc.so > $@
+wasm/miniperl.wasm: wasm32/wasm/bin/miniperl | wasm
+	$(LN) ../$< $@
 
-wasm/libgccjit.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/native-gcc | wasm
-	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgccjit.so > $@
+wasm/perl.wasm: wasm32/wasm/bin/perl | wasm
+	$(LN) ../$< $@
 
-wasm/zsh.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/zsh | wasm
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/zsh > $@
-
-wasm/miniperl.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/miniperl | wasm
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/miniperl > $@
-
-wasm/perl.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/perl | wasm
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/perl > $@
-
-wasm/python.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/python | wasm
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/python3 > $@
+wasm/python.wasm: wasm32/wasm/bin/python3 | wasm
+	$(LN) ../$< $@
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
