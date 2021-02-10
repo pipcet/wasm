@@ -972,7 +972,7 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 		if (this.name === "ld.wasm" ||
 		    this.name === "libc.wasm") {
 		    vm.HEAP32[header + 56 >> 2] = vm.HEAP32[header + 48 >> 2];
-		    vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
+		    //vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
 		    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
 		}
 	    }
