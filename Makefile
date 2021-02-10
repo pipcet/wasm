@@ -19,7 +19,7 @@ JS ?= $$JS
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: lds/wasm32.cpp-lds.lds js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
+all!: lds/wasm32.cpp-lds.lds wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 extracted github/assets github/release github/install install lib ship src stamp test wasm:
@@ -213,7 +213,7 @@ wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native
 wasm32/native/build/coreutils: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/build/coreutils wasm32/native/stamp/configure js/wasm32.js
+wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/build/coreutils wasm32/native/stamp/configure wasm32/native/lib/js/wasm32.js
 	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/build/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
@@ -254,7 +254,7 @@ wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install
 	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
 	touch $@
 
-wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
+wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
@@ -1038,9 +1038,6 @@ wasm32/native/lib/js/wasm32.js: jsc/wasm32/wasm32.jsc | wasm32/native/lib/js was
 js:
 	$(MKDIR) $@
 
-js/wasm32.js: wasm32/native/lib/js/wasm32.js js
-	$(LN) ../$< $@
-
 wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/native/stamp/build/gcc-preliminary wasm32/native/stamp/build/glibc wasm32/native/stamp/build/gcc wasm32/native/stamp/build/ncurses wasm32/native/stamp/build/bash wasm32/native/stamp/build/gdb
 	touch $@
 
@@ -1199,7 +1196,7 @@ test/wasm32/%.exe.wasm: test/wasm32/%.exe wasm32/cross/bin/elf-to-wasm
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
-	JS=$(JS) WASMDIR=$(PWD) EXECUTABLE=$< $(JS) $(PWD)/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
+	JS=$(JS) WASMDIR=$(PWD) EXECUTABLE=$< $(JS) $(PWD)/wasm32/native/lib/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
 	@echo "STDOUT"
 	@cat $@
 	@echo "STDERR"
@@ -1259,7 +1256,7 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
+%.{dejagnu}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
@@ -1272,7 +1269,7 @@ test/%.exp.cmp: test/%.exp test/%
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
+%.{daily-dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) wasm32/cross/bin/js
@@ -1288,7 +1285,7 @@ test/%.exp.cmp: test/%.exp test/%
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/
 
-%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
+%.{dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
@@ -1353,7 +1350,7 @@ wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cr
 
 ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment
-	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm js/wasm32.js
+	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifacts artifact-timestamp
 	$(MKDIR) wasm32/cross/stamp/build/gcc
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/test/gcc/problem.tar
@@ -1398,13 +1395,13 @@ daily-python!: | install/file-slurp
 daily-ncurses!: | install/file-slurp
 daily-run-all-tests!: | install/file-slurp
 daily-run-all-tests!: | wasm32/cross/bin/dyninfo
-daily-run-all-tests!: | js/wasm32.js
+daily-run-all-tests!: | wasm32/native/lib/js/wasm32.js
 daily-run-elf!: | install/file-slurp
 daily-run-elf!: | wasm32/cross/bin/dyninfo
-daily-run-elf!: | js/wasm32.js
+daily-run-elf!: | wasm32/native/lib/js/wasm32.js
 daily-run-wasm!: | install/file-slurp
 daily-run-wasm!: | wasm32/cross/bin/dyninfo
-daily-run-wasm!: | js/wasm32.js
+daily-run-wasm!: | wasm32/native/lib/js/wasm32.js
 daily-zsh!: | install/file-slurp
 
 daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
@@ -1420,7 +1417,7 @@ wasm32/native/stamp/build/zsh: | install/nroff
 daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	$(MAKE) wasm32/native/stamp/build/zsh
 
-daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm32/cross/bin/js
+daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) artifact!/wasm/ld.wasm
 	$(MAKE) artifact!/wasm/libc.wasm
 	$(MAKE) artifact!/wasm/libdl.wasm
@@ -1430,7 +1427,7 @@ daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 
-daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm32/cross/bin/js
+daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) artifact!/wasm/ld.wasm
 	$(MAKE) artifact!/wasm/libc.wasm
 	$(MAKE) artifact!/wasm/libdl.wasm
@@ -1441,7 +1438,7 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 
-daily-emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm32/cross/bin/js
+daily-emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) artifact!/wasm/ld.wasm
 	$(MAKE) artifact!/wasm/libc.wasm
 	$(MAKE) artifact!/wasm/libdl.wasm
@@ -1451,7 +1448,7 @@ daily-emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily
 	$(MAKE) artifact!/wasm/libncurses.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs-native-comp
 
-daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm32/cross/bin/js
+daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
@@ -1461,7 +1458,7 @@ daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) wasm/libncurses.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/gmp
 
-daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js wasm32/cross/bin/js
+daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1471,7 +1468,7 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm32/native/stamp/build/miniperl wasm/miniperl.wasm
 
-daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/sysctl/overcommit_memory js/wasm32.js wasm32/cross/bin/js
+daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/sysctl/overcommit_memory wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1481,7 +1478,7 @@ daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm32/native/stamp/build/perl wasm/perl.wasm
 
-daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js wasm32/cross/bin/js
+daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm32/cross/stamp/build/python
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
@@ -1494,7 +1491,7 @@ daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extra
 	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 
-daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js wasm32/cross/bin/js
+daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1505,7 +1502,7 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
 
-daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
+daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1519,7 +1516,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	chmod u+x hello-world.wasm
 	./hello-world.wasm
 
-daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
+daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1538,9 +1535,9 @@ artifact-wasm32-environment!: | artifacts install/file-slurp
 	unzip -d wasm32/cross/bin jsshell-linux-x86_64.zip
 	$(MAKE) github/install/binfmt_misc/wasm
 	$(MAKE) github/install/binfmt_misc/elf32-wasm32
-	$(MAKE) js/wasm32.js
-	tar cvf artifacts/wasm32-environment.tar js/wasm32.js wasm32/cross/bin
-	cat js/wasm32.js > artifacts/wasm32.js
+	$(MAKE) wasm32/native/lib/js/wasm32.js
+	tar cvf artifacts/wasm32-environment.tar wasm32/native/lib/js/wasm32.js wasm32/cross/bin
+	cat wasm32/native/lib/js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
 
 artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts
@@ -1629,7 +1626,7 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifa
 	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/coreutils
@@ -1637,7 +1634,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extr
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) wasm32/cross/stamp/build/python
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1653,7 +1650,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/
 	cp wasm/python.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/emacs
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
@@ -1668,13 +1665,13 @@ artifact-perl!: | install/binfmt_misc/elf32-wasm32
 artifact-perl!: | install/binfmt_misc/wasm
 artifact-perl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
+artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/perl wasm/perl.wasm
 	cp wasm/perl.wasm artifacts/
