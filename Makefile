@@ -395,7 +395,7 @@ wasm32/native/test/glibc: | wasm32/native/test
 	$(MKDIR) $@
 
 # Copying wasm32-headers.o is unfortunate, but required by our linker script.
-wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/binutils-gdb | wasm32/cross/stamp/gcc-preliminary wasm32/cross/test/binutils-gdb
+wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/build/binutils-gdb | wasm32/cross/stamp/gcc-preliminary wasm32/cross/test/binutils-gdb
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
 	(cd wasm32/cross/build/binutils-gdb; $(MAKE) check)
 	cat $(patsubst %,wasm32/cross/build/binutils-gdb/%,binutils/binutils.sum gas/testsuite/gas.sum libctf/libctf.sum ld/ld.sum sim/testsuite/testrun.sum) > $@
@@ -1271,27 +1271,27 @@ gcc-testsuites-pack!: | artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.ex
 clean: clean!
 
 sequence: \
-	wasm32/cross/stamp/binutils-gdb \
-	wasm32/cross/stamp/gcc-preliminary \
-	wasm32/native/stamp/glibc \
-	wasm32/cross/stamp/gcc \
-	wasm32/native/stamp/ncurses \
-	wasm32/native/stamp/bash \
-	wasm32/native/stamp/zsh \
-	wasm32/native/stamp/coreutils \
-	wasm32/native/stamp/python \
-	wasm32/native/stamp/miniperl \
-	wasm32/native/stamp/zlib \
-	wasm32/native/stamp/gmp \
-	wasm32/native/stamp/mpc \
-	wasm32/native/stamp/mpfr \
-	wasm32/native/stamp/binutils-gdb \
-	wasm32/native/stamp/gcc \
-	wasm32/cross/stamp/emacs \
-	wasm32/native/stamp/emacs \
-	wasm32/native/stamp/emacs-native-comp \
-	wasm32/cross/stamp/wabt \
-	wasm32/cross/stamp/binaryen
+	wasm32/cross/stamp/build/binutils-gdb \
+	wasm32/cross/stamp/build/gcc-preliminary \
+	wasm32/native/stamp/build/glibc \
+	wasm32/cross/stamp/build/gcc \
+	wasm32/native/stamp/build/ncurses \
+	wasm32/native/stamp/build/bash \
+	wasm32/native/stamp/build/zsh \
+	wasm32/native/stamp/build/coreutils \
+	wasm32/native/stamp/build/python \
+	wasm32/native/stamp/build/miniperl \
+	wasm32/native/stamp/build/zlib \
+	wasm32/native/stamp/build/gmp \
+	wasm32/native/stamp/build/mpc \
+	wasm32/native/stamp/build/mpfr \
+	wasm32/native/stamp/build/binutils-gdb \
+	wasm32/native/stamp/build/gcc \
+	wasm32/cross/stamp/build/emacs \
+	wasm32/native/stamp/build/emacs \
+	wasm32/native/stamp/build/emacs-native-comp \
+	wasm32/cross/stamp/build/wabt \
+	wasm32/cross/stamp/build/binaryen
 
 all: built/all
 
@@ -1503,7 +1503,7 @@ artifact-wasm32-native!: | artifacts install/file-slurp
 
 artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/binutils-gdb
+	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 	tar cf artifacts/wasm32-cross-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
