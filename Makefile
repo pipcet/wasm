@@ -1083,28 +1083,28 @@ subrepos/%/checkout!:
 	git submodule update --depth=1 --single-branch --init --recursive subrepos/$*
 
 # install various packages on the GitHub VM:
-github/install/file-slurp: | github/install
+github/install/file-slurp: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
 
-github/install/nroff: | github/install
+github/install/nroff: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install groff-base
 	touch $@
 
-github/install/texinfo-bison-flex: | github/install
+github/install/texinfo-bison-flex: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
 
-github/install/gcc-dependencies: | github/install
+github/install/gcc-dependencies: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 	touch $@
 
-github/install/dejagnu: | github/install
+github/install/dejagnu: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
 
-github/install/gettext: | github/install
+github/install/gettext: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gettext
 	touch $@
 
@@ -1118,10 +1118,10 @@ github/install/wasm32-environment: | github/install/sysctl/overcommit_memory git
 artifact-miniperl!: | install/gettext
 artifact-perl!: | install/gettext
 artifact-python!: | install/gettext
-github/install/autopoint: | github/install
+github/install/autopoint: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install autopoint
 
-github/install/gperf: | github/install
+github/install/gperf: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gperf
 
 github/install/binfmt_misc: | github/install
