@@ -368,7 +368,7 @@ wasm32/cross/stamp/configure/emacs: | wasm32/cross/build/emacs wasm32/cross/stam
 	(cd wasm32/native/build/emacs; sh autogen.sh; ./configure --build=$(native-triplet) --host=$(native-triplet) --prefix=$(PWD)/wasm32/cross --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
 	touch $@
 
-wasm32/cross/stamp/build/emacs: wasm32/cross/stamp/configureemacs
+wasm32/cross/stamp/build/emacs: wasm32/cross/stamp/configure/emacs
 	$(MAKE) -C wasm32/cross/build/emacs
 	(cd wasm32/cross/build/emacs; tar cvf elc.tar $$(find lisp/leim/quail -name '*.el') lisp/leim/ja-dic/ja-dic.el lisp/cedet/semantic/bovine/make-by.el lisp/cedet/semantic/wisent/python-wy.el $$(find -name '*.elc'))
 	touch $@
