@@ -945,7 +945,7 @@ wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
 
-wasm32/wasm/%.so: wasm32/native/%.so | tools/bin/elf-to-wasm
+wasm32/wasm/%.so: wasm32/native/%.so | tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/dyninfo lds/wasm32.cpp-lds.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 
