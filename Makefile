@@ -1309,14 +1309,12 @@ wasm32/cross/stamp/python: wasm32/cross/stamp/configure/python | wasm32/cross/st
 	touch $@
 
 ifeq (${GITHUB},1)
-problem!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js
-	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
-	$(MAKE) extracted/daily/gcc.tar.gz
+problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
 	$(MAKE) artifacts artifact-timestamp
-	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
-	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite/problem.tar
-	cp build/wasm32/gcc-testsuite/problem.tar artifacts
+	$(MKDIR) wasm32/cross/stamp/build/gcc
+	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/test/gcc/problem.tar
+	cp wasm32/test/gcc/problem.tar artifacts
 	$(MAKE) artifact-push!
 
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
