@@ -190,7 +190,7 @@ wasm32/native/stamp/build/bash: wasm32/native/stamp/configure/bash | wasm32/nati
 wasm32/native/build/zsh: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/native/stamp/configure/zsh: | wasm32/native/stamp/build/ncurses wasm32/native/src/zsh wasm32/native/build/zsh wasm32/native/stamp/configure
+wasm32/native/stamp/configure/zsh: | wasm32/native/stamp/build/ncurses wasm32/native/build/zsh wasm32/native/stamp/configure
 	(cd wasm32/native/build/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
@@ -205,8 +205,8 @@ wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native
 wasm32/native/build/coreutils: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 
-wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/src/coreutils wasm32/native/build/coreutils wasm32/native/stamp/configure
-	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/src/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
+wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/build/coreutils wasm32/native/stamp/configure js/wasm32.js
+	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/build/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
 wasm32/native/stamp/build/coreutils: wasm32/native/stamp/configure/coreutils | wasm32/native/stamp/build
@@ -949,7 +949,7 @@ wasm32/wasm/%.so: wasm32/native/%.so | tools/bin/elf-to-wasm tools/bin/wasmrewri
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 
-wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm
+wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/dyninfo lds/wasm32.cpp-lds.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	tools/bin/elf-to-wasm --library --dynamic $< > $@
 
