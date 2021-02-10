@@ -50,6 +50,9 @@ wasm32/native/stamp/configure: | wasm32/cross
 wasm32/native/stamp/build: | wasm32/cross
 	$(MKDIR) $@
 
+wasm32/native/build: | wasm32/cross
+	$(MKDIR) $@
+
 wasm32/cross: | wasm32 wasm32/native
 	$(MKDIR) $@
 	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
