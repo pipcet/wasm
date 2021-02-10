@@ -1556,6 +1556,23 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extr
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
+	$(MAKE) wasm32/cross/stamp/python
+	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+	$(MAKE) artifact-timestamp
+	$(MKDIR) wasm
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) wasm32/native/stamp/python wasm/python.wasm
+	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
+	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
+	cp wasm/python.wasm artifacts/
+	$(MAKE) artifact-push!
+
 artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
@@ -1590,23 +1607,6 @@ artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/toolchai
 artifact-python!: | install/binfmt_misc/elf32-wasm32
 artifact-python!: | install/binfmt_misc/wasm
 artifact-python!: | install/file-slurp
-
-artifact-python!: | subrepos/python/checkout! artifacts extracted/artifacts/toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
-	$(MAKE) built/common/python
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
-	$(MAKE) artifact-timestamp
-	$(MKDIR) wasm
-	$(MAKE) wasm/ld.wasm
-	$(MAKE) wasm/libc.wasm
-	$(MAKE) wasm/libdl.wasm
-	$(MAKE) wasm/libcrypt.wasm
-	$(MAKE) wasm/libutil.wasm
-	$(MAKE) wasm/libm.wasm
-	$(MAKE) built/wasm32/python wasm/python.wasm
-	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
-	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
-	cp wasm/python.wasm artifacts/
-	$(MAKE) artifact-push!
 
 # Create a file to be shipped
 ship/%.gz: artifacts/% | ship
