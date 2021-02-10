@@ -227,6 +227,9 @@ wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/
 
 # Perl
 
+wasm32/native/src/perl: | subrepos/perl wasm32/native/src
+	ln -sf ../../../subrepos/perl $@
+
 wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
 	$(MKDIR) $@
 	(cd wasm32/native/src/perl; tar c --exclude .git .) | (cd $@; tar x)
@@ -255,7 +258,7 @@ wasm32/native/stamp/configure/zlib: | wasm32/native/build/zlib wasm32/native/src
 	(cd wasm32/native/build/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/zlib/configure --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | bin built/wasm32 wasm32/native/stamp/build
+wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | bin wasm32/native/stamp/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib install
 	touch $@
@@ -1073,15 +1076,6 @@ test/wasm32!: run-all-tests!
 
 test!: test/wasm32!
 
-built/wasm32/bash: | install/gettext
-built/wasm32/coreutils: | install/gettext
-built/wasm32/coreutils: | install/gettext
-built/wasm32/miniperl: | install/gettext
-built/wasm32/perl: | install/gettext
-built/wasm32/python: | install/gettext
-built/wasm32/zsh: | install/gettext
-
-
 ifeq (${GITHUB},1)
 # GitHub support
 # Check out a subrepo
@@ -1300,7 +1294,7 @@ test/%.exp.cmp: test/%.exp test/%
 
 binutils-test!: install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
-	$(MAKE) built/wasm32/binutils-gdb
+	$(MAKE) wasm32/stamp/build/binutils-gdb
 	$(MAKE) artifacts
 	$(MAKE) artifact-timestamp
 	$(MAKE) -k -C build/wasm32/binutils-gdb check || true
@@ -1368,10 +1362,10 @@ problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | built/all
 
 daily-binutils!: | subrepos/binutils-gdb/checkout!
-	$(MAKE) built/wasm32/binutils-gdb
+	$(MAKE) wasm32/cross/stamp/binutils-gdb
 
 daily-gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz
-	$(MAKE) built/wasm32/gcc-preliminary
+	$(MAKE) wasm32/cross/stamp/gcc-preliminary
 
 daily-glibc!: | subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
 	touch built/wasm32/binutils-gdb
