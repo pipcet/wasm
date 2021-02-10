@@ -1585,6 +1585,7 @@ artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifa
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/gmp
+	tar cf artifacts/wasm32-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
