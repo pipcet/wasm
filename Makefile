@@ -266,7 +266,7 @@ wasm32/native/stamp/configure/zlib: | wasm32/native/build/zlib wasm32/native/src
 	(cd wasm32/native/build/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/zlib/configure --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | bin wasm32/native/stamp/build
+wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | wasm32/native/stamp/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib install
 	touch $@
