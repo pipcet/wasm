@@ -132,6 +132,15 @@ wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/na
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/native/lib/libc.so: wasm32/native/stamp/build/glibc
+wasm32/native/lib/libm.so: wasm32/native/stamp/build/glibc
+wasm32/native/lib/ld.so.1: wasm32/native/stamp/build/glibc
+wasm32/native/lib/libcrypt.so: wasm32/native/stamp/build/glibc
+wasm32/native/lib/libutil.so: wasm32/native/stamp/build/glibc
+wasm32/native/lib/libdl.so: wasm32/native/stamp/build/glibc
+endif
+
 # GCC (final build, C/C++/LTO, no libgccjit)
 
 wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure
@@ -145,6 +154,10 @@ wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/st
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/cross/lib/libstdc++.so: wasm32/cross/stamp/build/glibc
+endif
+
 # ncurses
 
 wasm32/native/stamp/configure/ncurses: | wasm32/cross/stamp/build/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses wasm32/native/stamp/configure
@@ -155,6 +168,10 @@ wasm32/native/stamp/build/ncurses: wasm32/native/stamp/configure/ncurses | wasm3
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/lib/libncurses.so: wasm32/native/stamp/build/glibc
+endif
 
 # bash
 
@@ -243,6 +260,10 @@ wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | bin built/w
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/native/lib/libz.so: wasm32/native/stamp/build/zlib
+endif
+
 # GMP
 
 wasm32/native/stamp/configure/gmp: | wasm32/native/build/gmp wasm32/native/src/gmp wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
@@ -254,6 +275,10 @@ wasm32/native/stamp/build/gmp: wasm32/native/stamp/configure/gmp | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/native/lib/libgmp.so: wasm32/native/stamp/build/gmp
+endif
+
 # MPC
 
 wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
@@ -264,6 +289,10 @@ wasm32/native/stamp/build/mpc: wasm32/native/stamp/configure/mpc | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/lib/libmpc.so: wasm32/native/stamp/build/mpc
+endif
 
 # MPFR
 
@@ -284,6 +313,10 @@ wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/lib/libmpfr.so: wasm32/native/stamp/build/mpfr
+endif
 
 # Binutils (native)
 
@@ -314,6 +347,10 @@ wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native
 	cp wasm32/native/build/gcc/gcc/libgcc.a wasm32/native/build/gcc/gcc/libgcc_s.a
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gcc install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/lib/libgccjit.so: wasm32/native/stamp/build/gcc
+endif
 
 # Emacs
 
