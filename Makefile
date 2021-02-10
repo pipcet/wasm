@@ -1533,8 +1533,6 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifac
 	$(MAKE) wasm32/cross/stamp/build/gcc
 	tar cf artifacts/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	tar cf artifacts/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
-	$(MAKE) wasm/libstdc++.wasm
-	cp wasm/libstdc++.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
