@@ -7,6 +7,7 @@ native-triplet = x86_64-pc-linux-gnu
 
 # $(MKDIR) command
 MKDIR ?= mkdir -p
+LN ?= ln -sf
 # $(PWD) is the top-level directory. No recursion here (except for subrepos).
 PWD ?= $(shell pwd)
 OPT_NATIVE ?= "-Os"
@@ -58,8 +59,8 @@ wasm32/native/build: | wasm32/cross
 wasm32/cross: | wasm32 wasm32/native
 	$(MKDIR) $@
 	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
-	ln -sf ../../native/include $@/wasm32-unknown-none/include
-	ln -sf ../../native/lib $@/wasm32-unknown-none/lib
+	$(LN) ../../native/include $@/wasm32-unknown-none/include
+	$(LN) ../../native/lib $@/wasm32-unknown-none/lib
 
 wasm32/cross/src: | wasm32/cross
 	$(MKDIR) $@
@@ -94,7 +95,7 @@ wasm32/cross/stamp/build/binutils-gdb: wasm32/cross/stamp/configure/binutils-gdb
 # GCC (preliminary compilation, C only)
 
 wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
-	test -L $@ || ln -sf ../../../subrepos/gcc $@
+	test -L $@ || $(LN) ../../../subrepos/gcc $@
 
 wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/build/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure
 	(cd wasm32/cross/build/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32/cross)
@@ -114,10 +115,10 @@ wasm32/native/src: | wasm32/native
 
 # These repos do not require source tree modification.
 $(patsubst %,wasm32/native/src/%,gcc glibc ncurses bash wabt binaryen python gmp mpc zlib): wasm32/native/src/%: | wasm32/native/src
-	test -L $@ || ln -sf ../../../subrepos/$* $@
+	test -L $@ || $(LN) ../../../subrepos/$* $@
 
 $(patsubst %,wasm32/cross/src/%,gcc wabt binaryen): wasm32/cross/src/%: | wasm32/cross/src
-	test -L $@ || ln -sf ../../../subrepos/$* $@
+	test -L $@ || $(LN) ../../../subrepos/$* $@
 
 $(patsubst %,wasm32/cross/build/%,binutils-gdb gcc-preliminary gcc wabt binaryen): wasm32/cross/build/%: | wasm32/cross/src
 	$(MKDIR) $@
@@ -230,7 +231,7 @@ wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/
 # Perl
 
 wasm32/native/src/perl: | subrepos/perl wasm32/native/src
-	ln -sf ../../../subrepos/perl $@
+	$(LN) ../../../subrepos/perl $@
 
 wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
 	$(MKDIR) $@
@@ -944,7 +945,7 @@ $(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/
 	cp -a $< $@ && chmod u+x $@
 
 $(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/%
-	ln -sf ../../$< $@
+	$(LN) ../../$< $@
 
 wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/$*)
@@ -962,28 +963,28 @@ wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm tools/bin/wasmr
 # wasm/ targets. These should go away at some point.
 
 wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libutil.wasm: wasm32/wasm/lib/libutil.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/libdl.wasm: wasm32/wasm/lib/libdl.so | wasm
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/bash | wasm
 	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/bash > $@
@@ -1017,7 +1018,7 @@ wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
-	ln -sf $< $@
+	$(LN) $< $@
 
 wasm32/native/lib: | wasm32/native
 	$(MKDIR) $@
@@ -1033,7 +1034,7 @@ js:
 	$(MKDIR) $@
 
 js/wasm32.js: wasm32/native/lib/js/wasm32.js js
-	ln -sf ../$< $@
+	$(LN) ../$< $@
 
 wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/native/stamp/build/gcc-preliminary wasm32/native/stamp/build/glibc wasm32/native/stamp/build/gcc wasm32/native/stamp/build/ncurses wasm32/native/stamp/build/bash wasm32/native/stamp/build/gdb
 	touch $@
@@ -1052,7 +1053,7 @@ test-dirs = $(patsubst testsuite/%,test/wasm32/%,$(testsuite-dirs))
 $(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 wasm32/native/stamp/build/glibc
 	$(MKDIR) test/wasm32/$*
 	cp -r testsuite/$*/* test/wasm32/$*/
-	ln -sf ../../../testsuite/$* test/wasm32/$*/src
+	$(LN) ../../../testsuite/$* test/wasm32/$*/src
 
 test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
 	$(MKDIR) test/wasm32/$*
