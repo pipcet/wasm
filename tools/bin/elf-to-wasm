@@ -45,8 +45,8 @@ fi
 $WASMDIR/wasm32/cross/bin/wasm32-unknown-none-elfedit $TMPD/elf --output-type=rel
 if [ x"$TYPE" = xLIBRARY ]; then
     $WASMDIR/wasm32/cross/bin/wasm32-unknown-none-objcopy --remove-relocations=.data --remove-relocations=.got -R .dynamic -R .dynsym -R .dynstr -R .rela.dyn -R .got.plt $TMPD/elf $TMPD/elf2
-    $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-elfedit $TMPD/elf2 --output-type=rel
-    $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-objcopy --remove-relocations=.got --remove-relocations=.data -R .dynamic -R .dynsym -R .dynstr -R .rela.dyn -R .got.plt $TMPD/elf2 $TMPD/elf3
+    $WASMDIR/wasm32/cross/bin/wasm32-unknown-none-elfedit $TMPD/elf2 --output-type=rel
+    $WASMDIR/wasm32/cross/bin/wasm32-unknown-none-objcopy --remove-relocations=.got --remove-relocations=.data -R .dynamic -R .dynsym -R .dynstr -R .rela.dyn -R .got.plt $TMPD/elf2 $TMPD/elf3
 else
     cp $TMPD/elf $TMPD/elf3
 fi
