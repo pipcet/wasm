@@ -956,28 +956,28 @@ wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm
 
 # wasm/ targets. These should go away at some point.
 
-wasm/ld.wasm: wasm32/wasm/lib/ld.so.1
+wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm
 	ln -sf ../$< $@
 
-wasm/libc.wasm: wasm32/wasm/lib/libc.so
+wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm
 	ln -sf ../$< $@
 
-wasm/libm.wasm: wasm32/wasm/lib/libm.so
+wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm
 	ln -sf ../$< $@
 
-wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so
+wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so | wasm
 	ln -sf ../$< $@
 
-wasm/libutil.wasm: wasm32/wasm/lib/libutil.so
+wasm/libutil.wasm: wasm32/wasm/lib/libutil.so | wasm
 	ln -sf ../$< $@
 
-wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so
+wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm
 	ln -sf ../$< $@
 
-wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so
+wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
 	ln -sf ../$< $@
 
-wasm/libdl.wasm: wasm32/wasm/lib/libdl.so
+wasm/libdl.wasm: wasm32/wasm/lib/libdl.so | wasm
 	ln -sf ../$< $@
 
 wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect built/wasm32/bash | wasm
