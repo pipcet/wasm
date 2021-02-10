@@ -1600,7 +1600,7 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifa
 	$(MAKE) wasm32/native/stamp/build/mpc
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm wasm32/native/lib/libc wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/coreutils
