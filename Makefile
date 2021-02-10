@@ -1219,7 +1219,7 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
@@ -1249,7 +1249,7 @@ test/%.exp.cmp: test/%.exp test/%
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/
 
-%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
+%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MKDIR) wasm
@@ -1605,7 +1605,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/
 	cp wasm/python.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
@@ -1622,14 +1622,14 @@ artifact-perl!: | install/binfmt_misc/elf32-wasm32
 artifact-perl!: | install/binfmt_misc/wasm
 artifact-perl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
+artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/perl wasm/perl.wasm
@@ -1643,8 +1643,10 @@ artifact-python!: | install/file-slurp
 # Create a file to be shipped
 ship/%.gz: artifacts/% | ship
 	gzip < $< > $@
+
 ship/%: artifacts/% | ship
 	cat $< > $@
+
 # Retrieve asset list (and cache it)
 github/assets/%.json: | github/release/list! github/assets
 	if [ -e "github/release/\"$*\"" ]; then \
@@ -1674,7 +1676,7 @@ ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship github github/release/l
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-toolchain/%!: ship/toolchain.tar.gz github/assets/%.json | ship github github/release/list!
+ship/wasm32-cross-toolchain/%!: ship/wasm32-cross-toolchain.tar.gz github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
