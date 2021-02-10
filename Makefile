@@ -357,6 +357,32 @@ wasm32/cross/stamp/binaryen: wasm32/cross/build/binaryen/Makefile | wasm32/cross
 
 ########################################
 
+wasm32/cross/test: wasm32/cross
+	$(MKDIR) $@
+
+wasm32/native/test: wasm32/cross
+	$(MKDIR) $@
+
+wasm32/cross/test/binutils-gdb: | wasm32/cross/test
+	$(MKDIR) $@
+
+wasm32/native/test/bash: | wasm32/native/test
+	$(MKDIR) $@
+
+wasm32/native/test/glibc: | wasm32/native/test
+	$(MKDIR) $@
+
+# Copying wasm32-headers.o is unfortunate, but required by our linker script.
+wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/binutils-gdb | wasm32/cross/stamp/gcc-preliminary wasm32/cross/test/binutils-gdb
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
+	(cd wasm32/cross/build/binutils-gdb; $(MAKE) check)
+	cat $(patsubst %,wasm32/cross/build/binutils-gdb/%,binutils/binutils.sum gas/testsuite/gas.sum libctf/libctf.sum ld/ld.sum sim/testsuite/testrun.sum) > $@
+
+wasm32/cross/test/gcc-preliminary/summary: wasm32/cross/stamp/gcc-preliminary | | wasm32/cross/test/gcc-preliminary
+	(cd wasm32/cross/build/gcc-preliminary; $(MAKE) check)
+
+wasm32/native/test/glibc/summary: wasm32/native/stamp/glibc | wasm32/native/test/glibc
+	(cd wasm32/native/build/glibc; $(MAKE) check)
 
 
 
@@ -367,13 +393,8 @@ wasm32/cross/stamp/binaryen: wasm32/cross/build/binaryen/Makefile | wasm32/cross
 
 
 
-
-
-
-
-
-
-
+wasm32/native/test/bash/summary: wasm32/native/stamp/bash | wasm32/native/test/bash
+	(cd wasm32/native/build/bash; $(MAKE) check)
 
 wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc
 	$(MKDIR) $(dir $@)
