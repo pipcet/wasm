@@ -19,14 +19,14 @@ JS ?= $$JS
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: lds/wasm32.cpp-lds.lds wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/bitpush wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
+all!: lds/wasm32.cpp-lds.lds wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 extracted github/assets github/release github/install install lib ship src stamp test wasm:
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf artifacts daily extracted github/assets github/release github/install tools/bin/wasmrewrite tools/bin/wasmsect install js lib ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
+	rm -rf artifacts daily extracted github/assets github/release github/install install js lib ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
 
 clean!: start-over!
 
@@ -944,9 +944,6 @@ $(patsubst %,wasm32/cross/bin/%,$(TOOLS_cc)): wasm32/cross/bin/%: tools/src/%.cc
 
 $(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/% | wasm32/cross/bin
 	cp -a $< $@ && chmod u+x $@
-
-$(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/%
-	$(LN) ../../$< $@
 
 wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/bin/$*)
