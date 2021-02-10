@@ -1,7 +1,7 @@
 name: daily
 on:
   push:
-    branches: [ ]
+    branches: [ daily ]
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
