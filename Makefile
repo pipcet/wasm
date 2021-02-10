@@ -1536,6 +1536,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifac
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/ncurses
 	$(MAKE) wasm/libncurses.wasm
