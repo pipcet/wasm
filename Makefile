@@ -1025,7 +1025,7 @@ js:
 wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/native/stamp/build/gcc-preliminary wasm32/native/stamp/build/glibc wasm32/native/stamp/build/gcc wasm32/native/stamp/build/ncurses wasm32/native/stamp/build/bash wasm32/native/stamp/build/gdb
 	touch $@
 
-wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds.lds
+wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds
 	$(MKDIR) $(dir $@)
 	cpp < $< | egrep -v '^#' > $@
 
