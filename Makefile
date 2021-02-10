@@ -22,11 +22,11 @@ JS ?= $$JS
 all!: lds/wasm32.cpp-lds.lds wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-extracted github/assets github/release github/install install lib ship src stamp test wasm:
+extracted github/assets github/release github/install install ship src stamp test wasm:
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf artifacts daily extracted github/assets github/release github/install install js lib ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
+	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
 
 clean!: start-over!
 
