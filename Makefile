@@ -1554,7 +1554,7 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracte
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/binutils-gdb
