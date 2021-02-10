@@ -19,14 +19,14 @@ JS ?= $$JS
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: lds/wasm32.cpp-lds.lds wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
+all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
 extracted github/assets github/release github/install install ship src stamp test wasm:
 	$(MKDIR) $@
 
 start-over!:
-	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32 lds/*.cpp-lds.lds
+	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32
 
 clean!: start-over!
 
@@ -949,11 +949,11 @@ wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/bin/$*)
 	wasm32/cross/bin/elf-to-wasm --executable --dynamic $< > $@
 
-wasm32/wasm/%.so: wasm32/native/%.so | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo lds/wasm32.cpp-lds.lds wasm32/cross/lib/wasm32-lds/wasm32.lds
+wasm32/wasm/%.so: wasm32/native/%.so | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/lib/wasm32-lds/wasm32.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
 
-wasm32/wasm/%.so.1: wasm32/native/%.so.1 | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo lds/wasm32.cpp-lds.lds wasm32/cross/lib/wasm32-lds/wasm32.lds
+wasm32/wasm/%.so.1: wasm32/native/%.so.1 | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/lib/wasm32-lds/wasm32.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
 
@@ -1027,10 +1027,6 @@ wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/nat
 
 wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds.lds
 	$(MKDIR) $(dir $@)
-	cpp < $< | egrep -v '^#' > $@
-
-# pre-processed linker scripts
-%.cpp-lds.lds: %.cpp-lds
 	cpp < $< | egrep -v '^#' > $@
 
 .SECONDARY:
