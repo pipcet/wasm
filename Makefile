@@ -30,6 +30,8 @@ start-over!:
 
 clean!: start-over!
 
+clean: clean!
+
 # environment for bash shells
 env:
 	@echo "export WASMDIR=$(PWD)"
@@ -237,10 +239,10 @@ wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libut
 	$(MKDIR) $@
 	(cd wasm32/native/src/perl; tar c --exclude .git .) | (cd $@; tar x)
 
-wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm tools/bin/dotdir wasm32/native/stamp/configure
+wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	test -f wasm32/native/build/perl/config.sh && mv wasm32/native/build/perl/config.sh wasm32/native/build/perl/config.sh.old || true
 	touch wasm32/native/build/perl/config.sh
-	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	(cd wasm32/native/build/perl; PATH=$(PWD)/wasm32/cross/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32/native')
 	touch $@
 
@@ -249,8 +251,8 @@ wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install
 	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
 	touch $@
 
-wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 js/wasm32.js tools/bin/dotdir wasm32/native/stamp/build
-	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
+	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
 	touch $@
@@ -377,9 +379,9 @@ wasm32/native/build/emacs: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
-wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs tools/bin/dotdir wasm32/native/stamp/configure
+wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
-	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	touch $@
 
 wasm32/native/stamp/build/emacs: wasm32/native/stamp/configure/emacs | wasm32/native/stamp/ncurses wasm32/native/stamp/build
@@ -397,9 +399,9 @@ wasm32/native/build/emacs-native-comp: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs-native-comp; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
-wasm32/native/stamp/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/native/stamp/build/ncurses tools/bin/dotdir
+wasm32/native/stamp/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/native/stamp/build/ncurses wasm32/cross/bin/dotdir
 	(cd wasm32/native/build/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=pdumper --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
-	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
+	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp install
 	touch $@
@@ -949,15 +951,15 @@ $(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/
 
 wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/$*)
-	tools/bin/elf-to-wasm --executable --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic $< > $@
 
-wasm32/wasm/%.so: wasm32/native/%.so | tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/dyninfo lds/wasm32.cpp-lds.lds
+wasm32/wasm/%.so: wasm32/native/%.so | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo lds/wasm32.cpp-lds.lds wasm32/cross/lib/wasm32-lds/wasm32.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
-	tools/bin/elf-to-wasm --library --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
 
-wasm32/wasm/%.so.1: wasm32/native/%.so.1 | tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect tools/bin/dyninfo lds/wasm32.cpp-lds.lds
+wasm32/wasm/%.so.1: wasm32/native/%.so.1 | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo lds/wasm32.cpp-lds.lds wasm32/cross/lib/wasm32-lds/wasm32.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
-	tools/bin/elf-to-wasm --library --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
 
 
 # wasm/ targets. These should go away at some point.
@@ -986,38 +988,38 @@ wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
 wasm/libdl.wasm: wasm32/wasm/lib/libdl.so | wasm
 	$(LN) ../$< $@
 
-wasm/bash.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/bash | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/bash > $@
+wasm/bash.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/bash | wasm
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/bash > $@
 
-wasm/libz.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/zlib | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libz.so > $@
+wasm/libz.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/zlib | wasm
+	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libz.so > $@
 
-wasm/libgmp.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/gmp | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgmp.so > $@
+wasm/libgmp.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/gmp | wasm
+	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgmp.so > $@
 
-wasm/libmpfr.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/mpfr | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpfr.so > $@
+wasm/libmpfr.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/mpfr | wasm
+	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpfr.so > $@
 
-wasm/libmpc.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/mpc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpc.so > $@
+wasm/libmpc.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/mpc | wasm
+	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libmpc.so > $@
 
-wasm/libgccjit.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/native-gcc | wasm
-	tools/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgccjit.so > $@
+wasm/libgccjit.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/native-gcc | wasm
+	wasm32/cross/bin/elf-to-wasm --library --dynamic wasm32/native/lib/libgccjit.so > $@
 
-wasm/zsh.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/zsh | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/zsh > $@
+wasm/zsh.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/zsh | wasm
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/zsh > $@
 
-wasm/miniperl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/miniperl | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/miniperl > $@
+wasm/miniperl.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/miniperl | wasm
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/miniperl > $@
 
-wasm/perl.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/perl | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/perl > $@
+wasm/perl.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/perl | wasm
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/perl > $@
 
-wasm/python.wasm: tools/bin/elf-to-wasm tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/python | wasm
-	tools/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/python3 > $@
+wasm/python.wasm: wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/python | wasm
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic wasm32/native/bin/python3 > $@
 
 COREUTILS = echo true false
-$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% tools/bin/wasmrewrite tools/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
 	$(LN) $< $@
 
 wasm32/native/lib: | wasm32/native
@@ -1028,7 +1030,7 @@ wasm32/native/lib/js: | wasm32/native/lib
 
 # The ThinThin wrapper
 wasm32/native/lib/js/wasm32.js: jsc/wasm32/wasm32.jsc | wasm32/native/lib/js
-	(echo "//autogenerated from $<, do not edit"; echo '"use strict";'; tools/bin/jsc wasm32-unknown-none) < $< > $@
+	(echo "//autogenerated from $<, do not edit"; echo '"use strict";'; wasm32/cross/bin/jsc wasm32-unknown-none) < $< > $@
 
 js:
 	$(MKDIR) $@
@@ -1038,6 +1040,10 @@ js/wasm32.js: wasm32/native/lib/js/wasm32.js js
 
 wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/native/stamp/build/gcc-preliminary wasm32/native/stamp/build/glibc wasm32/native/stamp/build/gcc wasm32/native/stamp/build/ncurses wasm32/native/stamp/build/bash wasm32/native/stamp/build/gdb
 	touch $@
+
+wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds.lds
+	$(MKDIR) $(dir $@)
+	cpp < $< | egrep -v '^#' > $@
 
 # pre-processed linker scripts
 %.cpp-lds.lds: %.cpp-lds
@@ -1055,15 +1061,15 @@ $(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 wasm32/native/stamp/build
 	cp -r testsuite/$*/* test/wasm32/$*/
 	$(LN) ../../../testsuite/$* test/wasm32/$*/src
 
-test/wasm32/%/test.mk: testsuite/% tools/bin/testsuite-make-fragment
+test/wasm32/%/test.mk: testsuite/% wasm32/cross/bin/testsuite-make-fragment
 	$(MKDIR) test/wasm32/$*
-	tools/bin/testsuite-make-fragment testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
+	wasm32/cross/bin/testsuite-make-fragment testsuite/$*/ test/wasm32/$*/ $(patsubst testsuite/$*/%,%,$(wildcard testsuite/$*/*)) > $@
 
 include $(patsubst %,%/test.mk,$(test-dirs))
 
 run-all-tests!: | install/binfmt_misc/elf32-wasm32
 run-all-tests!: | install/binfmt_misc/wasm
-run-all-tests!: | tools/bin/elf-to-wasm
+run-all-tests!: | wasm32/cross/bin/elf-to-wasm
 run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
 
 test/wasm32!: run-all-tests!
@@ -1078,45 +1084,45 @@ subrepos/%/checkout!:
 
 # install various packages on the GitHub VM:
 github/install/file-slurp: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
 
 github/install/nroff: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install groff-base
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install groff-base
 	touch $@
 
 github/install/texinfo-bison-flex: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
 
 github/install/gcc-dependencies: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 	touch $@
 
 github/install/dejagnu: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
 
 github/install/gettext: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install gettext
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gettext
 	touch $@
 
 github/install/sysctl/overcommit_memory: | github/install/sysctl
 	echo 1 | sudo tee /proc/sys/vm/overcommit_memory
 	touch $@
 
-github/install/wasm32-environment: | github/install/sysctl/overcommit_memory github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp tools/bin/elf-to-wasm tools/bin/elf32-wasm32 tools/bin/wasm
+github/install/wasm32-environment: | github/install/sysctl/overcommit_memory github/install/binfmt_misc/elf32-wasm32 github/install/binfmt_misc/wasm github/install/file-slurp wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/elf32-wasm32 wasm32/cross/bin/wasm
 	touch $@
 
 artifact-miniperl!: | install/gettext
 artifact-perl!: | install/gettext
 artifact-python!: | install/gettext
 github/install/autopoint: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install autopoint
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install autopoint
 
 github/install/gperf: | github/install
-	tools/bin/locked --lockfile apt.lock sudo apt-get install gperf
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gperf
 
 github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
@@ -1126,12 +1132,12 @@ github/install/sysctl: | github/install
 
 github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/tools/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
 
 github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/tools/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
 
 install/%: github/install/%
@@ -1158,7 +1164,7 @@ endif
 # C -> exe/o/s rules. These take special flags as part of the filename:
 #  foo.{nostdlib}.c: a C file to be compiled without stdlibs
 #  foo.c.{static}.exe: an executable compiled statically, from foo.c
-cflags = $(shell tools/bin/cflags $(1) $(2))
+cflags = $(shell wasm32/cross/bin/cflags $(1) $(2))
 
 test/wasm32/%.c.exe: test/wasm32/%.c
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
@@ -1185,8 +1191,8 @@ test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp
 	cat $< > $@
 
 # exe -> wasm rule
-test/wasm32/%.exe.wasm: test/wasm32/%.exe tools/bin/elf-to-wasm
-	tools/bin/elf-to-wasm --executable $< > $@
+test/wasm32/%.exe.wasm: test/wasm32/%.exe wasm32/cross/bin/elf-to-wasm
+	wasm32/cross/bin/elf-to-wasm --executable $< > $@
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
@@ -1250,7 +1256,7 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
@@ -1263,7 +1269,7 @@ test/%.exp.cmp: test/%.exp test/%
 	grep FAIL build/wasm32/gcc/gcc/testsuite/gcc/gcc.log > artifacts/$(notdir $*)-$$PREFIX-short.log || true
 	$(MAKE) artifact-push!
 
-%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
+%.{daily-dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 subrepos/gcc/checkout! daily src/gcc
 	$(MAKE) extracted/daily/gcc-preliminary.tar.gz
 	$(MAKE) extracted/daily/gcc.tar.gz
 	$(MAKE) bin/js
@@ -1279,7 +1285,7 @@ test/%.exp.cmp: test/%.exp test/%
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/
 
-%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
+%.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
 	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
@@ -1303,8 +1309,6 @@ gcc-testsuites-pack!: | artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.ex
 	mkdir tmp
 	cd tmp; for a in artifacts/atomic.exp.{dejagnu}.tar artifacts/builtins.exp.{dejagnu}.tar artifacts/charset.exp.{dejagnu}.tar artifacts/compile.exp.{dejagnu}.tar artifacts/debug.exp.{dejagnu}.tar artifacts/dg.exp.{dejagnu}.tar artifacts/dwarf2.exp.{dejagnu}.tar artifacts/execute.exp.{dejagnu}.tar artifacts/format.exp.{dejagnu}.tar artifacts/ieee.exp.{dejagnu}.tar artifacts/lto.exp.{dejagnu}.tar artifacts/tls.exp.{dejagnu}.tar artifacts/tm.exp.{dejagnu}.tar artifacts/weak.exp.{dejagnu}.tar; do tar xvf ../$$a; done
 	cd tmp; tar cvf ../artifacts/dejagnu.tar .
-
-clean: clean!
 
 sequence: \
 	wasm32/cross/stamp/build/binutils-gdb \
@@ -1390,13 +1394,13 @@ daily-perl!: | install/file-slurp
 daily-python!: | install/file-slurp
 daily-ncurses!: | install/file-slurp
 daily-run-all-tests!: | install/file-slurp
-daily-run-all-tests!: | tools/bin/dyninfo
+daily-run-all-tests!: | wasm32/cross/bin/dyninfo
 daily-run-all-tests!: | js/wasm32.js
 daily-run-elf!: | install/file-slurp
-daily-run-elf!: | tools/bin/dyninfo
+daily-run-elf!: | wasm32/cross/bin/dyninfo
 daily-run-elf!: | js/wasm32.js
 daily-run-wasm!: | install/file-slurp
-daily-run-wasm!: | tools/bin/dyninfo
+daily-run-wasm!: | wasm32/cross/bin/dyninfo
 daily-run-wasm!: | js/wasm32.js
 daily-zsh!: | install/file-slurp
 
@@ -1498,7 +1502,7 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
 
-daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js tools/bin/elf-to-wasm
+daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 js/wasm32.js bin/js wasm32/cross/bin/elf-to-wasm
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1508,11 +1512,11 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	$(MAKE) wasm/libm.wasm
 	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
-	tools/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
+	wasm32/cross/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
 	chmod u+x hello-world.wasm
 	./hello-world.wasm
 
-daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js bin/js tools/bin/elf-to-wasm
+daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz js/wasm32.js bin/js wasm32/cross/bin/elf-to-wasm
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
