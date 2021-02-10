@@ -633,6 +633,8 @@ Wasm32LM.prototype.dyninfo_misc =
     function (dyninfo, imports, module)
 {
     for (let lib of dyninfo.libs || []) {
+	lib = lib.replace(/[0-9.]*$/, "");
+	lib = lib.replace(/\.so$/, ".wasm");
 	if (!(lib in this.dep))
             this.dep[lib] = -1;
     }
