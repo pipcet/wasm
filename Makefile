@@ -64,6 +64,9 @@ wasm32/cross: | wasm32 wasm32/native
 	$(LN) ../../native/include $@/wasm32-unknown-none/include
 	$(LN) ../../native/lib $@/wasm32-unknown-none/lib
 
+wasm32/cross/bin: | wasm32/cross
+	$(MKDIR) $@
+
 wasm32/cross/src: | wasm32/cross
 	$(MKDIR) $@
 
