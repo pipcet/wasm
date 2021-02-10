@@ -1029,6 +1029,10 @@ wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds.lds
 	$(MKDIR) $(dir $@)
 	cpp < $< | egrep -v '^#' > $@
 
+wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds: lds/wasm32-wasmify.lds
+	$(MKDIR) $(dir $@)
+	cat $< > $@
+
 .SECONDARY:
 .PRECIOUS: test/wasm32/%
 
@@ -1049,7 +1053,7 @@ include $(patsubst %,%/test.mk,$(test-dirs))
 
 run-all-tests!: | install/binfmt_misc/elf32-wasm32
 run-all-tests!: | install/binfmt_misc/wasm
-run-all-tests!: | wasm32/cross/bin/elf-to-wasm
+run-all-tests!: | wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
 run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
 
 test/wasm32!: run-all-tests!
@@ -1183,7 +1187,7 @@ test/wasm32/%.wasm.out: test/wasm32/%.wasm
 	@cat test/wasm32/$*.wasm.err
 
 test/wasm32/%.gdb.out: test/wasm32/%.gdb
-	JS=$(JS) WASMDIR=$(PWD) $(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gdb --command=$< --batch > $@
+	JS=$(JS) WASMDIR=$(PWD) $(PWD)/wasm32/cross/bin/wasm32-unknown-none-gdb --command=$< --batch > $@
 
 comma = ,
 car = $(firstword $(1))
@@ -1191,37 +1195,37 @@ cdr = $(wordlist 2,$(words $(1)),$(1))
 multideps = $(addprefix $(2)$(call car,$(1)),$(subst $(comma), ,$(call cdr,$(1))))
 
 test/wasm32/%].exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) $^ -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) $^ -o $@
 
 test/wasm32/%].{static}.exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) -static $^ -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) -static $^ -o $@
 
 test/wasm32/%.o.exe: test/wasm32/%.o
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $< -o $@
 
 test/wasm32/%.cc.exe: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ $< -o $@
 
 test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc -S $< -o $@
 
 test/wasm32/%.S.o: test/wasm32/%.S | wasm32/cross/bin/cflags
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.c.o: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -c $< -o $@
 
 test/wasm32/%.c.i: test/wasm32/%.c | wasm32/cross/bin/cflags
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
 
 test/wasm32/%.cc.i: test/wasm32/%.cc | wasm32/cross/bin/cflags
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ $(call cflags,$*,$(dir testsuite/$*)) -E $< -o $@
 
 test/wasm32/%.cc.s: test/wasm32/%.cc
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ -S $< -o $@
 
 test/wasm32/%.cc.o: test/wasm32/%.cc
-	$(PWD)/wasm32-unknown-none/bin/wasm32-unknown-none-g++ -c $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ -c $< -o $@
 
 test/wasm32/%.exp.cmp: test/wasm32/%.exp.pl test/wasm32/%
 	perl $^ > $@
@@ -1479,7 +1483,7 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
+	./wasm32/cross/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
 
 daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
@@ -1490,7 +1494,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	./wasm32-unknown-none/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
+	./wasm32/cross/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
 	wasm32/cross/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
 	chmod u+x hello-world.wasm
