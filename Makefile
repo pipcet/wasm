@@ -1262,10 +1262,9 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect artifacts/jsshell-linux-x86_64.zip install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
+%.{dejagnu}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm artifacts wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
 	(cd build/wasm32/gcc/gcc; make site.exp && cp site.exp testsuite && cp site.exp testsuite/gcc)
 #	(cd src/gcc/gcc/testsuite/; find -type d | while read DIR; do cd $DIR; ls * | shuf | head -n +128 | egrep -v '*.dg' | while read; do rm $REPLY; done; done) || true
@@ -1293,8 +1292,6 @@ test/%.exp.cmp: test/%.exp test/%
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/
 
 %.{dejanew}!: js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/wasm32-cross-toolchain.tar tools/bin/wasmrewrite tools/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/libc.wasm artifacts/ld.wasm artifacts/libm.wasm subrepos/gcc/checkout! artifacts src/gcc
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MKDIR) wasm
 	cp artifacts/*.wasm wasm
 	$(MAKE) artifact-timestamp
@@ -1539,14 +1536,14 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 	$(MAKE) run-all-tests!
 
 # Build the various artifacts
-artifact-wasm32-native!: | artifacts install/file-slurp
+artifact-wasm32-environment!: | artifacts install/file-slurp
 	$(MAKE) artifact-timestamp
 	wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
 	unzip -d bin jsshell-linux-x86_64.zip
 	$(MAKE) github/install/binfmt_misc/wasm
 	$(MAKE) github/install/binfmt_misc/elf32-wasm32
 	$(MAKE) js/wasm32.js
-	tar cvf artifacts/wasm32-native.tar js/wasm32.js bin
+	tar cvf artifacts/wasm32-environment.tar js/wasm32.js bin
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
 
@@ -1580,7 +1577,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifac
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
-	$(MAKE) install/wasm32-environment
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/ncurses
 	$(MAKE) wasm/libncurses.wasm
@@ -1588,36 +1585,49 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracte
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) wasm32/native/stamp/build/binutils-gdb
+	tar cf artifacts/wasm32-native-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	$(MAKE) artifact-push!
+
 artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/zsh
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/zlib wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/gmp wasm/libgmp.wasm
 	cp wasm/libgmp.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpfr wasm/libmpfr.wasm
 	cp wasm/libmpfr.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
+	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpc wasm/libmpc.wasm
 	cp wasm/libmpc.wasm artifacts/
@@ -1625,17 +1635,14 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifa
 
 artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm
 	$(MAKE) install/wasm32-environment
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/coreutils
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
 	$(MAKE) wasm32/cross/stamp/build/python
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
@@ -1651,8 +1658,6 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/
 	$(MAKE) artifact-push!
 
 artifact-emacs!: | subrepos/emacs/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
-	$(MAKE) artifacts/jsshell-linux-x86_64.zip
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/emacs
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
@@ -1667,15 +1672,13 @@ artifact-perl!: | install/binfmt_misc/elf32-wasm32
 artifact-perl!: | install/binfmt_misc/wasm
 artifact-perl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+artifact-miniperl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/miniperl wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
-	unzip artifacts/jsshell-linux-x86_64.zip -d bin
+artifact-perl!: | subrepos/perl/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) built/wasm32/perl wasm/perl.wasm
 	cp wasm/perl.wasm artifacts/
