@@ -286,10 +286,6 @@ wasm32/native/stamp/build/gmp: wasm32/native/stamp/configure/gmp | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp install
 	touch $@
 
-ifneq (${GITHUB},1)
-wasm32/native/lib/libgmp.so: wasm32/native/stamp/build/gmp
-endif
-
 # MPC
 
 wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
@@ -1608,21 +1604,21 @@ artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts extracted/arti
 artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/gmp wasm/libgmp.wasm
+	$(MAKE) wasm32/native/stamp/build/gmp
 	cp wasm/libgmp.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/mpfr wasm/libmpfr.wasm
+	$(MAKE) wasm32/native/stamp/build/mpfr
 	cp wasm/libmpfr.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/mpc wasm/libmpc.wasm
+	$(MAKE) wasm32/native/stamp/build/mpc
 	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
@@ -1773,8 +1769,10 @@ daily:
 	touch $@
 
 # Retrieve a single-file artifact
-artifact!/%: artifacts/$(notdir $*) | $(dir $*)
-	cp $< $*
+artifact!/%:
+	$(MKDIR) $(dir $*)
+	$(MAKE) artifacts/$(notdir $*)
+	cp artifacts/$(notdir $*) $*
 
 # Extract an artifact
 extracted/%.tar: %.tar | extracted
