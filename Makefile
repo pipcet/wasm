@@ -976,7 +976,7 @@ js:
 	$(MKDIR) $@
 
 js/wasm32.js: wasm32/native/lib/js/wasm32.js js
-	ln -sf $< $@
+	ln -sf ../$< $@
 
 # build-everything rules
 built/all: built/wasm32/all built/common/all
