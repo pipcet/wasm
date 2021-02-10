@@ -65,7 +65,7 @@ wasm32/cross/build/binutils-gdb/Makefile: | wasm32/cross/src/binutils-gdb wasm32
 	(cd wasm32/cross/src/binutils-gdb/gas; aclocal; automake; autoreconf)
 	(cd wasm32/cross/build/binutils-gdb; ../../src/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/cross CFLAGS=$(OPT_NATIVE))
 
-wasm32/cross/stamp/binutils-gdb: wasm32/cross/build/binutils-gdb/Makefile | bin wasm32/cross/stamp
+wasm32/cross/stamp/binutils-gdb: | bin wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/binutils-gdb
 	$(MAKE) -C wasm32/cross/build/binutils-gdb install
 	touch $@
