@@ -312,7 +312,7 @@ wasm32/native/stamp/configure/mpfr: | wasm32/native/src/mpfr wasm32/native/build
 	(cd wasm32/native/build/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpfr/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr wasm32/native/stamp/build/gmp | wasm32/native/stamp/build
+wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr | wasm32/native/stamp/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
