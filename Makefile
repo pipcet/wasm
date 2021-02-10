@@ -938,6 +938,9 @@ $(patsubst %,wasm32/cross/bin/%,$(TOOLS_cc)): wasm32/cross/bin/%: tools/src/%.cc
 $(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/%
 	cp -a $< $@ && chmod u+x $@
 
+$(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/%
+	ln -sf ../../$< $@
+
 wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	tools/bin/elf-to-wasm --executable --dynamic $< > $@
