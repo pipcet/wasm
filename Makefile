@@ -937,13 +937,13 @@ TOOLS_c = bitpush wasmextract wasmrewrite wasmsect
 TOOLS_cc =
 TOOLS_script = cflags dotdir dyninfo elf32-wasm32 elf-to-wasm jsc locked run-elf-wasm32 testsuite-make-fragment wasm
 
-$(patsubst %,wasm32/cross/bin/%,$(TOOLS_c)): wasm32/cross/bin/%: tools/src/%.c
+$(patsubst %,wasm32/cross/bin/%,$(TOOLS_c)): wasm32/cross/bin/%: tools/src/%.c | wasm32/cross/bin
 	gcc -Wall -g3 $< -o $@
 
-$(patsubst %,wasm32/cross/bin/%,$(TOOLS_cc)): wasm32/cross/bin/%: tools/src/%.cc
+$(patsubst %,wasm32/cross/bin/%,$(TOOLS_cc)): wasm32/cross/bin/%: tools/src/%.cc | wasm32/cross/bin
 	g++ -Wall -g3 $< -o $@
 
-$(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/%
+$(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/% | wasm32/cross/bin
 	cp -a $< $@ && chmod u+x $@
 
 $(patsubst %,tools/bin/%,$(TOOLS_c) $(TOOLS_cc)): tools/bin/%: wasm32/cross/bin/%
