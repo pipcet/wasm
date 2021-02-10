@@ -1566,13 +1566,17 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/ar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/glibc
 	tar cf artifacts/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	$(MAKE) wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm
+	cp wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm artifacts
 	$(MAKE) artifact-push!
 
 artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar extracted/artifacts/wasm32-native-glibc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/cross/stamp/build/gcc
+	$(MAKE) wasm/libstdc++.wasm
 	tar cf artifacts/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	tar cf artifacts/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
+	cp wasm/libstdc++.wasm artifacts
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
