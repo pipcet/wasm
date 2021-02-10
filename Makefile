@@ -132,7 +132,7 @@ $(patsubst %,wasm32/native/build/%,binutils-gdb gcc glibc ncurses bash wabt bina
 	$(MKDIR) $@
 
 wasm32/native/stamp/configure/glibc: | wasm32/cross/stamp/build/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc wasm32/native/stamp/configure
-	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -Os -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native)
+	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -O2 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native)
 	touch $@
 
 wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/native/stamp/build
@@ -297,10 +297,6 @@ wasm32/native/stamp/build/mpc: wasm32/native/stamp/configure/mpc | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc install
 	touch $@
 
-ifneq (${GITHUB},1)
-wasm32/native/lib/libmpc.so: wasm32/native/stamp/build/mpc
-endif
-
 # MPFR
 
 wasm32/native/src/mpfr: | wasm32/native/src
@@ -320,10 +316,6 @@ wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
-
-ifneq (${GITHUB},1)
-wasm32/native/lib/libmpfr.so: wasm32/native/stamp/build/mpfr
-endif
 
 # Binutils (native)
 
@@ -413,7 +405,7 @@ wasm32/cross/stamp/configure/wabt: | wasm32/cross/build/wabt wasm32/cross/src/wa
 	(cd wasm32/cross/build/wabt; cmake ../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 	touch $@
 
-wasm32/cross/stamp/wabt: wasm32/cross/stamp/configure/wabt | wasm32/cross/stamp
+wasm32/cross/stamp/build/wabt: wasm32/cross/stamp/configure/wabt | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/wabt
 	$(MAKE) -C wasm32/cross/build/wabt install
 	touch $@
@@ -424,7 +416,7 @@ wasm32/cross/stamp/configure/binaryen: | wasm32/cross/build/binaryen wasm32/cros
 	(cd wasm32/cross/build/binaryen; cmake ../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 	touch $@
 
-wasm32/cross/stamp/binaryen: wasm32/cross/stamp/configure/binaryen | wasm32/cross/stamp
+wasm32/cross/stamp/build/binaryen: wasm32/cross/stamp/configure/binaryen | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/binaryen
 	$(MAKE) -C wasm32/cross/build/binaryen install
 	touch $@
@@ -1135,15 +1127,15 @@ endif
 
 # objdump debug rule
 %.wasm.wasm-objdump: %.wasm wasm32/cross/stamp/build/wabt
-	./bin/wasm-objdump -dhx $< > $@
+	wasm32/cross/bin/wasm-objdump -dhx $< > $@
 
 # wasm-to-wasm optimization rules
 %.wasm.{O}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
-	./bin/wasm-opt $< -o $@
+	wasm32/cross/bin/wasm-opt $< -o $@
 %.wasm.{O4}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
-	./bin/wasm-opt -O4 $< -o $@
+	wasm32/cross/bin/wasm-opt -O4 $< -o $@
 %.wasm.{Oz}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
-	./bin/wasm-opt -Oz $< -o $@
+	wasm32/cross/bin/wasm-opt -Oz $< -o $@
 
 # C -> exe/o/s rules. These take special flags as part of the filename:
 #  foo.{nostdlib}.c: a C file to be compiled without stdlibs
@@ -1593,24 +1585,21 @@ artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifa
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/gmp
-	cp wasm/libgmp.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpfr
-	cp wasm/libmpfr.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpc
-	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm wasm32/native/lib/libc wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/coreutils
@@ -1618,7 +1607,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extr
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment
 	$(MAKE) wasm32/cross/stamp/build/python
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
