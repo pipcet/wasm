@@ -1523,8 +1523,6 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/ar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/glibc
 	tar cf artifacts/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
-	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
-	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar extracted/artifacts/wasm32-native-glibc.tar
