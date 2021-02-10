@@ -1465,12 +1465,13 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 	$(MAKE) run-all-tests!
 
 # Build the various artifacts
-artifact-wasm32-native!: | js/wasm32.js artifacts install/file-slurp
+artifact-wasm32-native!: | artifacts install/file-slurp
 	$(MAKE) artifact-timestamp
 	wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
 	unzip -d bin jsshell-linux-x86_64.zip
 	$(MAKE) github/install/binfmt_misc/wasm
 	$(MAKE) github/install/binfmt_misc/elf32-wasm32
+	$(MAKE) js/wasm32.js
 	tar cvf artifacts/wasm32-native.tar js/wasm32.js bin
 	cat js/wasm32.js > artifacts/wasm32.js
 	$(MAKE) artifact-push!
