@@ -39,7 +39,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 artifact-wasm32-cross-gcc-preliminary!
+    - run: make --trace GITHUB=1 -kj10 artifact-wasm32-cross-gcc-preliminary!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   glibc:
