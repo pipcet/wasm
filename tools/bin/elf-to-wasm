@@ -26,7 +26,7 @@ if [ x"$WASMDIR" = x ]; then
     export WASMDIR
 fi
 if [ x"$DYNAMIC" = xunknown ]; then
-    if $WASMDIR/wasm32-unknown-none/bin/wasm32-unknown-none-readelf -d "$1" | grep -q "There is no dynamic section"; then
+    if $WASMDIR/wasm32/cross/bin/wasm32-unknown-none-readelf -d "$1" | grep -q "There is no dynamic section"; then
 	DYNAMIC=
     else
 	DYNAMIC=1;
@@ -50,8 +50,8 @@ if [ x"$TYPE" = xLIBRARY ]; then
 else
     cp $TMPD/elf $TMPD/elf3
 fi
-$WASMDIR/wasm32/cross/bin/wasm32-unknown-none-ld -nostdlib -Map $TMPD/map1 -T $WASMDIR/lds/wasm32.cpp-lds.lds $TMPD/elf3 -o $TMPD/intermediate -N --warn-unresolved-symbols --no-check-sections 2>/dev/null
-$WASMDIR/wasm32/cross/bin/wasm32-unknown-none-ld -Map $TMPD/map2 -E -T $WASMDIR/lds/wasm32-wasmify.lds $TMPD/intermediate -o $TMPD/longwasm 2> /dev/null
+$WASMDIR/wasm32/cross/bin/wasm32-unknown-none-ld -nostdlib -Map $TMPD/map1 -T $WASMDIR/wasm32/cross/lib/wasm32-lds/wasm32.lds $TMPD/elf3 -o $TMPD/intermediate -N --warn-unresolved-symbols --no-check-sections 2>/dev/null
+$WASMDIR/wasm32/cross/bin/wasm32-unknown-none-ld -Map $TMPD/map2 -E -T $WASMDIR/wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds $TMPD/intermediate -o $TMPD/longwasm 2> /dev/null
 $WASMDIR/wasm32/cross/bin/wasmrewrite $TMPD/longwasm > $TMPD/wasm
 $WASMDIR/wasm32/cross/bin/wasmsect $TMPD/dyninfo.json > $TMPD/dyninfo.json.wass
 cat $TMPD/dyninfo.json.wass >> $TMPD/wasm
