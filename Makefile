@@ -120,7 +120,7 @@ $(patsubst %,wasm32/cross/build/%,binutils-gdb gcc-preliminary gcc wabt binaryen
 $(patsubst %,wasm32/native/build/%,binutils-gdb gcc glibc ncurses bash wabt binaryen python gmp mpc zlib): wasm32/native/build/%: | wasm32/native/build
 	$(MKDIR) $@
 
-wasm32/native/stamp/configure/glibc: | wasm32/cross/stamp/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc wasm32/native/stamp/configure
+wasm32/native/stamp/configure/glibc: | wasm32/cross/stamp/build/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc wasm32/native/stamp/configure
 	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -Os -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native)
 	touch $@
 
@@ -131,7 +131,7 @@ wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/na
 
 # GCC (final build, C/C++/LTO, no libgccjit)
 
-wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/glibc wasm32/cross/stamp/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure
+wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure
 	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross)
 
 wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/stamp/build wasm32/cross/src/gcc
@@ -144,7 +144,7 @@ wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/st
 
 # ncurses
 
-wasm32/native/stamp/configure/ncurses: | wasm32/cross/stamp/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses wasm32/native/stamp/configure
+wasm32/native/stamp/configure/ncurses: | wasm32/cross/stamp/build/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses wasm32/native/stamp/configure
 	(cd wasm32/native/build/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-stripping --with-shared)
 	touch $@
 
@@ -223,7 +223,7 @@ wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install
 	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
 	touch $@
 
-wasm32/native/stamp/build/perl: wasm32/native/stamp/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 js/wasm32.js tools/bin/dotdir wasm32/native/stamp/build
+wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 js/wasm32.js tools/bin/dotdir wasm32/native/stamp/build
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/tools/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
@@ -277,7 +277,7 @@ wasm32/native/stamp/configure/mpfr: | wasm32/native/src/mpfr wasm32/native/build
 	(cd wasm32/native/build/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpfr/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr wasm32/native/stamp/gmp | wasm32/native/stamp/build
+wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr wasm32/native/stamp/build/gmp | wasm32/native/stamp/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
@@ -400,15 +400,15 @@ wasm32/native/test/glibc: | wasm32/native/test
 	$(MKDIR) $@
 
 # Copying wasm32-headers.o is unfortunate, but required by our linker script.
-wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/build/binutils-gdb | wasm32/cross/stamp/gcc-preliminary wasm32/cross/test/binutils-gdb
+wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/build/binutils-gdb | wasm32/cross/stamp/build/gcc-preliminary wasm32/cross/test/binutils-gdb
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
 	(cd wasm32/cross/build/binutils-gdb; $(MAKE) check)
 	cat $(patsubst %,wasm32/cross/build/binutils-gdb/%,binutils/binutils.sum gas/testsuite/gas.sum libctf/libctf.sum ld/ld.sum sim/testsuite/testrun.sum) > $@
 
-wasm32/cross/test/gcc-preliminary/summary: wasm32/cross/stamp/gcc-preliminary | | wasm32/cross/test/gcc-preliminary
+wasm32/cross/test/gcc-preliminary/summary: wasm32/cross/stamp/build/gcc-preliminary | | wasm32/cross/test/gcc-preliminary
 	(cd wasm32/cross/build/gcc-preliminary; $(MAKE) check)
 
-wasm32/native/test/glibc/summary: wasm32/native/stamp/glibc | wasm32/native/test/glibc
+wasm32/native/test/glibc/summary: wasm32/native/stamp/build/glibc | wasm32/native/test/glibc
 	(cd wasm32/native/build/glibc; $(MAKE) check)
 
 
@@ -1308,7 +1308,7 @@ build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/
 	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
 	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
-wasm32/cross/stamp/python: wasm32/cross/stamp/configure/python | wasm32/cross/stamp
+wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cross/stamp
 	$(MAKE) -C wasm32/cross/build/python
 	$(MAKE) -C wasm32/cross/build/python install
 	touch $@
@@ -1512,13 +1512,13 @@ artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts
 
 artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/gcc-preliminary
+	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
 	tar cf artifacts/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/glibc
+	$(MAKE) wasm32/native/stamp/build/glibc
 	tar cf artifacts/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
 	cp wasm/ld.wasm wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm artifacts/
@@ -1526,7 +1526,7 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/ar
 
 artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar extracted/artifacts/wasm32-native-glibc.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/gcc
+	$(MAKE) wasm32/cross/stamp/build/gcc
 	tar cf artifacts/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	tar cf artifacts/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
 	$(MAKE) wasm/libstdc++.wasm
@@ -1535,7 +1535,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifac
 
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/ncurses
+	$(MAKE) wasm32/native/stamp/build/ncurses
 	$(MAKE) wasm/libncurses.wasm
 	tar cf artifacts/wasm32-native-ncurses.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	cp wasm/libncurses.wasm artifacts/
@@ -1543,36 +1543,36 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracte
 
 artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/bash wasm/bash.wasm
+	$(MAKE) wasm32/native/stamp/build/bash wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/zsh
+	$(MAKE) wasm32/native/stamp/build/zsh
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/zlib wasm/libz.wasm
+	$(MAKE) wasm32/native/stamp/build/zlib wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/gmp wasm/libgmp.wasm
+	$(MAKE) wasm32/native/stamp/build/gmp wasm/libgmp.wasm
 	cp wasm/libgmp.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/mpfr wasm/libmpfr.wasm
+	$(MAKE) wasm32/native/stamp/build/mpfr wasm/libmpfr.wasm
 	cp wasm/libmpfr.wasm artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/mpc wasm/libmpc.wasm
+	$(MAKE) wasm32/native/stamp/build/mpc wasm/libmpc.wasm
 	cp wasm/libmpc.wasm artifacts/
 	$(MAKE) artifact-push!
 
@@ -1580,13 +1580,13 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extr
 	$(MAKE) artifacts/jsshell-linux-x86_64.zip
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/coreutils
+	$(MAKE) wasm32/native/stamp/build/coreutils
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar js/wasm32.js artifacts/jsshell-linux-x86_64.zip
-	$(MAKE) wasm32/cross/stamp/python
+	$(MAKE) wasm32/cross/stamp/build/python
 	unzip artifacts/jsshell-linux-x86_64.zip -d bin
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1596,7 +1596,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts extracted/
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	$(MAKE) wasm32/native/stamp/python wasm/python.wasm
+	$(MAKE) wasm32/native/stamp/build/python wasm/python.wasm
 	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 	cp wasm/python.wasm artifacts/
