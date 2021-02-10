@@ -1317,8 +1317,8 @@ wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cr
 	touch $@
 
 ifeq (${GITHUB},1)
-problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm js/wasm32.js install/file-slurp
-	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm
+problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp
+	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm js/wasm32.js
 	$(MAKE) artifacts artifact-timestamp
 	$(MKDIR) wasm32/cross/stamp/build/gcc
 	JS=$(PWD)/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/test/gcc/problem.tar
