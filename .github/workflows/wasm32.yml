@@ -148,6 +148,7 @@ jobs:
     needs:
     - wasm32-environment
     - cross-gcc
+    - gmp
     steps:
     - uses: actions/checkout@v2
       with:
