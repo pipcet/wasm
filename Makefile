@@ -254,11 +254,19 @@ wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install
 	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
 	touch $@
 
-wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/build/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
+ifneq (${GITHUB},1)
+wasm32/native/bin/miniperl: wasm32/native/stamp/build/perl
+endif
+
+wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/bin/perl: wasm32/native/stamp/build/perl
+endif
 
 # zlib
 
