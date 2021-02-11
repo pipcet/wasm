@@ -192,6 +192,10 @@ wasm32/native/stamp/build/bash: wasm32/native/stamp/configure/bash | wasm32/nati
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/bash install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/native/bin/bash: wasm32/native/stamp/build/bash
+endif
+
 # zsh
 
 # Zsh is spe-shell.
@@ -206,6 +210,10 @@ wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/bin/zsh: wasm32/native/stamp/build/zsh
+endif
 
 # coreutils
 
@@ -222,6 +230,10 @@ wasm32/native/stamp/build/coreutils: wasm32/native/stamp/configure/coreutils | w
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils install
 	touch $@
 
+ifneq (${GITHUB},1)
+wasm32/native/bin/true wasm32/native/bin/false wasm32/native/bin/echo: wasm32/native/stamp/build/coreutils
+endif
+
 # Python
 
 wasm32/native/stamp/configure/python: | wasm32/cross/stamp/build/gcc wasm32/native/src/python wasm32/native/build/python wasm32/native/stamp/configure
@@ -232,6 +244,10 @@ wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python install
 	touch $@
+
+ifneq (${GITHUB},1)
+wasm32/native/bin/python3: wasm32/native/stamp/build/python
+endif
 
 # Perl
 
