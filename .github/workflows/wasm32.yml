@@ -211,46 +211,44 @@ jobs:
     - run: make GITHUB=1 -kj10 artifact-wasm32-native-gcc!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  coreutils:
-    name: coreutils
-    runs-on: ubuntu-latest
-    needs:
-    - wasm32-environment
-    - cross-gcc
-    - ncurses
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-coreutils!
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  python:
-    name: python
-    runs-on: ubuntu-latest
-    needs:
-    - wasm32-environment
-    - cross-gcc
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-python!
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # coreutils:
+  #   name: coreutils
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - wasm32-environment
+  #   - cross-gcc
+  #   - ncurses
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run:
+  #       JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-coreutils!
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # python:
+  #   name: python
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - wasm32-environment
+  #   - cross-gcc
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run:
+  #       JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-wasm32-native-python!
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   preship:
     name: pre-ship
     runs-on: ubuntu-latest
     needs:
     - wasm32-environment
-    - python
-    - coreutils
     - gcc
     - bash
     - zsh
