@@ -4994,21 +4994,21 @@ if (typeof(os) !== "undefined" &&
         ThinThin.fcntl_v = function () {
             return 0;
         };
-        ThinThin.clock_gettime = function (clk_id, timespec)
-        {
-            var date = new Date();
-            var s = date / 1000.0;
-            var ns = (date % 1000.0) * 1000000.0;
-
-            %{timespec[&timespec::tv_sec] = 0}
-            %{timespec[&timespec::tv_nsec] = 0}
-            %{timespec[&timespec::tv_sec] = "s"}
-            %{timespec[&timespec::tv_nsec] = "ns"}
-
-            return 0;
-        };
     } else {
     }
+    ThinThin.clock_gettime = function (clk_id, timespec)
+    {
+        var date = new Date();
+        var s = date / 1000.0;
+        var ns = (date % 1000.0) * 1000000.0;
+
+        %{timespec[&timespec::tv_sec] = 0LL}
+        %{timespec[&timespec::tv_nsec] = 0LL}
+        %{timespec[&timespec::tv_sec] = "s"}
+        %{timespec[&timespec::tv_nsec] = "ns"}
+
+        return 0;
+    };
     ThinThin.gethostname = function (addr, len) {
         this.HEAP8[addr] = 0;
 
