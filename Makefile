@@ -414,14 +414,17 @@ wasm32/native/build/emacs-native-comp: | wasm32/native/build
 	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs-native-comp; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
-wasm32/native/stamp/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/native/stamp/build/ncurses wasm32/cross/bin/dotdir
+wasm32/native/stamp/configure/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	(cd wasm32/native/build/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=pdumper --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
 	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
+	touch $@
+
+wasm32/native/stamp/build/emacs-native-comp: wasm32/native/stamp/configure/emacs-native-comp | wasm32/native/stamp/build/ncurses wasm32/native/stamp/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp install
 	touch $@
 
-wasm32/native/stamp/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
+wasm32/native/stamp/build/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm wasm/libz.wasm wasm/libgccjit.wasm
 
 # wabt
 
