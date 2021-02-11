@@ -1617,14 +1617,19 @@ artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifa
 
 artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
+	$(MAKE) extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpfr
+	tar cf artifacts/wasm32-native-mpfr.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
+	$(MAKE) extracted/artifacts/wasm32-native-gmp.tar
+	$(MAKE) extracted/artifacts/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpc
+	tar cf artifacts/wasm32-native-mpc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifact!/wasm/libc.wasm artifact!/wasm/ld.wasm artifact!/wasm/libm.wasm artifact!/wasm/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/wasm32-environment.tar
