@@ -84,7 +84,7 @@ wasm32/cross/stamp/build: | wasm32/cross/stamp
 # binutils-gdb requires source tree modification, so we copy the source.
 wasm32/cross/src/binutils-gdb: | wasm32/cross/src
 	$(MKDIR) $@T
-	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
+	cp -as $(PWD)/subrepos/binutils-gdb/* $@T/
 	mv $@T $@
 
 wasm32/cross/stamp/configure/binutils-gdb: | wasm32/cross/src/binutils-gdb wasm32/cross/build/binutils-gdb wasm32/cross/stamp/configure
