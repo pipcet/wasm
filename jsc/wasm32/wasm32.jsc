@@ -860,7 +860,20 @@ Wasm32Module.prototype.check_libs = function (thread)
                 }
 
                 if (typeof os !== "undefined") {
-                    var module = new Wasm32Module(thread.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib, "binary"), lib);
+		    let bytes;
+		    if (!bytes)
+			try {
+			    bytes = os.file.readFile(os.getenv("WASMDIR") + "/wasm32/wasm/lib/" + lib, "binary");
+			} catch (e) {
+			}
+		    if (!bytes)
+			try {
+			    bytes = os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + lib.replace(/\.so[0-9.]*$/, ".wasm"), "binary");
+			} catch (e) {
+			}
+		    if (!bytes)
+			throw("couldn't load " + lib);
+                    var module = new Wasm32Module(thread.process, bytes, lib);
                     return module.load(thread, this.vm).then(() => {
                         var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
                         var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
@@ -970,7 +983,8 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 		vm.HEAP32[(header + 48) >> 2] += header - 16384;
 		vm.HEAP32[(header + 56) >> 2] += header - 16384;
 		if (this.name === "ld.wasm" ||
-		    this.name === "libc.wasm") {
+		    this.name === "libc.wasm" ||
+		    this.name.match(/^l(d|ibc)\.so([0-9.]*)$/)) {
 		    vm.HEAP32[header + 56 >> 2] = vm.HEAP32[header + 48 >> 2];
 		    //vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
 		    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
