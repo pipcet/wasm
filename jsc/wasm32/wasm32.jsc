@@ -1231,9 +1231,10 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     var mod = CStringAt(this.HEAPU8, modstr);
     var fun = CStringAt(this.HEAPU8, funstr);
 
-    if (typeof os !== "undefined" &&
-	os.getenv && os.getenv("WASM_STRACE"))
-	console.log("mod", mod, "fun", fun);
+    if (fun !== "write" && fun !== "lseek")
+	if (typeof os !== "undefined" &&
+	    os.getenv && os.getenv("WASM_STRACE"))
+	    console.log("mod", mod, "fun", fun);
 
     if (sp in this.extcallRet) {
         var ret = this.extcallRet[sp];
