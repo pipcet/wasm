@@ -269,6 +269,22 @@ jobs:
     - run: make GITHUB=1 -kj10 ship/wasm32-cross-toolchain/latest!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    needs:
+    - ship-toolchain
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+        fetch-depth: 0
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 github/check-release!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_ID: 27619169
 
   # # tests:
   # #   name: Run tests
@@ -1003,28 +1019,6 @@ jobs:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
-  # release:
-  #   name: release
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #   - ship_wasm
-  #   - ship_binutils
-  #   - ship_gcc_preliminary
-  #   - ship_gcc
-  #   - ship_glibc
-  #   - ship_ncurses
-  #   - ship_toolchain
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #       fetch-depth: 0
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 github/check-release!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       RELEASE_ID: 27619169
 
   # # phase2:
   # #   name: Phase II
