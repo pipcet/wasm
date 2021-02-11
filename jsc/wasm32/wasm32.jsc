@@ -5389,7 +5389,8 @@ if (typeof(os) !== "undefined" &&
 	let command = args.join(" ");
 	let timestamp = Date.now();
 	if (this.pwd !== undefined)
-	    command = "(cd " + this.pwd + "; PWD=. " + command + ")>/tmp/tmp.out." + timestamp;
+	    command = "(cd " + this.pwd + "; PWD=. " + command + ")";
+	command += ">/tmp/tmp.out." + timestamp;
 	command = command.replace(/\bsh -c /, "");
 	try {
 	    let pid = os.spawn(command);
