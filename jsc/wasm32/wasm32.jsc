@@ -3018,6 +3018,9 @@ ThinThinFD.prototype.close = function ()
 	for (let i = 0; i < this.writeData.length; i++) {
 	    arr[i] = this.writeData.charCodeAt(i) & 0xff;
 	}
+	if (this.path.match(/.\//)) {
+	    os.system("mkdir -p " + this.path.replace(/[^\/]*$/, ""));
+	}
 	os.file.writeTypedArrayToFile(this.path, arr);
     }
 
