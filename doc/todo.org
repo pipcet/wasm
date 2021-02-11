@@ -12,7 +12,7 @@
 *** TODO mmap
 *** TODO mprotect
 * DONE elf-to-wasm: detect dynamicness automatically
-* TODO work out why glibc is rebuilt in a loop
+* DONE work out why glibc is rebuilt in a loop
 * DONE isprint('a') is 0
 * DONE C++ copy relocations don't work, get called before constructors run
 ** avoiding them entirely with -fPIC helps
@@ -27,3 +27,8 @@ Executing on host: wasm32-unknown-none-gcc offload_gcn716358.c    -fno-diagnosti
 spawn -ignore SIGHUP wasm32-unknown-none-gcc offload_gcn716358.c -fno-diagnostics-show-caret -fno-diagnostics-show-line-numbers -fdiagnostics-color=never -fdiagnostics-urls=never -foffload=amdgcn-amdhsa -S -o offload_gcn716358.s
 wasm32-unknown-none-gcc: fatal error: GCC is not configured to support amdgcn-amdhsa as offload target
 #+end
+* TODO work out why ASM_SPEC is ignored by libgccjit and/or the path is incorrect
+* TODO decide how to handle __libc_early_init
+The standard ELF code calls it explicitly; we currently treat it as an ELF constructor.
+* TODO I think there is an unnecessary .flush left in the setjmp code
+
