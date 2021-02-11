@@ -1,8 +1,8 @@
 #!/bin/bash
 set -o pipefail
 set -o errexit
-TMPD=$(mktemp -d --tmpdir elf-wasm.XXXXXXXXXXX);
-$(dirname "$0")/elf-to-wasm --executable --dynamic "$1" > $TMPD/wasm
+TMPD=$(mktemp -d --tmpdir elf32-wasm32.XXXXXXXXXXX);
+$(dirname "$0")/elf-to-wasm --executable --dynamic --output $TMPD/wasm "$1"
 EXECUTABLE="$1"
 shift;
 if [ x"$WASMGDB" != x ]; then

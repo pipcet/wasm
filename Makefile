@@ -963,15 +963,15 @@ $(patsubst %,wasm32/cross/bin/%,$(TOOLS_script)): wasm32/cross/bin/%: tools/bin/
 
 wasm32/wasm/bin/%: wasm32/native/bin/%
 	$(MKDIR) $(dir wasm32/wasm/bin/$*)
-	wasm32/cross/bin/elf-to-wasm --executable --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --executable --dynamic --output $@ $<
 
 wasm32/wasm/%.so: wasm32/native/%.so | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
-	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --library --dynamic --output $@ $<
 
 wasm32/wasm/%.so.1: wasm32/native/%.so.1 | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
 	$(MKDIR) $(dir wasm32/wasm/$*)
-	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
+	wasm32/cross/bin/elf-to-wasm --library --dynamic --output $@ $<
 
 
 # wasm/ targets. These should go away at some point.
@@ -1189,7 +1189,7 @@ test/wasm32/%.cc.{static}.exe.wasm.out.exp.pl: test/wasm32/%.cc.exe.wasm.out.exp
 
 # exe -> wasm rule
 test/wasm32/%.exe.wasm: test/wasm32/%.exe wasm32/cross/bin/elf-to-wasm
-	wasm32/cross/bin/elf-to-wasm --executable $< > $@
+	wasm32/cross/bin/elf-to-wasm --executable --output $@ $<
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
@@ -1513,8 +1513,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	$(MAKE) wasm/libm.wasm
 	./wasm32/cross/bin/wasm32-unknown-none-gcc ./testsuite/003-hello-world/hello-world.c -o hello-world.exe
 	./hello-world.exe
-	wasm32/cross/bin/elf-to-wasm --executable hello-world.exe > hello-world.wasm
-	chmod u+x hello-world.wasm
+	wasm32/cross/bin/elf-to-wasm --executable --output hello-world.wasm hello-world.exe
 	./hello-world.wasm
 
 daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js wasm32/cross/bin/elf-to-wasm
