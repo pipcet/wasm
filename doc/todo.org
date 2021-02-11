@@ -32,3 +32,4 @@ wasm32-unknown-none-gcc: fatal error: GCC is not configured to support amdgcn-am
 The standard ELF code calls it explicitly; we currently treat it as an ELF constructor.
 * TODO I think there is an unnecessary .flush left in the setjmp code
 * TODO work out why the perl/pex pipe trick doesn't work
+* TODO GCC timevars seem uninitialized
