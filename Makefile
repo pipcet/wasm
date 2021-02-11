@@ -363,6 +363,7 @@ wasm32/native/stamp/build/binutils-gdb: wasm32/native/stamp/configure/binutils-g
 
 wasm32/native/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc wasm32/native/stamp/configure
 	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
+	touch $@
 
 wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native/stamp/build wasm32/native/src/gcc
 	$(MKDIR) wasm32/native/build/gcc/gcc
