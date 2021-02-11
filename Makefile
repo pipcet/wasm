@@ -1555,6 +1555,12 @@ artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts extra
 	tar cf artifacts/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
+artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/wasm32-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar extracted/artifacts/wasm32-native-mpc.tar extracted/artifacts/wasm32-native-mpfr.tar
+	$(MAKE) artifact-timestamp
+	$(MAKE) wasm32/native/stamp/build/gcc
+	tar cf artifacts/wasm32-native-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	$(MAKE) artifact-push!
+
 artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts extracted/artifacts/wasm32-cross-binutils-gdb.tar extracted/artifacts/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/glibc
