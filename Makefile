@@ -399,7 +399,7 @@ wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs wasm32/cross/bi
 	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	touch $@
 
-wasm32/native/stamp/build/emacs: wasm32/native/stamp/configure/emacs | wasm32/native/stamp/ncurses wasm32/native/stamp/build
+wasm32/native/stamp/build/emacs: wasm32/native/stamp/configure/emacs | wasm32/native/stamp/build/ncurses wasm32/native/stamp/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs install
 	touch $@
@@ -1579,7 +1579,7 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts extracte
 	cp wasm/libncurses.wasm artifacts/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-gmp.tar
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/binutils-gdb
@@ -1610,16 +1610,16 @@ artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts extracted/artifa
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/gmp
-	tar cf artifacts/wasm32-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	tar cf artifacts/wasm32-native-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-gmp.tar
+artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpfr
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-gmp.tar
+artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts extracted/artifacts/wasm32-cross-toolchain.tar extracted/artifacts/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/mpc
