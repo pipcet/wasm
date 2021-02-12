@@ -5530,7 +5530,7 @@ ThinThin.load_dynamic = async function (modid, mem)
 ThinThin.dynamic_symbol = async function (resptr, modid, csymbol, cversion)
 {
     let symbol = CStringAt(this.HEAP8, csymbol);
-    console.log("symbol",symbol);
+    console.log("symbol", symbol);
     let module = this.process.modules[modid];
     console.log("module",module,module.symtab,module.symtab[symbol]);
     if (module && (symbol in module.symtab)) {
