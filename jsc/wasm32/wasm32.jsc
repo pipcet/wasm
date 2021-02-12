@@ -5861,6 +5861,8 @@ ThinThin.fcntl_v = function ()
 };
 
 ThinThin.fcntl_i = function (fdno, control, value) {
+    if (control === %{F_SETFD})
+	return -%{ENOSYS};
     if (control === %{F_DUPFD}) {
 	let newfdno = this.fds.length;
 	ThinThin.dup2.call(this, fdno, newfdno);
