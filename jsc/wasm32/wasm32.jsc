@@ -5488,7 +5488,7 @@ ThinThin.dlkill = function (modi)
 ThinThin.open_dynamic = async function (cpath, who, libinfo)
 {
     let path = CStringAt(this.HEAP8, cpath);
-    if (!path.match(/^\//))
+    if (path[0] !== "/")
 	path = os.getenv("WASMDIR") + "/wasm/" + path;
     let bytes;
     if (!bytes)
@@ -5503,7 +5503,7 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
 	}
     if (!bytes)
 	return -%{ENOENT};
-    let module = new Wasm32Module(this.process, os.file.readFile(os.getenv("WASMDIR") + "/wasm/" + path + ".wasm", "binary"), path);
+    let module = new Wasm32Module(this.process, bytes, path);
     console.log('dlopen: ' + module)
 
     await module.load(this, this.vm);
