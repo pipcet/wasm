@@ -1079,6 +1079,21 @@ test/wasm32!: run-all-tests!
 
 test!: test/wasm32!
 
+github/install:
+	$(MKDIR) $@
+
+github/install/binfmt_misc: | github/install
+	$(MKDIR) $@
+
+github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
+	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
+	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	touch $@
+
+github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
+	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
+	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
+	touch $@
 ifeq (${GITHUB},1)
 # GitHub support
 # Check out a subrepo
@@ -1127,21 +1142,8 @@ github/install/autopoint: | github/install wasm32/cross/bin/locked
 github/install/gperf: | github/install wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gperf
 
-github/install/binfmt_misc: | github/install
-	$(MKDIR) $@
-
 github/install/sysctl: | github/install
 	$(MKDIR) $@
-
-github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
-	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
-	touch $@
-
-github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
-	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
-	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
-	touch $@
 
 install/%: github/install/%
 	$(MKDIR) install/$(dir $*)
