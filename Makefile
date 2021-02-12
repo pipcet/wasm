@@ -201,7 +201,9 @@ endif
 
 # Zsh is spe-shell.
 wasm32/native/build/zsh: | wasm32/native/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/zsh; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/zsh/* $@T/
+	mv $@T $@
 
 wasm32/native/stamp/configure/zsh: | wasm32/native/stamp/build/ncurses wasm32/native/build/zsh wasm32/native/stamp/configure
 	(cd wasm32/native/build/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
@@ -220,7 +222,9 @@ endif
 
 # Coreutils requires its own destructive bootstrap script
 wasm32/native/build/coreutils: | wasm32/native/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/coreutils; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/coreutils/* $@T/
+	mv $@T $@
 
 wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/build/coreutils wasm32/native/stamp/configure wasm32/native/lib/js/wasm32.js
 	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/build/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
@@ -256,8 +260,9 @@ wasm32/native/src/perl: | subrepos/perl wasm32/native/src
 	$(LN) ../../../subrepos/perl $@
 
 wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
-	$(MKDIR) $@
-	(cd wasm32/native/src/perl; tar c --exclude .git .) | (cd $@; tar x)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/perl/* $@T/
+	mv $@T $@
 
 wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	test -f wasm32/native/build/perl/config.sh && mv wasm32/native/build/perl/config.sh wasm32/native/build/perl/config.sh.old || true
@@ -326,7 +331,7 @@ wasm32/native/stamp/build/mpc: wasm32/native/stamp/configure/mpc | wasm32/native
 
 wasm32/native/src/mpfr: | wasm32/native/src
 	$(MKDIR) $@T
-	(cd subrepos/mpfr; tar c --exclude .git .) | (cd $@T; tar x)
+	cp -as $(PWD)/subrepos/mpfr/* $@T/
 	mv $@T $@
 
 wasm32/native/build/mpfr: | wasm32/native/build
@@ -346,7 +351,7 @@ wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr | wasm32/nati
 
 wasm32/native/src/binutils-gdb: | wasm32/cross/src
 	$(MKDIR) $@T
-	(cd subrepos/binutils-gdb; tar c --exclude .git .) | (cd $@T; tar x)
+	cp -as $(PWD)/subrepos/binutils-gdb/* $@T/
 	mv $@T $@
 
 wasm32/native/stamp/configure/binutils-gdb: | wasm32/native/src/binutils-gdb wasm32/native/build/binutils-gdb wasm32/native/stamp/configure
@@ -380,7 +385,9 @@ endif
 # Emacs
 
 wasm32/cross/build/emacs: | wasm32/cross/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/emacs/* $@T/
+	mv $@T $@
 
 wasm32/cross/stamp/configure/emacs: | wasm32/cross/build/emacs wasm32/cross/stamp/configure
 	(cd wasm32/native/build/emacs; sh autogen.sh; ./configure --build=$(native-triplet) --host=$(native-triplet) --prefix=$(PWD)/wasm32/cross --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
@@ -393,7 +400,9 @@ wasm32/cross/stamp/build/emacs: wasm32/cross/stamp/configure/emacs
 
 # Emacs is _built_ in the source directory, so copy that.
 wasm32/native/build/emacs: | wasm32/native/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/emacs/* $@T/
+	mv $@T $@
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
 wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs wasm32/cross/bin/dotdir wasm32/native/stamp/configure
@@ -413,7 +422,9 @@ wasm32/native/stamp/build/emacs: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.was
 
 # Emacs is _built_ in the source directory, so copy that.
 wasm32/native/build/emacs-native-comp: | wasm32/native/build
-	test -d $@ || ($(MKDIR) $@T; (cd subrepos/emacs-native-comp; tar c --exclude .git .) | (cd $@T; tar x); mv $@T $@)
+	$(MKDIR) $@T
+	cp -as $(PWD)/subrepos/emacs-native-comp/* $@T/
+	mv $@T $@
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
 wasm32/native/stamp/configure/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/cross/bin/dotdir wasm32/native/stamp/configure
