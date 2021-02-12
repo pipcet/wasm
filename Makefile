@@ -427,6 +427,10 @@ wasm32/native/build/emacs-native-comp: | wasm32/native/build
 	mv $@T $@
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
 
+# Temporary rule
+%.eln.wasm: %.eln
+	wasm32/cross/bin/elf-to-wasm --library --dynamic $< --output $@
+
 wasm32/native/stamp/configure/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	(cd wasm32/native/build/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=pdumper --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
 	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
