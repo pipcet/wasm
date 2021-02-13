@@ -547,6 +547,49 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
 Wasm32LM.prototype.dyninfo_symbol_references =
     function (dyninfo, imports, module)
 {
+    for (let reloc of dyninfo.dynamic_reloc || []) {
+	let { addr, type } = reloc;
+	switch (type) {
+	case "R_WASM32_PLT_INDEX": {
+	    break;
+	}
+	case "R_WASM32_32": {
+	    if ("symbol" in reloc) {
+		addr -= 0x4000;
+		addr += imports.sys.got;
+		if (!this.symbols.has(name)) {
+		    let symbol = new Wasm32Symbol(name);
+		    this.symbols.set(name, symbol);
+		    this.allsymbols.add(symbol);
+		}
+		this.symbols.get(name).add_reference(["data", addr]);
+	    } else {
+		throw "can't handle";
+	    }
+	    break;
+	}
+	case "R_WASM32_32_CODE": {
+	    if ("symbol" in reloc) {
+		addr += imports.sys.plt;
+		let name = reloc.symbol;
+		name = name.replace(/@@.*/, "");
+		name = name.replace(/@.*/, "");
+		if (!this.symbols.has(name)) {
+		    let symbol = new Wasm32Symbol(name);
+		    this.symbols.set(name, symbol);
+		    this.allsymbols.add(symbol);
+		}
+		this.symbols.get(name).add_reference(["code", addr]);
+	    } else {
+		throw "can't handle";
+	    }
+	    break;
+	}
+	case "R_WASM32_REL32": {
+	    break;
+	}
+	}
+    }
     for (let [name, addr] of dyninfo.ref || []) {
         addr -= 0x4000;
         addr += imports.sys.got;
