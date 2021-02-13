@@ -1380,7 +1380,6 @@ ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifacts artifact-timestamp
-	$(MKDIR) wasm32/cross/stamp/build/gcc
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/test/gcc/problem.tar
 	cp wasm32/test/gcc/problem.tar artifacts
 	$(MAKE) artifact-push!
