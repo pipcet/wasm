@@ -826,25 +826,6 @@ Wasm32Module.prototype.reload_at = function (thread, vm, clonedesc)
     });
 };
 
-Wasm32Module.prototype.fill_table = function (thread, vm, got, plt)
-{
-    var pc = 0;
-    var seen = 0;
-    var count = 0;
-    do {
-        var str = pc.toString(16);
-        while (str.length < 16)
-            str = str + " ";
-        var f = thread.exports["f_" + str];
-        if (f) {
-            vm.tableset(pc+plt, f);
-            seen++;
-        } else if (seen || count++ == 128) {
-            break;
-        }
-        pc++;
-    } while (true);
-};
 let last_tom = 16384;
 
 Wasm32Module.prototype.check_libs = function (thread)
@@ -963,7 +944,6 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
             if (this.instance.exports.entry !== undefined) {
                 thread.entry = this.imports.sys.plt + this.instance.exports.entry;
             }
-            this.fill_table(thread, vm, this.imports.sys.got, this.imports.sys.plt);
             this.vm.base_lm.dyninfo_apply(this.dyninfo, this.imports, this);
             lastdonetime = this.donetime = Date.now();
 
