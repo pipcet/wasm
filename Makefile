@@ -1384,7 +1384,7 @@ problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifacts artifact-timestamp
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/cross/test/gcc/problem.tar
-	cp wasm32/test/gcc/problem.tar artifacts
+	cp wasm32/cross/test/gcc/problem.tar artifacts
 	$(MAKE) artifact-push!
 
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | all
