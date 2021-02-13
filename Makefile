@@ -894,6 +894,9 @@ GCC_PROBLEM_TESTS = \
 	gcc.dg/var-expand1.c \
 	gcc.dg/varpool-1.c
 
+wasm32/cross/test: | wasm32/cross
+	$(MKDIR) $@
+
 # This rule isn't perfect, it tars up data it might not have written.
 wasm32/cross/test/gcc/problem.tar:
 	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=wasm32/cross/test/gcc/results/%/okay) || true
