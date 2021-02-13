@@ -546,22 +546,22 @@ wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
         echo "wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
 wasm32/cross/test/gcc/results/gcc.c-torture/compile/%: wasm32/cross/test/gcc/make/gcc.c-torture/compile/compile.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.c-torture/execute/%: wasm32/cross/test/gcc/make/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.c-torture/execute/ieee/%: wasm32/cross/test/gcc/make/gcc.c-torture/execute/ieee/ieee.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.dg/%: wasm32/cross/test/gcc/make/gcc.dg/dg.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.dg/debug/dwarf2/%: wasm32/cross/test/gcc/make/gcc.dg/debug/dwarf2/dwarf2.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.dg/tls/%: wasm32/cross/test/gcc/make/gcc.dg/tls/tls.exp.{dejagnu}.mk
-	make -f $< $@ || (cat $@.{dejagnu}/gcc.log > /dev/stderr; false)
+	make -f $< $@ || (cat $(dir $@)/gcc.log > /dev/stderr; false)
 
 GCC_PROBLEM_TESTS = \
 	gcc.c-torture/compile/20080625-1.c \
