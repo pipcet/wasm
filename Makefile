@@ -538,10 +538,10 @@ wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
 	> $@
 	for file in $$(cd wasm32/cross/src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g'); do \
 	    echo "wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/okay:" >> $@; \
-	    echo "\t(mkdir -p wasm32/cross/test/gcc/$(dir $*)$$file.{dejagnu}/; cp wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file wasm32/cross/test/gcc/$(dir $*)$$file.{dejagnu}/; cd wasm32/cross/test/gcc; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
-	    echo "\t! egrep -q '^# of unexpected|RuntimeError' wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
+	    echo "\t(mkdir -p wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/; cp wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/; cd wasm32/cross/test/gcc/results; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t! egrep -q '^# of unexpected|RuntimeError' wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/gcc.log && touch wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/okay || (echo wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
 	    echo >> $@; \
-	    all="$$all wasm32/cross/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
+	    all="$$all wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/okay"; \
 	done; \
         echo "wasm32/gcc-testsuite/$*.all: $$all" >> $@
 
