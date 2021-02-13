@@ -1372,6 +1372,10 @@ wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cr
 	$(MAKE) -C wasm32/cross/build/python install
 	touch $@
 
+ifeq (${DAILY},1)
+wasm32/cross/bin/js: extracted/daily/wasm32-environment.tar.gz
+endif
+
 ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
@@ -1750,6 +1754,11 @@ ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship github github/release/l
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
 ship/wasm32-cross-toolchain/%!: ship/wasm32-cross-toolchain.tar.gz github/assets/%.json | ship github github/release/list!
+	$(MAKE) github/release/list!
+	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
+	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
+
+ship/wasm32-environment/%!: ship/wasm32-environment.tar.gz github/assets/%.json | ship github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
