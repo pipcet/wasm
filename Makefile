@@ -22,7 +22,7 @@ JS ?= $$JS
 all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-extracted github/assets github/release github/install install ship src stamp test wasm:
+extracted github/assets github/release github/install install ship src stamp test wasm wasm32/cross/test/gcc/tmp:
 	$(MKDIR) $@
 
 start-over!:
@@ -506,7 +506,7 @@ wasm32/native/test/glibc/summary: wasm32/native/stamp/build/glibc | wasm32/nativ
 wasm32/native/test/bash/summary: wasm32/native/stamp/bash | wasm32/native/test/bash
 	(cd wasm32/native/build/bash; $(MAKE) check)
 
-wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc
+wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc wasm32/cross/test/gcc/tmp
 	$(MKDIR) $(dir $@)
 	> $@
 	echo 'set rootme "$(PWD)/wasm32/cross/test/gcc"' >> $@
@@ -530,7 +530,7 @@ wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc
 	echo 'set PLUGINCC "g++"' >> $@
 	echo 'set PLUGINCFLAGS "-g  "' >> $@
 	echo 'set GMPINC ""' >> $@
-	echo 'set tmpdir $(PWD)/wasm32/cross/test/tmp' >> $@
+	echo 'set tmpdir $(PWD)/wasm32/cross/test/gcc/tmp' >> $@
 	echo 'set srcdir "$${srcdir}/testsuite"' >> $@
 
 wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
@@ -538,7 +538,7 @@ wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
 	> $@
 	for file in $$(cd wasm32/cross/src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g'); do \
 	    echo "wasm32/cross/test/gcc/results/$(dir $*)$$file.{dejagnu}/okay:" >> $@; \
-	    echo "\t(mkdir -p wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t(mkdir -p wasm32/cross/test/gcc/$(dir $*)$$file.{dejagnu}/; cp wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file wasm32/cross/test/gcc/$(dir $*)$$file.{dejagnu}/; cd wasm32/cross/test/gcc; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
 	    echo "\t! egrep -q '^# of unexpected|RuntimeError' wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
 	    echo >> $@; \
 	    all="$$all wasm32/cross/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
