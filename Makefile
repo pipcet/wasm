@@ -403,7 +403,7 @@ wasm32/native/build/emacs: | wasm32/native/build
 	$(MKDIR) $@T
 	cp -as $(PWD)/subrepos/emacs/* $@T/
 	mv $@T $@
-	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
+	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar || true
 
 wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs wasm32/cross/bin/dotdir wasm32/native/stamp/configure
 	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
@@ -425,7 +425,7 @@ wasm32/native/build/emacs-native-comp: | wasm32/native/build
 	$(MKDIR) $@T
 	cp -as $(PWD)/subrepos/emacs-native-comp/* $@T/
 	mv $@T $@
-	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar
+	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar || true
 
 # Temporary rule
 %.eln.wasm: %.eln
