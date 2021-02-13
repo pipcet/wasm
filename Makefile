@@ -536,14 +536,17 @@ wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc
 wasm32/cross/test/gcc/make/%.{dejagnu}.mk: | wasm32/cross/test/gcc/site.exp
 	$(MKDIR) $(dir $@)
 	> $@
-	for file in $$(cd src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
+	for file in $$(cd wasm32/cross/src/gcc/gcc/testsuite/$(dir $*); find -type f | egrep '\.([cSi])$$' | sed -e 's/^\.\///g' | egrep -v '\/'); do \
 	    echo "build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay:" >> $@; \
-	    echo "\t(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp src/gcc/gcc/testsuite/$(dir $*)$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
-	    echo "\t! egrep -q '^# of unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
+	    echo "\t(mkdir -p build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cp wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/; cd build/wasm32/gcc-testsuite; testtotest=$(dir $*)$$file PATH=$(PWD)/wasm32/cross/bin:$$PATH runtest --outdir $(dir $*)$$file.{dejagnu}/ --tool gcc $* > /dev/null 2> /dev/null) || true" >> $@; \
+	    echo "\t! egrep -q '^# of unexpected|RuntimeError' build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/gcc.log && touch build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay || (echo wasm32/cross/src/gcc/gcc/testsuite/$(dir $*)$$file; false)" >> $@; \
 	    echo >> $@; \
-	    all="$$all build/wasm32/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
+	    all="$$all wasm32/cross/build/gcc-testsuite/$(dir $*)$$file.{dejagnu}/okay"; \
 	done; \
         echo "build/wasm32/gcc-testsuite/$*.all: $$all" >> $@
+
+wasm32/cross/test/gcc/results/gcc.c-torture/compile/%: wasm32/cross/test/gcc/make/gcc.c-torture/compile/compile.exp.{dejagnu}.mk
+	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
 
 wasm32/cross/test/gcc/results/gcc.c-torture/execute/%: wasm32/cross/test/gcc/make/gcc.c-torture/execute/execute.exp.{dejagnu}.mk
 	make -f $< $@ || (cat $(dir $@)gcc.log > /dev/stderr; false)
