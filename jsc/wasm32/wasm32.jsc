@@ -5415,6 +5415,7 @@ if (typeof(os) !== "undefined" &&
 	if (this.pwd !== undefined)
 	    command = "(cd " + this.pwd + "; PWD=. " + command + ")";
 	command += ">/tmp/tmp.out." + timestamp;
+	command = command.replace("$ORIGIN", "\\$ORIGIN");
 	command = command.replace(/\bsh -c /, "");
 	try {
 	    let pid = os.spawn(command);
