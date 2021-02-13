@@ -896,7 +896,7 @@ GCC_PROBLEM_TESTS = \
 
 # This rule isn't perfect, it tars up data it might not have written.
 wasm32/cross/test/gcc/problem.tar:
-	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=wasm32/crosstest/gcc/results/%/okay) || true
+	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=wasm32/cross/test/gcc/results/%/okay) || true
 	tar cf $@ wasm32/cross/test/gcc/results
 
 # No sibcalls yet
