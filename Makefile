@@ -1379,6 +1379,13 @@ ifeq (${DAILY},1)
 wasm32/cross/bin/js: extracted/daily/wasm32-environment.tar.gz
 endif
 
+ifneq (${ARTIFACT},)
+wasm32/cross/bin/js:
+	wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
+	$(MKDIR) wasm32/cross/bin
+	unzip -d wasm32/cross/bin jsshell-linux-x86_64.zip
+endif
+
 ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment wasm32/cross/src/gcc
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
