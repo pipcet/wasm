@@ -1354,6 +1354,9 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     }
 
     if (retv !== undefined && retv === retv) {
+	if (typeof os !== "undefined" &&
+	    os.getenv && os.getenv("WASM_STRACE"))
+	    console.log("returningv", retv, fun);
         this.set_rv(retv);
     } else if (retv !== retv) {
         this.stop(1);
