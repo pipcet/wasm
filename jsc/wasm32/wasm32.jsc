@@ -5528,7 +5528,7 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
     if (!bytes)
 	return -%{ENOENT};
     let module = new Wasm32Module(this.process, bytes, path);
-    console.log('dlopen: ' + module)
+    console.log('dlopen: ' + path + " " + module)
 
     await module.load(this, this.vm);
 
