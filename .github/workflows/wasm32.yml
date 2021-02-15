@@ -225,7 +225,7 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run:
-        JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 ARTIFACT=coreutils -k artifact-wasm32-native-coreutils!
+        JS=$(pwd)/wasm32/cross/bin/js WASMDIR=$(pwd) make GITHUB=1 ARTIFACT=coreutils -k artifact-wasm32-native-coreutils!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # python:
