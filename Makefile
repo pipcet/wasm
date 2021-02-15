@@ -1049,7 +1049,7 @@ wasm/python.wasm: wasm32/wasm/bin/python3 | wasm
 
 COREUTILS = echo true false
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
-	$(LN) $< $@
+	$(LN) ../$< $@
 
 wasm32/native/lib: | wasm32/native
 	$(MKDIR) $@
@@ -1791,7 +1791,6 @@ ship-problem/%!: ship/problem.tar.gz github/assets/%.json | ship github github/r
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
-
 
 github/release/list!: | github/release
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases?per_page=100 | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
