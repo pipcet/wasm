@@ -1043,7 +1043,7 @@ function Wasm32Thread(kport, process, threadpage, vm)
     system.threads.push(this);
 
     var sizes = {
-        tablesize: %{default_sizes.tablesize},
+        tablesize: 4 * %{default_sizes.tablesize},
         memsize: %{default_sizes.memsize},
         stacksize: %{default_sizes.stacksize},
         stackbottom: %{default_sizes.stackbottom},
@@ -5942,7 +5942,7 @@ ThinThin.fchmod = function ()
     return 0;
 };
 var sizes = {
-    tablesize: %{default_sizes.tablesize},
+    tablesize: 4 * %{default_sizes.tablesize},
     memsize: %{default_sizes.memsize},
     stacksize: %{default_sizes.stacksize},
     stackbottom: %{default_sizes.stackbottom},
