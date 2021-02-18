@@ -15,6 +15,8 @@ OPT_WASM ?= "-O2"
 WASMDIR ?= $(PWD)
 JS ?= $$JS
 
+ARTIFACTS ?= all
+
 .SECONDEXPANSION:
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
@@ -31,6 +33,23 @@ start-over!:
 clean!: start-over!
 
 clean: clean!
+
+# the build-or-install generic rule
+
+define do-build =
+wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/build/$(2)
+	touch $$@
+endef
+
+define do-download =
+wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/download/$(2)
+	touch $$@
+endef
+
+define build-or-install =
+wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/install
+$(if $(filter all $(2),$(ARTIFACTS)),$(call do-build,$(1),$(2)),$(call do-download,$(1),$(2)))
+endef
 
 # environment for bash shells
 env:
