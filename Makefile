@@ -1443,7 +1443,7 @@ problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | all
 
 daily/binutils!: | subrepos/binutils-gdb/checkout!
-	$(MAKE) wasm32/cross/stamp/binutils-gdb
+	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 
 daily-gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz
 	$(MAKE) wasm32/cross/stamp/gcc-preliminary
