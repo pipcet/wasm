@@ -1,7 +1,7 @@
 name: daily
 on:
   push:
-    branches: [ daily ]
+    branches: [ master, daily, wasm ]
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
@@ -14,167 +14,167 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-binutils!
-  gcc-preliminary:
-    name: gcc-preliminary
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-gcc-preliminary!
-  glibc:
-    name: glibc
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-glibc!
-  gcc:
-    name: gcc
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-gcc!
-  ncurses:
-    name: ncurses
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-ncurses!
-  bash:
-    name: bash
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-bash!
-  coreutils:
-    name: coreutils
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-coreutils!
-  miniperl:
-    name: miniperl
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-miniperl!
-  perl:
-    name: perl
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj1 daily-perl!
-  python:
-    name: python
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-python!
-  run-wasm:
-    name: Hello World (run with binfmt_misc)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-wasm!
-  run-elf:
-    name: Hello World (run with binfmt_misc, ELF32)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-elf!
-  run-all-tests:
-    name: All Tests
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-all-tests!
-  zsh:
-    name: zsh
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily-zsh!
-  emacs:
-    name: emacs
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-emacs!
-  emacs-native-comp:
-    name: emacs-native-comp
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-emacs-native-comp!
-  gmp:
-    name: gmp
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: false
-    - name: Set env variables
-      uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-gmp!
+    - run: make GITHUB=1 -kj10 daily/binutils!
+  # gcc-preliminary:
+  #   name: gcc-preliminary
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-gcc-preliminary!
+  # glibc:
+  #   name: glibc
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-glibc!
+  # gcc:
+  #   name: gcc
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-gcc!
+  # ncurses:
+  #   name: ncurses
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-ncurses!
+  # bash:
+  #   name: bash
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-bash!
+  # coreutils:
+  #   name: coreutils
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-coreutils!
+  # miniperl:
+  #   name: miniperl
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-miniperl!
+  # perl:
+  #   name: perl
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj1 daily-perl!
+  # python:
+  #   name: python
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-python!
+  # run-wasm:
+  #   name: Hello World (run with binfmt_misc)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-wasm!
+  # run-elf:
+  #   name: Hello World (run with binfmt_misc, ELF32)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-elf!
+  # run-all-tests:
+  #   name: All Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-run-all-tests!
+  # zsh:
+  #   name: zsh
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: make GITHUB=1 -kj10 daily-zsh!
+  # emacs:
+  #   name: emacs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-emacs!
+  # emacs-native-comp:
+  #   name: emacs-native-comp
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-emacs-native-comp!
+  # gmp:
+  #   name: gmp
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       submodules: false
+  #   - name: Set env variables
+  #     uses: ./github/env/
+  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-gmp!
