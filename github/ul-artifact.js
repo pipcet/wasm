@@ -4,7 +4,7 @@ const name = process.argv[2];
 const files = process.argv.slice(3);
 async function main()
 {
-    console.log(await client.uploadArtifact(name, files, "artifacts", {
+    console.log(await client.uploadArtifact(name, files, "artifacts/up", {
 	continueOnError: false,
     }));
 }
