@@ -74,6 +74,12 @@ wasm32/native/stamp/configure: | wasm32/cross
 wasm32/native/stamp/build: | wasm32/cross
 	$(MKDIR) $@
 
+wasm32/native/stamp/download: | wasm32/cross
+	$(MKDIR) $@
+
+wasm32/native/stamp/install: | wasm32/cross
+	$(MKDIR) $@
+
 wasm32/native/build: | wasm32/cross
 	$(MKDIR) $@
 
