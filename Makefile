@@ -98,6 +98,9 @@ wasm32/cross/src: | wasm32/cross
 wasm32/cross/stamp: | wasm32/cross
 	$(MKDIR) $@
 
+wasm32/cross/stamp/install: | wasm32/cross
+	$(MKDIR) $@
+
 wasm32/cross/stamp/configure: | wasm32/cross/stamp
 	$(MKDIR) $@
 
