@@ -122,6 +122,8 @@ wasm32/cross/stamp/build/binutils-gdb: wasm32/cross/stamp/configure/binutils-gdb
 	$(MAKE) -C wasm32/cross/build/binutils-gdb install
 	touch $@
 
+$(eval $(call build-or-install,cross,binutils-gdb))
+
 # GCC (preliminary compilation, C only)
 
 wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
@@ -137,6 +139,8 @@ wasm32/cross/stamp/build/gcc-preliminary: wasm32/cross/stamp/configure/gcc-preli
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
 	touch $@
+
+$(eval $(call build-or-install,cross,gcc-preliminary))
 
 # Glibc
 
@@ -165,6 +169,8 @@ wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/na
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc install
 	touch $@
 
+$(eval $(call build-or-install,native,glibc))
+
 ifneq (${GITHUB},1)
 wasm32/native/lib/libc.so: wasm32/native/stamp/build/glibc
 wasm32/native/lib/libm.so: wasm32/native/stamp/build/glibc
@@ -191,6 +197,8 @@ wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/st
 ifneq (${GITHUB},1)
 wasm32/cross/lib/libstdc++.so: wasm32/cross/stamp/build/glibc
 endif
+$(eval $(call build-or-install,cross,gcc))
+
 
 # ncurses
 
@@ -206,6 +214,8 @@ wasm32/native/stamp/build/ncurses: wasm32/native/stamp/configure/ncurses | wasm3
 ifneq (${GITHUB},1)
 wasm32/native/lib/libncurses.so: wasm32/native/stamp/build/glibc
 endif
+$(eval $(call build-or-install,native,ncurses))
+
 
 # bash
 
@@ -221,6 +231,8 @@ wasm32/native/stamp/build/bash: wasm32/native/stamp/configure/bash | wasm32/nati
 ifneq (${GITHUB},1)
 wasm32/native/bin/bash: wasm32/native/stamp/build/bash
 endif
+$(eval $(call build-or-install,native,bash))
+
 
 # zsh
 
@@ -242,6 +254,8 @@ wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native
 ifneq (${GITHUB},1)
 wasm32/native/bin/zsh: wasm32/native/stamp/build/zsh
 endif
+$(eval $(call build-or-install,native,zsh))
+
 
 # coreutils
 
@@ -263,6 +277,8 @@ wasm32/native/stamp/build/coreutils: wasm32/native/stamp/configure/coreutils | w
 ifneq (${GITHUB},1)
 wasm32/native/bin/true wasm32/native/bin/false wasm32/native/bin/echo: wasm32/native/stamp/build/coreutils
 endif
+$(eval $(call build-or-install,native,coreutils))
+
 
 # Python
 
@@ -274,6 +290,8 @@ wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python install
 	touch $@
+
+$(eval $(call build-or-install,native,python))
 
 ifneq (${GITHUB},1)
 wasm32/native/bin/python3: wasm32/native/stamp/build/python
@@ -304,6 +322,8 @@ wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install
 ifneq (${GITHUB},1)
 wasm32/native/bin/miniperl: wasm32/native/stamp/build/perl
 endif
+$(eval $(call build-or-install,native,miniperl))
+
 
 wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
@@ -314,6 +334,8 @@ wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native
 ifneq (${GITHUB},1)
 wasm32/native/bin/perl: wasm32/native/stamp/build/perl
 endif
+$(eval $(call build-or-install,native,perl))
+
 
 # zlib
 
@@ -329,6 +351,8 @@ wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | wasm32/nati
 ifneq (${GITHUB},1)
 wasm32/native/lib/libz.so: wasm32/native/stamp/build/zlib
 endif
+$(eval $(call build-or-install,native,zlib))
+
 
 # GMP
 
@@ -341,6 +365,8 @@ wasm32/native/stamp/build/gmp: wasm32/native/stamp/configure/gmp | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp install
 	touch $@
 
+$(eval $(call build-or-install,native,gmp))
+
 # MPC
 
 wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
@@ -351,6 +377,8 @@ wasm32/native/stamp/build/mpc: wasm32/native/stamp/configure/mpc | wasm32/native
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc install
 	touch $@
+
+$(eval $(call build-or-install,native,mpc))
 
 # MPFR
 
@@ -372,6 +400,8 @@ wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr | wasm32/nati
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
 
+$(eval $(call build-or-install,native,mpfr))
+
 # Binutils (native)
 
 wasm32/native/src/binutils-gdb: | wasm32/cross/src
@@ -388,6 +418,8 @@ wasm32/native/stamp/build/binutils-gdb: wasm32/native/stamp/configure/binutils-g
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb install
 	touch $@
+
+$(eval $(call build-or-install,native,binutils-gdb))
 
 # GCC (native)
 
@@ -406,6 +438,8 @@ wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native
 ifneq (${GITHUB},1)
 wasm32/native/lib/libgccjit.so: wasm32/native/stamp/build/gcc
 endif
+$(eval $(call build-or-install,native,gcc))
+
 
 # Emacs
 
@@ -465,6 +499,8 @@ wasm32/native/stamp/build/emacs-native-comp: wasm32/native/stamp/configure/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp install
 	touch $@
+
+$(eval $(call build-or-install,native,emacs-native-comp))
 
 wasm32/native/stamp/build/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm wasm/libz.wasm wasm/libgccjit.wasm
 
