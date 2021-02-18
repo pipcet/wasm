@@ -1923,3 +1923,4 @@ else
 wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/artifacts/wasm32-native-%.tar
 	touch $@
 endif
+endif
