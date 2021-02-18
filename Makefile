@@ -1916,4 +1916,10 @@ artifact-timestamp:
 artifact-push!:
 	(cd artifacts; for file in *; do if [ "$$file" -nt ../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ..; bash github/ul-artifact "$$name" "artifacts/$$name"); fi; done)
 
+ifneq($(DAILY),)
+wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/daily/wasm32-native-%.tar.gz
+	touch $@
+else
+wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/artifacts/wasm32-native-%.tar
+	touch $@
 endif
