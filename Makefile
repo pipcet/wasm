@@ -1721,7 +1721,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts arti
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
-	cp artifacts/down/wasm/* wasm
+	cp artifacts/down/*.wasm wasm
 	$(MAKE) wasm32/native/stamp/build/coreutils
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/up/
