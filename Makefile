@@ -1666,7 +1666,7 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts artifact
 	cp wasm/libncurses.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts artifacts/up artifacts/down
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/binutils-gdb
@@ -1720,6 +1720,8 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts artifacts/up art
 artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/down/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
+	$(MKDIR) wasm
+	cp artifacts/down/wasm/* wasm
 	$(MAKE) wasm32/native/stamp/build/coreutils
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/up/
