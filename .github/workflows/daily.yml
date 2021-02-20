@@ -15,16 +15,16 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 daily/binutils!
-  # gcc-preliminary:
-  #   name: gcc-preliminary
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 daily-gcc-preliminary!
+  gcc-preliminary:
+    name: gcc-preliminary
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 daily/gcc-preliminary!
   # glibc:
   #   name: glibc
   #   runs-on: ubuntu-latest
