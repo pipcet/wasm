@@ -1465,6 +1465,10 @@ daily/ncurses!: | subrepos/ncurses/checkout! extracted/daily/wasm32-cross-toolch
 	$(MAKE) wasm32/native/stamp/build/ncurses
 	$(MAKE) wasm/libncurses.wasm
 
+daily/miniperl!: | subrepos/perl/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
+	$(MAKE) wasm32/native/stamp/build/miniperl
+	$(MAKE) wasm/miniperl.wasm
+
 daily/bash!: | install/file-slurp
 daily/coreutils!: | install/file-slurp
 daily/emacs!: | install/file-slurp
