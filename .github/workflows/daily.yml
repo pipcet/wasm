@@ -24,27 +24,27 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily/gcc-preliminary!
-  # glibc:
-  #   name: glibc
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 daily-glibc!
-  # gcc:
-  #   name: gcc
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 daily-gcc!
+    - run: make GITHUB=1 -kj10 ARTIFACTS=gcc daily/gcc-preliminary!
+  glibc:
+    name: glibc
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 ARTIFACTS=glibc daily/glibc!
+  gcc:
+    name: gcc
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 ARTIFACTS=gcc daily/gcc!
   # ncurses:
   #   name: ncurses
   #   runs-on: ubuntu-latest
