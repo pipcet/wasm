@@ -300,7 +300,7 @@ wasm32/native/src/perl: | subrepos/perl wasm32/native/src
 
 wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
 	$(MKDIR) $@T
-	cp -as $(PWD)/subrepos/perl/* $@T/
+	cp -as $(PWD)/subrepos/perl/* $(addprefix $(PWD)/subrepos/perl/.,dir-locals.el editorconfig lgtm.yml metaconfig travis.yml) $@T/
 	mv $@T $@
 
 wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir wasm32/native/stamp/configure
