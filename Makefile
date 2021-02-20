@@ -1898,9 +1898,20 @@ artifact-push!:
 ifneq ($(DAILY),)
 wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/daily/wasm32-native-%.tar.gz
 	touch $@
+
+wasm32/native/stamp/download/binutils-gdb: wasm32/native/stamp/download
+	touch $@
+
+wasm32/native/stamp/download/gcc-preliminary: wasm32/native/stamp/download
+	touch $@
+
+wasm32/native/stamp/download/glibc: wasm32/native/stamp/download
+	touch $@
+
+wasm32/native/stamp/download/gcc: wasm32/native/stamp/download
+	touch $@
 else
 wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/artifacts/down/wasm32-native-%.tar
 	touch $@
 endif
 endif
-
