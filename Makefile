@@ -188,11 +188,11 @@ endif
 
 # GCC (final build, C/C++/LTO, no libgccjit)
 
-wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/install/glibc wasm32/cross/stamp/install/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure
+wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/install/glibc wasm32/cross/stamp/install/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure install/gcc-dependencies
 	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O0 -g3" CXXFLAGS="-O0 -g3" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O0 -g3")
 	touch $@
 
-wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/stamp/build wasm32/cross/src/gcc install/gcc-dependencies
+wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/stamp/build wasm32/cross/src/gcc
 	$(MKDIR) wasm32/cross/build/gcc/gcc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc
 	cp wasm32/cross/build/gcc/gcc/libgcc.a wasm32/cross/build/gcc/gcc/libgcc_eh.a
