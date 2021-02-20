@@ -1492,7 +1492,7 @@ wasm32/native/stamp/build/zsh: | install/nroff
 daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	$(MAKE) wasm32/native/stamp/build/zsh
 
-daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
+daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/coreutils
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 
