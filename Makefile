@@ -1449,13 +1449,16 @@ daily/binutils-gdb!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 
 daily/gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
+	rm -rf wasm32/native/stamp/*/gcc-preliminary
 	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
 
 daily/glibc!: | subrepos/glibc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
+	rm -rf wasm32/native/stamp/*/glibc
 	$(MAKE) wasm32/native/stamp/build/glibc
 
 daily/gcc!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	$(MAKE) wasm32/native/cross/build/gcc
+	rm -rf wasm32/cross/stamp/*/gcc
+	$(MAKE) wasm32/cross/stamp/build/gcc
 	$(MAKE) wasm/libstdc++.wasm
 
 daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
