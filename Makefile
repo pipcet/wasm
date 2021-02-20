@@ -1648,6 +1648,11 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up arti
 	$(MAKE) wasm32/cross/stamp/build/gcc
 	$(MAKE) wasm/libstdc++.wasm
 	tar cf artifacts/up/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	$(MKDIR) wasm32/cross/stamp/download
+	touch wasm32/cross/stamp/download/binutils-gdb
+	touch wasm32/cross/stamp/download/gcc-preliminary
+	touch wasm32/cross/stamp/download/glibc
+	touch wasm32/cross/stamp/download/gcc
 	tar cf artifacts/up/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
 	cp wasm/libstdc++.wasm artifacts/up
 	$(MAKE) artifact-push!
