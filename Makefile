@@ -1449,7 +1449,7 @@ daily/binutils-gdb!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 
 daily/gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	rm -rf wasm32/native/stamp/*/gcc-preliminary
+	rm -rf wasm32/cross/stamp/*/gcc-preliminary
 	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
 
 daily/glibc!: | subrepos/glibc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
