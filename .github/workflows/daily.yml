@@ -14,7 +14,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 daily/binutils!
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=binutils-gdb daily/binutils-gdb!
   gcc-preliminary:
     name: gcc-preliminary
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 ARTIFACTS=gcc daily/gcc-preliminary!
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=gcc daily/gcc-preliminary!
   glibc:
     name: glibc
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 ARTIFACTS=glibc daily/glibc!
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=glibc daily/glibc!
   gcc:
     name: gcc
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: make GITHUB=1 -kj10 ARTIFACTS=gcc daily/gcc!
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=gcc daily/gcc!
   # ncurses:
   #   name: ncurses
   #   runs-on: ubuntu-latest
