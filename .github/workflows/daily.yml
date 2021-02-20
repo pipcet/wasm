@@ -74,18 +74,17 @@ jobs:
         submodules: false
     - name: Set env variables
       uses: ./github/env/
-    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=coreutils daily/coreutils!
-  # miniperl:
-  #   name: miniperl
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 tools/bin/dyninfo js/wasm32.js
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-miniperl!
+    - run: JS=$(pwd)/wasm32/cross/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=coreutils daily/coreutils!
+  miniperl:
+    name: miniperl
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/wasm32/cross/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 DAILY=1 ARTIFACTS="perl miniperl" daily/miniperl!
   # perl:
   #   name: perl
   #   runs-on: ubuntu-latest
