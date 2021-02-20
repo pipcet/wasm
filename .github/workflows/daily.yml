@@ -45,36 +45,36 @@ jobs:
     - name: Set env variables
       uses: ./github/env/
     - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=gcc daily/gcc!
-  # ncurses:
-  #   name: ncurses
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 daily-ncurses!
-  # bash:
-  #   name: bash
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: make GITHUB=1 -kj10 daily-bash!
-  # coreutils:
-  #   name: coreutils
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 daily-coreutils!
+  ncurses:
+    name: ncurses
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=ncurses daily/ncurses!
+  bash:
+    name: bash
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=bash daily/bash!
+  coreutils:
+    name: coreutils
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -kj10 DAILY=1 ARTIFACTS=coreutils daily/coreutils!
   # miniperl:
   #   name: miniperl
   #   runs-on: ubuntu-latest
