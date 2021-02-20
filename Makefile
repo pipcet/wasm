@@ -1445,7 +1445,7 @@ gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_T
 daily/binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 
-daily-gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz
+daily/gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 	$(MAKE) wasm32/cross/stamp/gcc-preliminary
 
 daily-glibc!: | subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
@@ -1811,7 +1811,6 @@ ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship github github/release/l
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
 ship/wasm32-cross-toolchain/%!: ship/wasm32-cross-toolchain.tar.gz github/assets/%.json | ship github github/release/list!
-	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
