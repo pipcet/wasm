@@ -468,7 +468,7 @@ wasm32/native/stamp/build/emacs: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.was
 # Emacs with "native" (Emacs Lisp -> WebAssembly) compilation
 
 # Emacs is _built_ in the source directory, so copy that.
-wasm32/native/build/emacs-native-comp: | wasm32/native/build
+wasm32/native/build/emacs-native-comp: | wasm32/native/build wasm32/native/stamp/install/gcc wasm32/native/stamp/install/ncurses wasm32/native/stamp/install/gmp
 	$(MKDIR) $@T
 	cp -as $(PWD)/subrepos/emacs-native-comp/* $@T/
 	mv $@T $@
@@ -1512,14 +1512,15 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 
-daily-emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
-	$(MAKE) artifacts/down/wasm/ld.wasm
-	$(MAKE) artifacts/down/wasm/libc.wasm
-	$(MAKE) artifacts/down/wasm/libdl.wasm
-	$(MAKE) artifacts/down/wasm/libcrypt.wasm
-	$(MAKE) artifacts/down/wasm/libutil.wasm
-	$(MAKE) artifacts/down/wasm/libm.wasm
-	$(MAKE) artifacts/down/wasm/libncurses.wasm
+daily/emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-gcc.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
+	$(MAKE) wasm/libncurses.wasm
+	$(MAKE) wasm/libgccjit.wasm
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs-native-comp
 
 daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
