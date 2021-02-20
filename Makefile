@@ -1446,18 +1446,13 @@ daily/binutils!: | subrepos/binutils-gdb/checkout!
 	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
 
 daily/gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	$(MAKE) wasm32/cross/stamp/gcc-preliminary
+	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
 
-daily-glibc!: | subrepos/glibc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
-	touch wasm32/native/stamp/build/binutils-gdb
-	touch wasm32/native/stamp/build/gcc-preliminary
+daily/glibc!: | subrepos/glibc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 	$(MAKE) wasm32/native/stamp/build/glibc
 
-daily-gcc!: | subrepos/gcc/checkout! extracted/daily/binutils.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/glibc.tar.gz
-	touch wasm32/native/stamp/build/binutils-gdb
-	touch wasm32/native/stamp/build/gcc-preliminary
-	touch wasm32/native/stamp/build/glibc
-	$(MAKE) wasm32/native/stamp/build/gcc
+daily/gcc!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
+	$(MAKE) wasm32/native/cross/build/gcc
 	$(MAKE) wasm/libstdc++.wasm
 
 daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
