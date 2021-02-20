@@ -1461,39 +1461,30 @@ daily/gcc!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.
 	$(MAKE) wasm32/cross/stamp/build/gcc
 	$(MAKE) wasm/libstdc++.wasm
 
-daily-ncurses!: | subrepos/ncurses/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/gcc.tar.gz
-	touch wasm32/native/stamp/build/binutils-gdb
-	touch wasm32/native/stamp/build/gcc-preliminary
-	touch wasm32/native/stamp/build/glibc
-	touch wasm32/native/stamp/build/gcc
+daily/ncurses!: | subrepos/ncurses/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 	$(MAKE) wasm32/native/stamp/build/ncurses
 	$(MAKE) wasm/libncurses.wasm
 
-daily-bash!: | install/file-slurp
-daily-coreutils!: | install/file-slurp
-daily-emacs!: | install/file-slurp
-daily-emacs-native-comp!: | install/file-slurp
-daily-miniperl!: | install/file-slurp
-daily-perl!: | install/file-slurp
-daily-python!: | install/file-slurp
-daily-ncurses!: | install/file-slurp
-daily-run-all-tests!: | install/file-slurp
-daily-run-all-tests!: | wasm32/cross/bin/dyninfo
-daily-run-all-tests!: | wasm32/native/lib/js/wasm32.js
-daily-run-elf!: | install/file-slurp
-daily-run-elf!: | wasm32/cross/bin/dyninfo
-daily-run-elf!: | wasm32/native/lib/js/wasm32.js
-daily-run-wasm!: | install/file-slurp
-daily-run-wasm!: | wasm32/cross/bin/dyninfo
-daily-run-wasm!: | wasm32/native/lib/js/wasm32.js
-daily-zsh!: | install/file-slurp
+daily/bash!: | install/file-slurp
+daily/coreutils!: | install/file-slurp
+daily/emacs!: | install/file-slurp
+daily/emacs-native-comp!: | install/file-slurp
+daily/miniperl!: | install/file-slurp
+daily/perl!: | install/file-slurp
+daily/python!: | install/file-slurp
+daily/ncurses!: | install/file-slurp
+daily/run-all-tests!: | install/file-slurp
+daily/run-all-tests!: | wasm32/cross/bin/dyninfo
+daily/run-all-tests!: | wasm32/native/lib/js/wasm32.js
+daily/run-elf!: | install/file-slurp
+daily/run-elf!: | wasm32/cross/bin/dyninfo
+daily/run-elf!: | wasm32/native/lib/js/wasm32.js
+daily/run-wasm!: | install/file-slurp
+daily/run-wasm!: | wasm32/cross/bin/dyninfo
+daily/run-wasm!: | wasm32/native/lib/js/wasm32.js
+daily/zsh!: | install/file-slurp
 
-daily-bash!: | subrepos/bash/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
-	touch wasm32/native/stamp/build/binutils-gdb
-	touch wasm32/native/stamp/build/gcc-preliminary
-	touch wasm32/native/stamp/build/glibc
-	touch wasm32/native/stamp/build/gcc
-	touch wasm32/native/stamp/build/ncurses
+daily/bash!: | subrepos/bash/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz
 	$(MAKE) wasm32/native/stamp/build/bash wasm/bash.wasm
 
 wasm32/native/stamp/build/zsh: | install/nroff
@@ -1501,7 +1492,7 @@ wasm32/native/stamp/build/zsh: | install/nroff
 daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
 	$(MAKE) wasm32/native/stamp/build/zsh
 
-daily-coreutils!: | subrepos/coreutils/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
+daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) artifacts/down/wasm/ld.wasm
 	$(MAKE) artifacts/down/wasm/libc.wasm
 	$(MAKE) artifacts/down/wasm/libdl.wasm
