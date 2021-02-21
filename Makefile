@@ -359,7 +359,7 @@ $(eval $(call build-or-install,native,gmp))
 
 # MPC
 
-wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
+wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure wasm32/native/stamp/install/mpfr wasm32/native/stamp/install/gmp
 	(cd wasm32/native/build/mpc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpc/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
@@ -413,7 +413,7 @@ $(eval $(call build-or-install,native,binutils-gdb))
 
 # GCC (native)
 
-wasm32/native/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc wasm32/native/stamp/configure
+wasm32/native/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc wasm32/native/stamp/configure wasm32/native/stamp/install/gmp wasm32/native/stamp/install/mpc wasm32/native/stamp/install/mpfr
 	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
 	touch $@
 
