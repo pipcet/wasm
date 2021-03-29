@@ -142,8 +142,8 @@ wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binut
 wasm32/cross/stamp/build/gcc-preliminary: wasm32/cross/stamp/configure/gcc-preliminary | wasm32/cross/stamp
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary install
-	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_eh.a
-	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/libgcc_s.a
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc_eh.a
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc_s.a
 	touch $@
 
 $(eval $(call build-or-install,cross,gcc-preliminary))
@@ -533,7 +533,7 @@ wasm32/native/test/glibc: | wasm32/native/test
 
 # Copying wasm32-headers.o is unfortunate, but required by our linker script.
 wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/build/binutils-gdb | wasm32/cross/stamp/build/gcc-preliminary wasm32/cross/test/binutils-gdb
-	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.0/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
 	(cd wasm32/cross/build/binutils-gdb; $(MAKE) check)
 	cat $(patsubst %,wasm32/cross/build/binutils-gdb/%,binutils/binutils.sum gas/testsuite/gas.sum libctf/libctf.sum ld/ld.sum sim/testsuite/testrun.sum) > $@
 
