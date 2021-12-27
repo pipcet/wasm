@@ -169,7 +169,7 @@ $(patsubst %,wasm32/native/build/%,binutils-gdb gcc glibc ncurses bash wabt bina
 	$(MKDIR) $@
 
 wasm32/native/stamp/configure/glibc: | wasm32/cross/stamp/install/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc wasm32/native/stamp/configure
-	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -O2 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native)
+	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -O2 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native --disable-werror)
 	touch $@
 
 wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/native/stamp/build
