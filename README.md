@@ -16,3 +16,10 @@ Directories:
   Source code for tests
 1. tools
   The actual code in this repository
+
+Legal issues:
+
+The GCC Runtime Exception does not apply to code compiled with GCC
+that is intended to serve as input to another compiler, as is true for
+wasm bytecode. As such, distributing non-GPLv3 software compiled with
+this version of GCC is probably not legal.
