@@ -120,8 +120,8 @@ wasm32/cross/src/binutils-gdb: | wasm32/cross/src
 
 wasm32/cross/stamp/configure/binutils-gdb: | wasm32/cross/src/binutils-gdb wasm32/cross/build/binutils-gdb wasm32/cross/stamp/configure
 	(cd wasm32/cross/src/binutils-gdb/gas; aclocal)
-	(cd wasm32/cross/src/binutils-gdb/gas; automake)
-	(cd wasm32/cross/src/binutils-gdb/gas; autoreconf2.69 || autoreconf)
+	(cd wasm32/cross/src/binutils-gdb/gas; automake || true)
+	(cd wasm32/cross/src/binutils-gdb/gas; autoreconf2.69 || autoreconf || true)
 	(cd wasm32/cross/build/binutils-gdb; ../../src/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --disable-werror --prefix=$(PWD)/wasm32/cross CFLAGS=$(OPT_NATIVE))
 	touch $@
 
