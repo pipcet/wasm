@@ -209,7 +209,7 @@ wasm32/cross/lib/libstdc++.so: wasm32/cross/stamp/install/glibc
 # ncurses
 
 wasm32/native/stamp/configure/ncurses: | wasm32/cross/stamp/install/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses wasm32/native/stamp/configure
-	(cd wasm32/native/build/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/ncurses/configure --enable-optimize=$(OPT_ASMJS) --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-stripping --with-shared)
+	(cd wasm32/native/build/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/ncurses/configure --enable-optimize=$(OPT_WASM) --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-stripping --with-shared)
 	touch $@
 
 wasm32/native/stamp/build/ncurses: wasm32/native/stamp/configure/ncurses | wasm32/native/stamp/build
