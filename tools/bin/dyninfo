@@ -102,6 +102,7 @@ for my $file (@ARGV) {
 	    my ($refaddr, $symbol) = (hex $1,$2);
 	    $symbol =~ s/@+.*//;
 
+	    die $symbol unless exists $cachedsize{$symbol};
 	    $copy{$symbol}{$refaddr} = $cachedsize{$symbol};
 	} elsif (/^([0-9a-f]*) R_WASM32_LEB128 (\*ABS\*)\+0x([0-9a-fA-F]*)$/) {
 	    #die "absolute relocation in dynamic object!"
