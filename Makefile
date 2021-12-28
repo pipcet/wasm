@@ -1184,7 +1184,7 @@ github/install/texinfo-bison-flex: | github/install wasm32/cross/bin/locked
 	touch $@
 
 github/install/gcc-dependencies: | github/install wasm32/cross/bin/locked
-	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev gcc g++
 	touch $@
 
 github/install/dejagnu: | github/install wasm32/cross/bin/locked
