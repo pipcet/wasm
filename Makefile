@@ -403,7 +403,7 @@ wasm32/native/src/binutils-gdb: | wasm32/cross/src
 
 wasm32/native/stamp/configure/binutils-gdb: | wasm32/native/src/binutils-gdb wasm32/native/build/binutils-gdb wasm32/native/stamp/configure
 	(cd wasm32/native/src/binutils-gdb/gas; aclocal; automake; autoreconf)
-	(cd wasm32/native/build/binutils-gdb; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/binutils-gdb/configure --build=$(native-triplet) --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/native CFLAGS=$(OPT_WASM))
+	(cd wasm32/native/build/binutils-gdb; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/binutils-gdb/configure --build=$(native-triplet) --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/native CFLAGS=$(OPT_WASM) --disable-werror)
 	touch $@
 
 wasm32/native/stamp/build/binutils-gdb: wasm32/native/stamp/configure/binutils-gdb | wasm32/native/stamp/build
