@@ -144,8 +144,8 @@ wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binut
 wasm32/cross/stamp/build/gcc-preliminary: wasm32/cross/stamp/configure/gcc-preliminary | wasm32/cross/stamp
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary install
-	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc_eh.a
-	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/libgcc_s.a
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.1/libgcc_eh.a
+	cp wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.1/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.1/libgcc_s.a
 	touch $@
 
 $(eval $(call build-or-install,cross,gcc-preliminary))
