@@ -3510,18 +3510,19 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 	for (let i=0; i<len; i++)
             data += String.fromCharCode(heap[ptr+i]);
 	this.writePosition = len;
+	//this.writeData = data; don't do this, it breaks coreutils
     }
 
     if (this.half)
         return this.half[0].write(data);
     else {
 	if (this.fdno >= 3) {
-	    this.writeData += data;
+	    this.writeData = data;
 	} else {
             putstr(data);
 	}
 
-        return data.length;
+        return Promise.resolve(data.length);
     }
 };
 
@@ -3727,11 +3728,11 @@ ThinThinHalfFD.prototype.write = function (heap, ptr, len)
     let ret = ThinThinFD.prototype.write.call(this, heap, ptr, len);
     if (!this.other.reader_promise) {
 	return new Promise(r => this.other.reader_promise_promise = r).then(() => {
-	    this.other.reader_promise(this.readData);
+	    this.other.reader_promise(this.writeData);
 	    return ret;
 	})
     }
-    this.other.reader_promise(CStringAt(heap, ptr));
+    this.other.reader_promise(this.writeData);
     return ret;
 };
 
