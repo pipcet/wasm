@@ -5300,16 +5300,16 @@ if (typeof(os) !== "undefined" &&
 
         if (fd instanceof ThinThinDD) {
             this.HEAP32[bufptr+6*4>>2] = 4 << 12;
+	    return Promise.resolve(0);
         } else {
             this.HEAP32[bufptr+6*4>>2] = 1 << 15;
+            return Promise.resolve(fd.read()).then(i => {
+		this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
+		this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
+		this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
+		return 0;
+            });
         }
-
-        return Promise.resolve(fd.read()).then(i => {
-            this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
-            this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
-            this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
-            return 0;
-        });
     };
     ThinThin.ioctl_p = function (fdno, code, intptr) {
         fdno = 0;
