@@ -2942,6 +2942,15 @@ ThinThinDD.prototype.openat = function (path, flags)
 	path = this.path + "/" + path;
     if (path.match(/^\/dev\/(u?random)$/))
 	return Promise.resolve(-%{ENOENT});
+    if (path === "" || path === "." || path.match(/\/\.$/)) {
+	let ret = new ThinThinDD(this.process);
+	let data = os.file.readFile(path + "/.dir", "utf-8");
+	ret.entries = this.entries;
+	ret.readData = data;
+	ret.read = ThinThinFD.prototype.read;
+	ret.path = path;
+	return Promise.resolve(ret);
+    }
     try {
 	let data = os.file.readFile(path, "binary");
 	if (data !== null) {
@@ -3394,9 +3403,8 @@ ThinThinFD.prototype.read_string = function (string)
  * data is available to read. */
 ThinThinFD.prototype.read = function (heap, ptr, len)
 {
-    if (this.fdno === 0 && this.read_stdin) {
-	this.read_stdin();
-	this.read_stdin = undefined;
+    if (this.fdno === 0 && this.readData.length === this.readPosition && this.read_stdin) {
+	return this.read_stdin().then(x => this.read(heap, ptr, len));
     }
     if (ptr === undefined)
         ptr = 0;
@@ -5181,8 +5189,21 @@ if (typeof(os) !== "undefined" &&
 	return ret;
     };
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
-        var dd = this.fds[fdno] || this.process.ddroot;
         var path = CStringAt(this.HEAPU8, pathstr);
+        var dd;
+	if (path[0] === "/") {
+	    dd = this.process.ddroot;
+	} else if (path === "") {
+	    dd = this.process.ddcwd;
+	} else if (fdno >= 0)
+	    dd = this.fds[fdno];
+	else if (fdno === %{AT_FDROOTD})
+	    dd = this.process.ddroot;
+	else if (fdno === %{AT_FDCWD} || fdno === -100)
+	    dd = this.process.ddcwd;
+	else
+	    return -%{EBADF};
+	fdno = dd.fdno;
 	if (typeof os !== "undefined" &&
 	    os.getenv && os.getenv("WASM_STRACE"))
 	    console.log("newfstatat", fdno, "path", path);
@@ -5906,6 +5927,15 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 
     if (this.pwd && path[0] !== "/")
 	path = this.pwd + "/" + path;
+    var dd;
+    if (fdno >= 0)
+	dd = this.fds[fdno];
+    else if (fdno === %{AT_FDROOTD})
+	dd = this.process.ddroot;
+    else if (fdno === %{AT_FDCWD} || fdno === -100)
+	dd = this.process.ddcwd;
+    else
+	return -%{EBADF};
     var dd = this.fds[fdno];
     if (!dd)
         dd = this.process.ddcwd;
