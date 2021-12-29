@@ -1746,9 +1746,13 @@ function MessageChannel(kernel)
     return this;
 }
 
+var gWasm32Kernel;
 /* The kernel: code that must run once only, even from workers. */
 function Wasm32Kernel()
 {
+    if (gWasm32Kernel)
+	return gWasm32Kernel;
+    gWasm32Kernel = this;
     this.space_pids = new RangeAllocator(() => {});
     this.space_pids.alloc(2);
     this.ports_by_pid = {};
