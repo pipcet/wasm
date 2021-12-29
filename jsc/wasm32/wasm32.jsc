@@ -40,8 +40,13 @@ if (args[0] === "--gdbpipes") {
     args.shift();
 }
 
+var host_system = "mozilla";
+var fs;
+var fs_promises;
 if (typeof os === "undefined") {
+    host_system = "node";
     fs = require("fs");
+    fs_promises = require("fs/promises");
     os = {
 	file: {
 	    readFile: (path, mode) => {
@@ -1606,10 +1611,15 @@ function Wasm32Process(system, fds)
     this.system = system;
     system.processes.push(this);
 
-    this.fds = fds ? fds : [];
-    this.ddroot = system.ddroot = new ThinThinDD(this, 4);
-    this.ddroot.path = ".";
-    this.ddcwd = system.ddroot;
+    if (host_system === "node") {
+	this.fds = fds ? fds : [];
+	this.ddroot = system.ddroot = new ThinThinNodeDD(this, "/", 4);
+	this.ddcwd = new ThinThinNodeDD(this, ".", 5);
+    } else {
+	this.fds = fds ? fds : [];
+	this.ddroot = system.ddroot = new ThinThinDD(this, 4);
+	this.ddcwd = new ThinThinDD(this, 5);
+    }
 
     //system.ddroot.open();
 
@@ -2967,6 +2977,56 @@ ThinThinDD.prototype.walk = function (component, isdir)
             this.entries[component] = entry;
     });
 };
+function ThinThinNodeDD(process, path, fdno)
+{
+    ThinThinDD.call(this, process, fdno);
+    this.path = path;
+}
+ThinThinNodeDD.prototype = Object.create(ThinThinDD.prototype);
+
+ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
+{
+    console.error("openat", path, flags);
+    if (path[0] === "/") {
+	return this.process.ddroot.openat(path.substr(1), flags, mode);
+    }
+    while (path.match(/\/\.$/))
+	path = path.replace(/\/\.$/, "");
+    while (path.match(/\/\//))
+	path = path.replace(/\/\//, "/");
+
+    /* XXX check path is openable first? */
+    let flags_node = "r";
+    if ((flags & %{O_WRONLY}) || (flags & %{O_RDWR})) {
+	flags_node = "w";
+    }
+    try {
+	let file = await fs_promises.open(this.path + "/" + path, flags_node, mode);
+	file.close();
+	return new ThinThinFD(this.process, this.path + "/" + path);
+    } catch (e) {
+	if (e.code === "ENOENT") {
+	    return -%{ENOENT};
+	}
+	if (e.code == "EISDIR") {
+	    return new ThinThinDD(this.process, this.path + "/" + path);
+	}
+	throw e;
+    }
+};
+
+ThinThinNodeDD.prototype.walk = null;
+
+ThinThinNodeDD.prototype.readdir = function ()
+{
+    console.error("readdir");
+    return new Promise(r => {
+	fs.readdir(this.path, (err, files) => {
+	    r(files);
+	});
+    });
+};
+
 //** ThinThinFetchDD (kill)
 function ThinThinFetchDD(process, parent, stem, cache, fdno)
 {
