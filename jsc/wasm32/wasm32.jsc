@@ -5470,35 +5470,8 @@ if (typeof(os) !== "undefined" &&
 	}).then(data => new Promise((resolve, reject) => {
             var pid = data[0];
             var kport = data[1];
-            //var worker = new Worker("wasm32-forkedworker.js");
 	    resolve(pid);
-	    return;
-            var fdchannels = {};
-            var lfdports = {};
-            var rfdports = {};
-            var rports = [];
-            for (var fdno in this.process.fds) {
-                fdchannels[fdno] = new MessageChannel();
-                lfdports[fdno] = fdchannels[fdno].port1;
-                rfdports[fdno] = fdchannels[fdno].port2;
-                rports.push(rfdports[fdno]);
-            }
-            //workenr.postMessage([kport, this.process.clonedesc(), this.vm.clonedesc(), this.syscall_sp, rfdports], [kport, ...rports]);
-
-            var pipes = {};
-            for (var fdno in lfdports) {
-                pipes[fdno] = new ThinThinHalf();
-                new ForwardHalf(pipes[fdno].reverse(), this.process.fds[fdno].half);
-                var rr = new RRPort(lfdports[fdno]);
-                new RRPortHalf(pipes[fdno], rr, false);
-
-                rr.port.start();
-            }
-            if (false) worker.onmessage = success => {
-                console.log(success);
-
-                resolve(success ? pid : -1);
-            };
+	    run();
         }));
     };
     ThinThin.restart = function (dst, src, len, entry)
