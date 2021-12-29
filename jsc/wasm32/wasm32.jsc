@@ -65,7 +65,7 @@ if (typeof os === "undefined") {
 	getpid: () => null,
     };
     putstr = function (str) {
-	console.log(str);
+	process.stdout.write(str);
     };
     readline = function () {
 	return null;
