@@ -1874,6 +1874,12 @@ Wasm32Kernel.prototype.message = function (port, data)
 	    port.postMessage(["response", this.wait4[pid], [data[2], 0]]);
 	    delete this.wait4[pid];
 	}
+    } else if (data[0] === "sched_yield") {
+	let thread = this.threads_by_port.get(port);
+	thread.stop(1);
+	setTimeout(() => {
+	    port.postMessage(["response", seq, [data[2], 0]]);
+	}, 1000);
     } else {
         console.log(data);
         throw "unknown message!";
@@ -5529,7 +5535,14 @@ if (typeof(os) !== "undefined" &&
 	    return -%{EIO};
 	}
     };
-    ThinThin.wait4 = function(pid, wstatusp, options, rusage)
+    ThinThin.sched_yield = function ()
+    {
+	this.kport.channel.kernel.threads_by_port.set(this.kport, this);
+	this.kport.channel.kernel.threads_by_port.set(this.kport.channel.port1, this);
+	this.kport.channel.kernel.threads_by_port.set(this.kport.channel.port2, this);
+	return this.kport.req("sched_yield");
+    };
+    ThinThin.wait4 = function (pid, wstatusp, options, rusage)
     {
         var ret = this.kport.req("wait4", pid);
 
