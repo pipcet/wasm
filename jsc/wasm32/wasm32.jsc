@@ -3126,29 +3126,7 @@ ThinThinFD.prototype.open = function ()
 
 ThinThinFD.prototype.close = function ()
 {
-    while (this.readers)
-        this.pause();
-
-    try {
-        i.dont.exist++;
-    } catch (e) {
-        //console.log(e.stack);
-    }
-    //console.log("closing " + this.fdno);
-
-    //delete this.process.fds[this.fdno];
-
-    if (this.fdno >= 3 && this.written && this.writeData !== "") {
-	let buf = new ArrayBuffer(this.writeData.length);
-	let arr = new Uint8Array(buf);
-	for (let i = 0; i < this.writeData.length; i++) {
-	    arr[i] = this.writeData.charCodeAt(i) & 0xff;
-	}
-	if (this.path.match(/.\//)) {
-	    os.system("mkdir -p " + this.path.replace(/[^\/]*$/, ""));
-	}
-	os.file.writeTypedArrayToFile(this.path, arr);
-    }
+    /* XXX write back modified file data. */
 
     return Promise.resolve(0);
 };
