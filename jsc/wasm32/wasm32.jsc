@@ -5897,8 +5897,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (!dd)
         dd = this.process.ddcwd;
 
-    if (path.length === 0 || path === ".")
-        return Promise.resolve(dd).then(fd => (typeof fd === "object") ? fd.fdno : fd);
 
     return dd.openat(path, flags, mode).then(fd => {
 	return (typeof fd === "object") ? fd.fdno : fd;
