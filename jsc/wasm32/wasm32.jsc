@@ -203,35 +203,6 @@ function environment_variables()
     return env;
 }
 
-function newAsmJSModule(mod)
-{
-    sys = new AsmJSSystem();
-    var env = [];
-
-    if (typeof os === "undefined") {
-    } else if ("getenvironment" in os) {
-        env = os.getenvironment();
-    } else {
-        for (var i = 0; i < copyvars.length; i++) {
-            var copyvar = copyvars[i];
-            var value = os.getenv(copyvar);
-
-            if (value !== undefined)
-                env.push(copyvar + "=" + value);
-        }
-        env.push("TERM=vt100");
-    }
-    if (typeof global !== "undefined")
-        args.shift();
-    sys.instantiate(mod, args, env);
-    //restart = function () {
-    //sys.instantiate(mod, args, env);
-    //};
-
-    while (sys.runqueue.length)
-        sys.step();
-}
-
 if (typeof global !== "undefined")
     run = () => global.setInterval(() => sys.step(), 0);
 
