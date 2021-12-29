@@ -1679,7 +1679,7 @@ artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts artifacts/down
 	cp wasm/bash.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
+artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) wasm32/native/stamp/build/zsh wasm/zsh.wasm
