@@ -2999,7 +2999,6 @@ ThinThinNodeDD.prototype = Object.create(ThinThinDD.prototype);
 
 ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 {
-    console.error("openat", path, flags);
     if (path[0] === "/") {
 	return this.process.ddroot.openat(path.substr(1), flags, mode);
     }
@@ -3032,7 +3031,6 @@ ThinThinNodeDD.prototype.walk = null;
 
 ThinThinNodeDD.prototype.readdir = function ()
 {
-    console.error("readdir");
     return new Promise(r => {
 	fs.readdir(this.path, (err, files) => {
 	    r(files);
@@ -5080,7 +5078,6 @@ if (typeof(os) !== "undefined" &&
     for (var syscall in Syscalls)
         ThinThin[syscall] = Syscalls[syscall];
     ThinThin.exit = function (code) {
-        console.log("exiting");
         if (os.getenv("STATS"))
             console.log("runtime: " + (Date.now() - lastdonetime));
         quit(code);
@@ -5629,7 +5626,6 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
     %{libinfo[&libinfo->modid] = "this.process.modules.length"};
     this.process.modules.push(module); // XXX remove this.
 
-    console.log("returning", this.HEAP32[libinfo+16>>2]);
     return this.HEAP32[libinfo+16>>2];
 };
 
@@ -5823,7 +5819,6 @@ ThinThin.linkat = function (oldfdno, coldpath,
     let newpath = CStringAt(this.HEAPU8, cnewpath);
 
     os.system(`cp ${oldpath} ${newpath}`)
-    console.log("linkat", oldpath, newpath);
 
     return 0;
 };
