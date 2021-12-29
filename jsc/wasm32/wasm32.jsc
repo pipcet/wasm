@@ -1628,13 +1628,13 @@ function Wasm32Process(system, fds)
     this.modules = [];
 }
 
-Wasm32Process.prototype.fork = function (kport)
+Wasm32Process.prototype.fork = function (kport, pid)
 {
     let extcallRet = {};
     for (let sp in this.threads[0].extcallRet) {
 	extcallRet[sp] = 0;
     }
-    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice());
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice(), pid);
     return ret.then(process => {
 	process.threads[0].extcallRet = extcallRet;
 	return process;
@@ -1847,7 +1847,7 @@ Wasm32Kernel.prototype.message = function (port, data)
         var pid = this.space_pids.alloc(1);
         var [nport, tport] = this.get_port();
 
-	let newproc = this.threads_by_port.get(port).process.fork(nport);
+	let newproc = this.threads_by_port.get(port).process.fork(nport, pid);
         this.ports_by_pid[pid] = tport;
         this.pids_by_port.set(tport, pid);
         this.ppids[pid] = this.pids_by_port.get(port);
@@ -1988,7 +1988,7 @@ function abtoascii(ab)
 
 Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 						 fds, extcallRet, heap, pwd,
-						 heap32)
+						 heap32, pid)
 {
     var process;
     var thread;
@@ -1998,6 +1998,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     thread.vm = vm;
     thread.extcallRet = extcallRet;
     process.vm = vm;
+    process.pid = pid;
     for (let module of [modules[0]]) {
         var tos = (module.dyninfo.data_end + 4095) & -4096;
         //vm.%{zp[&zp->top_of_sbrk] = "tos"}
