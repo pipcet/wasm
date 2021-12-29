@@ -1027,15 +1027,16 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
 	});
 };
 
-function Wasm32Thread(kport, process, threadpage, vm)
+function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
 {
+    this.pid = pid;
     this.pwd = os.getenv("PWD") || ".";
-    if (kport)
-        this.kport = kport;
-    else
-	this.kport = (new Wasm32Kernel).init_port(this);
-    if (this.kport)
-        this.kport.start();
+    if (!kport)
+	kport = new Wasm32Kernel();
+    if (kport instanceof Wasm32Kernel)
+	kport = kport.init_port(this, pid);
+    this.kport = kport;
+    this.kport.start();
     this.process = process;
     process.threads.push(this);
     var system = process.system;
@@ -1766,7 +1767,7 @@ function Wasm32Kernel()
     this.responders = {};
 }
 
-Wasm32Kernel.prototype.init_port = function (thread)
+Wasm32Kernel.prototype.init_port = function (thread, pid = 1)
 {
     let channel = new MessageChannel(this);
     channel.port1.onmessage = event => {
@@ -1777,17 +1778,17 @@ Wasm32Kernel.prototype.init_port = function (thread)
 	    this.requesters[data[1]](data[2]);
     };
 
-    this.ports_by_pid[1] = channel.port1;
-    this.pids_by_port.set(channel.port1, 1);
+    this.ports_by_pid[pid] = channel.port1;
+    this.pids_by_port.set(channel.port1, pid);
     this.ppids[1] = 1;
     this.threads_by_port.set(channel.port1, thread);
     this.threads_by_port.set(channel.port2, thread);
-    thread.pid = 1;
+    thread.pid = pid;
 
     return channel.port2;
 }
 
-Wasm32Kernel.prototype.get_port = function ()
+Wasm32Kernel.prototype.get_port = function (pid = 1)
 {
     var channel = new MessageChannel(this);
 
@@ -1799,19 +1800,19 @@ Wasm32Kernel.prototype.get_port = function ()
 	this.requesters[data[1]](data[2]);
     };
 
-    if (this.ports_by_pid[1] === undefined) {
-        this.ports_by_pid[1] = channel.port1;
-        this.pids_by_port.set(channel.port1, 1);
-        this.ppids[1] = 1;
+    if (this.ports_by_pid[pid] === undefined) {
+        this.ports_by_pid[pid] = channel.port1;
+        this.pids_by_port.set(channel.port1, pid);
     }
 
     return [channel.port2, channel.port1];
 };
 
-Wasm32Kernel.prototype.message = function (port, data)
+Wasm32Kernel.prototype.message = async function (port, data)
 {
     var req = data[0];
     var seq = data[1];
+    let thread = this.threads_by_port.get(port);
 
     if (data[0] === "kill") {
         var pid = data[1];
@@ -1820,9 +1821,10 @@ Wasm32Kernel.prototype.message = function (port, data)
         this.ports_by_pid[pid].postMessage(["kill", signal]);
     } else if (data[0] === "fork") {
         var pid = this.space_pids.alloc(1);
-        var [nport, tport] = this.get_port();
+        var [nport, tport] = this.get_port(pid);
 
-	let newproc = this.threads_by_port.get(port).process.fork(nport, pid);
+	let newproc = await this.threads_by_port.get(port).process.fork(nport, pid);
+	thread.system.runqueue.push(thread);
         this.ports_by_pid[pid] = tport;
         this.pids_by_port.set(tport, pid);
         this.ppids[pid] = this.pids_by_port.get(port);
@@ -1974,7 +1976,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     var process;
     var thread;
     process = new Wasm32Process(this, fds);
-    thread = new Wasm32Thread(kport, process, 8192);
+    thread = new Wasm32Thread(kport, process, 8192, undefined, pid);
     thread.pwd = pwd || ".";
     thread.vm = vm;
     thread.extcallRet = extcallRet;
@@ -2040,13 +2042,13 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     return process;
 };
 
-Wasm32System.prototype.instantiate = function (module, vm, args, env)
+Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 {
     var process;
     var thread;
-    if (!this.threads.length) {
-        process = module.process;
-        thread = new Wasm32Thread(undefined, process, 8192, vm);
+    process = module.process;
+    if (!process.threads.length) {
+        thread = new Wasm32Thread(process.kernel, process, 8192, vm, pid);
 	thread.main_thread = true;
         return module.load(thread, vm).then(() => {
             var ret = module.instantiate(thread, vm, 0x4000, true);
