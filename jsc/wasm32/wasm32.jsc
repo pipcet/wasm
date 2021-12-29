@@ -461,7 +461,7 @@ Wasm32Modules.prototype.bytes = async function (name)
 	path = name;
     else
 	path = os.getenv("WASMDIR") + "/wasm/" + name + ".wasm";
-    return os.readFile(path, "binary");
+    return os.file.readFile(path, "binary");
 };
 
 Wasm32Modules.prototype.module = async function (name)
@@ -1839,7 +1839,7 @@ Wasm32Kernel.prototype.message = async function (port, data)
 	this.exited[pid] = [pid, exitcode];
 	if (this.ports_by_pid[ppid] && (ppid in this.wait4)) {
             this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
-	    delete this.wait4[ppid]
+	    delete this.wait4[ppid];
 	}
 	let thread = this.threads_by_port.get(this.ports_by_pid[ppid]);
 	if (thread.system.runqueue.indexOf(thread) === -1)
@@ -2136,6 +2136,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
         process = this.processes[0];
         thread = this.threads[0];
     }
+    var HEAP32 = vm.HEAP32;
     %{tp1[&tp1->pc] = "process.entry"}
     if (false && typeof document !== "undefined") {
         new ThinThinFD(process, 0);
@@ -5448,7 +5449,7 @@ if (typeof(os) !== "undefined" &&
 
         return 0;
     };
-    ThinThin.fork = function ()
+    ThinThin.fork = async function ()
     {
         var okay = false;
         return new Promise((resolve, reject) => {
@@ -5481,7 +5482,9 @@ if (typeof(os) !== "undefined" &&
         return this.restart(dst, src, len, entry);
     };
     ThinThin.execve = function (cpath, argvptr, envpptr)
-    {
+    {1
+	let path = CStringAt(this.HEAP8, cpath);
+
         return ThinThin.execveat.call(this, 0, cpath, argvptr, envpptr, 0);
     };
     ThinThin.execveat = async function (fdno, cpath, argvptr, envpptr, flags)
@@ -5520,7 +5523,7 @@ if (typeof(os) !== "undefined" &&
         if (wstatusp)
             this.HEAP32[wstatusp>>2] = 0;
 
-        if (options & 1)
+        if (options & %{WNOHANG})
             return Promise.resolve(0);
 
         return ret.then(([pid, wstatus]) => {
