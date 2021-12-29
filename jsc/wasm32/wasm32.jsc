@@ -5482,30 +5482,27 @@ if (typeof(os) !== "undefined" &&
     {
         return ThinThin.execveat.call(this, 0, cpath, argvptr, envpptr, 0);
     };
-    ThinThin.execveat = function (dirfdno, cpath, argvptr, envpptr, flags)
+    ThinThin.execveat = async function (fdno, cpath, argvptr, envpptr, flags)
     {
         if (this.HEAP8[cpath] === "/".charCodeAt(0))
-            dirfdno = %{AT_FDROOTD};
+            fdno = %{AT_FDROOTD};
 
-	let args = CStringsAt(this.heap, argvptr);
-	let command = args.join(" ");
-	let timestamp = Date.now();
-	if (this.pwd !== undefined)
-	    command = "(cd " + this.pwd + "; PWD=. " + command + ")";
-	command += ">/tmp/tmp.out." + timestamp;
-	command = command.replace("$ORIGIN", "\\$ORIGIN");
-	command = command.replace(/\bsh -c /, "");
-	try {
-	    let pid = os.spawn(command);
-	    let o = os.waitpid(pid);
-	    let output = os.file.readFile("/tmp/tmp.out." + timestamp, "binary");
-	    let ret = this.fds[1].write(output, 0, output.length);
-	    return this.kport.req("exit", [o.exitStatus]);
-	} catch (e) {
-	    console.log("OH NO!");
-	    console.log(e);
-	    return -%{EIO};
-	}
+	let path = CStringAt(this.HEAP8, cpath);
+	let args = CStringsAt(this.HEAP8, argvptr);
+
+	let process = new Wasm32Process(system);
+	let module = new Wasm32Module(process, await gWasm32Modules.bytes(path));
+	module.sizes = sizes;
+	let vm = new Wasm32VM(sizes);
+	process.vm = vm;
+	await module.load({}, vm);
+	await system.instantiate(module, vm, CStringsAt(this.heap, argvptr), CStringsAt(this.heap, envpptr), this.pid);
+	await module.instantiate(process.threads[0], vm, 0x4000, true);
+	system.runqueue.push(process.threads[0]);
+	system.runqueue.push(system.runqueue.shift());
+	run();
+	//this.stop(2);
+	return new Promise(r => {});
     };
     ThinThin.sched_yield = function ()
     {
