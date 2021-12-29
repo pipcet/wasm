@@ -1852,7 +1852,6 @@ Wasm32Kernel.prototype.message = function (port, data)
         this.pids_by_port.set(tport, pid);
         this.ppids[pid] = this.pids_by_port.get(port);
 
-        //console.log("assigned pid " + pid + " " + nport);
         port.postMessage(["response", seq, [pid, nport]], [nport]);
     } else if (data[0] === "exit") {
         var exitcode = data[2];
@@ -2144,8 +2143,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
                 new ThinThinFD(process, 1);
                 new ThinThinFD(process, 2);
             }
-	if (this.runqueue.indexOf(thread) === -1)
-            this.runqueue.push(thread);
+	    if (this.runqueue.indexOf(thread) === -1) {
+		this.runqueue.push(thread);
+	    }
         });
     } else {
         process = this.processes[0];
@@ -2185,8 +2185,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env)
         new ThinThinFD(process, 1);
         new ThinThinFD(process, 2);
     }
-    if (this.runqueue.indexOf(thread) === -1)
+    if (this.runqueue.indexOf(thread) === -1) {
 	this.runqueue.push(thread);
+    }
 };
 
 Wasm32System.prototype.step = function ()
@@ -2199,8 +2200,9 @@ Wasm32System.prototype.step = function ()
     thread.step();
 
     if (!thread.stopped()) {
-	if (this.runqueue.indexOf(thread) === -1)
+	if (this.runqueue.indexOf(thread) === -1) {
             this.runqueue.push(thread);
+	}
     }
 };
 
@@ -5895,7 +5897,9 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (path.length === 0 || path === ".")
         return Promise.resolve(dd).then(fd => (typeof fd === "object") ? fd.fdno : fd);
 
-    return dd.openat(path, flags, mode).then(fd => (typeof fd === "object") ? fd.fdno : fd);
+    return dd.openat(path, flags, mode).then(fd => {
+	return (typeof fd === "object") ? fd.fdno : fd;
+    });
 };
 
 ThinThin.faccessat = function (fdno, ptr, flags, mode) {
