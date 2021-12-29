@@ -5857,14 +5857,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
 	os.getenv && os.getenv("WASM_STRACE"))
 	console.log("openat", path);
 
-    if (flags & %{O_DIRECTORY}) {
-	try {
-	    let output = os.file.readFile(path + "/.dir", "binary");
-	} catch (e) {
-	    return -%{ENOTDIR};
-	}
-    }
-
     if (path.match(/^\/dev\/tty/))
 	return 1;
 
