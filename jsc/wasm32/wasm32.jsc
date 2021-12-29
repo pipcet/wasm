@@ -3013,9 +3013,15 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	flags_node = "w";
     }
     try {
+	let stats = await fs_promises.lstat(this.path + "/" + path);
 	let file = await fs_promises.open(this.path + "/" + path, flags_node, mode);
 	file.close();
-	return new ThinThinFD(this.process, this.path + "/" + path);
+	if (stats.isFile()) {
+	    let ret = new ThinThinFD(this.process);
+	    ret.path = this.path + "/" + path;
+	    return ret;
+	}
+	return new ThinThinNodeDD(this.process, this.path + "/" + path);
     } catch (e) {
 	if (e.code === "ENOENT") {
 	    return -%{ENOENT};
