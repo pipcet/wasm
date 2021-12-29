@@ -2977,6 +2977,15 @@ ThinThinDD.prototype.walk = function (component, isdir)
             this.entries[component] = entry;
     });
 };
+
+ThinThinDD.prototype.readdir = function ()
+{
+    let ret = [];
+    for (let entry of this.entries) {
+	ret.push(entry);
+    }
+    return ret;
+};
 function ThinThinNodeDD(process, path, fdno)
 {
     ThinThinDD.call(this, process, fdno);
