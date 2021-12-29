@@ -2935,6 +2935,7 @@ ThinThinDD.prototype.openat = function (path, flags)
 		str += String.fromCharCode(view[i]);
 	    let ret = new ThinThinFD(this.process);
 	    ret.path = path;
+	    ret.readData = fs.readFileSync(ret.path, "utf-8")
 	    ret.read_string(str);
 	    return Promise.resolve(ret);
 	}
@@ -3009,6 +3010,7 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	if (stats.isFile()) {
 	    let ret = new ThinThinFD(this.process);
 	    ret.path = this.path + "/" + path;
+	    ret.readData = fs.readFileSync(ret.path, "utf-8");
 	    return ret;
 	}
 	return new ThinThinNodeDD(this.process, this.path + "/" + path);
