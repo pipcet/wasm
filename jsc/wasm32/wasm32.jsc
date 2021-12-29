@@ -5930,32 +5930,7 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 var gExitStatus;
 ThinThin.exit = function (code) {
     gExitStatus = code;
-    if (this.main_thread)
-	try {
-	    quit(code);
-	} catch (e) {
-	    os.kill(os.getpid());
-	}
-    //console.log("exiting: " + code);
     return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
-
-    console.log("runtime: " + (Date.now() - lastdonetime));
-    if (typeof quit !== "undefined")
-        quit(code);
-    else if (typeof self !== "undefined") {
-        self.close();
-        return new Promise((resolve, reject) => {
-        });
-    } else if (typeof process !== "undefined")
-        process.exit(code);
-    else if (typeof document !== "undefined") {
-        document.getElementById("output").textContent += "Exit Status " + code;
-        this.stop(0xffffffff);
-    }
-    //if (code != 0 && code !== undefined)
-    //    throw "Exit Status " + code;
-    //else
-    //    throw new SuccessException();
 };
 
 ThinThin.isatty = function (fdno) {
