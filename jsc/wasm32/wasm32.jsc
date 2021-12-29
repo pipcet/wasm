@@ -2050,8 +2050,9 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     lim = vm.sizes.memsize;
     for (let i = vm.sizes.stackbottom/4; i < lim/4; i++)
 	vm.HEAP32[i] = heap32[i];
-    if (this.runqueue.indexOf(thread) === -1)
+    if (this.runqueue.indexOf(thread) === -1) {
 	this.runqueue.unshift(thread);
+    }
     thread.first = false;
     if (gRetrigger)
 	gRetrigger();
