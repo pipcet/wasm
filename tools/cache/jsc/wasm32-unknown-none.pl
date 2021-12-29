@@ -23,6 +23,7 @@ $VAR1 = {
           'O_CREAT' => '64',
           'O_DIRECTORY' => '65536',
           'O_RDWR' => '2',
+          'O_WRONLY' => '1',
           'POLLIN' => '1',
           'SEEK_CUR' => '1',
           'SEEK_END' => '2',
