@@ -6053,7 +6053,6 @@ var sizes = {
     stacksize: %{default_sizes.stacksize},
     stackbottom: %{default_sizes.stackbottom},
 };
-var kernel = new Wasm32Kernel();
 var vm = new Wasm32VM(sizes);
 var system = new Wasm32System();
 var module;
