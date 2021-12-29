@@ -3362,13 +3362,21 @@ ThinThinFD.prototype.readAsArrayBuffer = function ()
     });
 };
 
-ThinThinFD.prototype.read_stdin = function ()
+ThinThinFD.prototype.read_stdin = async function ()
 {
     let line;
     if (typeof(this.readData) !== "string")
 	this.readData = "";
-    while ((line = readline()) !== null)
-	this.readData += line + "\n";
+    if (host_system === "mozilla") {
+	while ((line = readline()) !== null)
+	    this.readData += line + "\n";
+    } else if (host_system === "node") {
+	await new Promise(r => process.stdin.once("readable", r));
+	let read_data = process.stdin.read();
+	if (read_data !== null) {
+	    this.readData += read_data.toString();
+	}
+    }
 };
 
 ThinThinFD.prototype.read_string = function (string)
