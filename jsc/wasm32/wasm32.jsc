@@ -3406,20 +3406,6 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
 
     if (this.readPosition >= this.readData.length)
 	this.readEOF = true;
-    if (false)
-    try {
-	this.readData = readline();
-	if (this.readData == null) {
-	    this.readData = "";
-	    this.readEOF = true;
-	} else {
-	    this.readData += "\n";
-	}
-    } catch (e) {
-	console.log("exception!");
-	this.readData = "";
-	this.readEOF = true;
-    }
     return this.read(heap, ptr, len);
 
     return this.unpause(len).then(() => {
