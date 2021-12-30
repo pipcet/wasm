@@ -5491,7 +5491,12 @@ if (typeof(os) !== "undefined" &&
 	let args = CStringsAt(this.HEAP8, argvptr);
 
 	let process = new Wasm32Process(system);
-	let module = new Wasm32Module(process, await gWasm32Modules.bytes(path));
+	let module;
+	try {
+	    module = new Wasm32Module(process, await gWasm32Modules.bytes(path));
+	} catch (e) {
+	    return -%{ENOENT};
+	}
 	module.sizes = sizes;
 	let vm = new Wasm32VM(sizes);
 	process.vm = vm;
