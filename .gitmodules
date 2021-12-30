@@ -49,9 +49,6 @@
 [submodule "subrepos/gmp"]
 	path = subrepos/gmp
 	url = ../gmp
-[submodule "subrepos/emacs-native-comp"]
-	path = subrepos/emacs-native-comp
-	url = https://github.com/pipcet/emacs
 [submodule "subrepos/mpc"]
 	path = subrepos/mpc
 	url = https://github.com/pipcet/mpc
