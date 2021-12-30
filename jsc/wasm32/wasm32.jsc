@@ -5882,9 +5882,7 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
     return ret;
 };
 
-var gExitStatus;
 ThinThin.exit = function (code) {
-    gExitStatus = code;
     return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
 };
 
@@ -5988,7 +5986,6 @@ var system = new Wasm32System();
 var module;
 
 var gRetrigger;
-var gExitStatus = 0;
 
 var os;
 var fs;
