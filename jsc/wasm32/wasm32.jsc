@@ -326,12 +326,9 @@ Wasm32Modules.prototype.compiled_by_path = async function (path)
 {
     if (path in this.store)
 	return this.store[path];
+
     let bytes = await this.bytes_by_path(path);
-    console.log("bytes", bytes);
-
-    this.store[path] = await WebAssembly.compile(bytes);
-
-    return this.store[path];
+    return this.store[path] = await WebAssembly.compile(bytes);
 }
 
 var gWasm32Modules = new Wasm32Modules();
@@ -655,9 +652,9 @@ Wasm32VM.prototype.grow_pcs = function (limit)
 var Wasm32ModuleIndex = 1;
 var Wasm32Modules = {};
 
-function Wasm32Module(process, bytes, name)
+function Wasm32Module(process, compiled, name)
 {
-    this.bytes = bytes;
+    this.compiled = compiled;
     this.ctime = Date.now();
     this.index = Wasm32ModuleIndex++;
     this.symtab = {};
@@ -709,16 +706,18 @@ Wasm32Module.prototype.check_libs = function (thread)
 			}
 		    if (!bytes)
 			throw("couldn't load " + lib);
-                    var module = new Wasm32Module(thread.process, bytes, lib);
-                    return module.load(thread, this.vm).then(() => {
-                        var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
-                        var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
-			last_tom = tom;
-                        //this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
-                        var ret = module.instantiate(thread, this.vm, mem, true);
-                        this.vm.base_lm.dep[lib] = 0;
+		    return WebAssembly.compile(bytes).then(compiled => {
+			var module = new Wasm32Module(thread.process, compiled, lib);
+			return module.load(thread, this.vm).then(() => {
+                            var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
+                            var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+			    last_tom = tom;
+                            //this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
+                            var ret = module.instantiate(thread, this.vm, mem, true);
+                            this.vm.base_lm.dep[lib] = 0;
 
-                        return ret;
+                            return ret;
+			});
                     });
                 } else if (typeof fetch !== "undefined") {
                     var module;
@@ -728,7 +727,9 @@ Wasm32Module.prototype.check_libs = function (thread)
 
                         return Promise.reject(response);
                     }).then((buffer) => {
-                        module = new Wasm32Module(thread.process, buffer);
+			return WebAssembly.compile(buffer);
+		    }).then((compiled) => {
+                        module = new Wasm32Module(thread.process, compiled);
 
                         return module.load(thread, this.vm);
                     }).then(() => {
@@ -750,29 +751,36 @@ Wasm32Module.prototype.check_libs = function (thread)
     return promise;
 };
 
-Wasm32Module.prototype.load = function (thread, vm)
+Wasm32Module.prototype.compile = async function (thread, vm)
+{
+    this.compiled ||= await WebAssembly.compile(this.bytes);
+    this.comtime = Date.now();
+};
+
+Wasm32Module.prototype.load_dyninfo = function (thread, vm)
+{
+    let dyninfo;
+    let cs = WebAssembly.Module.customSections(this.compiled, "dyninfo" /* + ".json" */);
+    for (let c of cs) {
+        let s = abtoascii(c);
+        this.dyninfo = JSON.parse(s);
+    }
+};
+
+Wasm32Module.prototype.load = async function (thread, vm)
 {
     this.vm = vm;
     thread.vm = vm;
 
-    this.modulePromise = WebAssembly.compile(this.bytes);
-    return this.modulePromise.then(module => {
-        this.module = module;
-        this.comtime = Date.now();
-        var dyninfo;
-        var cs = WebAssembly.Module.customSections(module, "dyninfo" /* + ".json" */);
-        for (let c of cs) {
-            let s = abtoascii(c);
-            this.dyninfo = JSON.parse(s);
-        }
+    await this.compile();
+    this.load_dyninfo();
 
-        return this.index;
-    });
+    return this.index;
 };
 
 var lastdonetime = 0;
 
-Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
+Wasm32Module.prototype.instantiate = async function (thread, vm, mem, recurse)
 {
     this.imports = {};
     this.imports.sys = {};
@@ -789,51 +797,47 @@ Wasm32Module.prototype.instantiate = function (thread, vm, mem, recurse)
     this.imports.sys.plt = vm.space_functions.alloc(this.dyninfo.plt_end);
     this.imports.sys.table = vm.table;
     this.imports.sys.memory = vm.memory;
-    return WebAssembly.instantiate(this.module, this.imports)
-        .then(instance => {
-            this.instance = instance;
-            this.instime = Date.now();
-            thread.exports = this.instance.exports;
-            thread.memory = vm.memory;
-            thread.table = vm.table;
-            if (this.instance.exports.entry !== undefined) {
-                thread.entry = this.imports.sys.plt + this.instance.exports.entry;
-            }
-            this.vm.base_lm.dyninfo_apply(this.dyninfo, this.imports, this);
-            lastdonetime = this.donetime = Date.now();
+    let instance = await WebAssembly.instantiate(this.compiled, this.imports);
+    this.instance = instance;
+    this.instime = Date.now();
+    thread.exports = this.instance.exports;
+    thread.memory = vm.memory;
+    thread.table = vm.table;
+    if (this.instance.exports.entry !== undefined) {
+        thread.entry = this.imports.sys.plt + this.instance.exports.entry;
+    }
+    this.vm.base_lm.dyninfo_apply(this.dyninfo, this.imports, this);
+    lastdonetime = this.donetime = Date.now();
 
-	    this.instance = instance;
-	    let last = 0;
-	    for (let header = 16384; header;
-		 header = vm.HEAP32[(header + 8)>>2]) {
-		last = header;
-	    }
-	    if (mem !== 16384) {
-		this.vm.HEAP32[(last + 8) >> 2] = mem;
-		let header = mem;
-		vm.HEAP32[(header + 16) >> 2] += header - 16384;
-		vm.HEAP32[(header + 24) >> 2] += header - 16384;
-		vm.HEAP32[(header + 32) >> 2] += header - 16384;
-		vm.HEAP32[(header + 40) >> 2] += header - 16384;
-		vm.HEAP32[(header + 48) >> 2] += header - 16384;
-		vm.HEAP32[(header + 56) >> 2] += header - 16384;
-		if (this.name === "ld.wasm" ||
-		    this.name === "libc.wasm" ||
-		    this.name.match(/^l(d|ibc)\.so([0-9.]*)$/)) {
-		    vm.HEAP32[header + 56 >> 2] = vm.HEAP32[header + 48 >> 2];
-		    //vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
-		    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
-		}
-	    }
-            var tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
-	    last_tom = tom;
-            if (recurse)
-                return this.check_libs(thread);
-            else
-                return true;
-	}).catch((e) => {
-            console.log("died instantiating: " + e + "\n" + e.stack);
-	});
+    this.instance = instance;
+    let last = 0;
+    for (let header = 16384; header;
+	 header = vm.HEAP32[(header + 8)>>2]) {
+	last = header;
+    }
+    if (mem !== 16384) {
+	this.vm.HEAP32[(last + 8) >> 2] = mem;
+	let header = mem;
+	vm.HEAP32[(header + 16) >> 2] += header - 16384;
+	vm.HEAP32[(header + 24) >> 2] += header - 16384;
+	vm.HEAP32[(header + 32) >> 2] += header - 16384;
+	vm.HEAP32[(header + 40) >> 2] += header - 16384;
+	vm.HEAP32[(header + 48) >> 2] += header - 16384;
+	vm.HEAP32[(header + 56) >> 2] += header - 16384;
+	if (this.name === "ld.wasm" ||
+	    this.name === "libc.wasm" ||
+	    this.name.match(/^l(d|ibc)\.so([0-9.]*)$/)) {
+	    vm.HEAP32[header + 56 >> 2] = vm.HEAP32[header + 48 >> 2];
+	    //vm.HEAP32[header + 40 >> 2] = vm.HEAP32[header + 32 >> 2];
+	    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
+	}
+    }
+    var tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
+    last_tom = tom;
+    if (recurse)
+        return this.check_libs(thread);
+    else
+        return true;
 };
 
 function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
@@ -5312,7 +5316,7 @@ if (typeof(os) !== "undefined" &&
 	let process = new Wasm32Process(system);
 	let module;
 	try {
-	    module = new Wasm32Module(process, await gWasm32Modules.bytes(path));
+	    module = new Wasm32Module(process, await gWasm32Modules.compiled_by_path(path));
 	} catch (e) {
 	    return -%{ENOENT};
 	}
@@ -5373,16 +5377,18 @@ ThinThin.dlload = function (addr, len, memp)
     var av = new Uint8Array(ab);
     for (var i=0; i < len; i++)
         av[i] = sav[i];
-    var module = new Wasm32Module(this.process, ab);
+    return WebAssembly.compile(ab).then(compiled => {
+	var module = new Wasm32Module(this.process, compiled);
 
-    return module.load(this, this.vm).then(ret => {
-        this.HEAP32[memp>>2] = module.dyninfo.data_end - module.dyninfo.data;
-        if (module.dyninfo.libs.length)
-            module.depstring = module.dyninfo.libs.join(String.fromCharCode(0)) + String.fromCharCode(0);
-        else
-            module.depstring = "";
+	return module.load(this, this.vm).then(ret => {
+            this.HEAP32[memp>>2] = module.dyninfo.data_end - module.dyninfo.data;
+            if (module.dyninfo.libs.length)
+		module.depstring = module.dyninfo.libs.join(String.fromCharCode(0)) + String.fromCharCode(0);
+            else
+		module.depstring = "";
 
-        return ret;
+            return ret;
+	});
     });
 };
 
@@ -5434,7 +5440,8 @@ ThinThin.open_dynamic = async function (cpath, who, libinfo)
 	}
     if (!bytes)
 	return -%{ENOENT};
-    let module = new Wasm32Module(this.process, bytes, path);
+    let compiled = await WebAssembly.compile(bytes);
+    let module = new Wasm32Module(this.process, compiled, path);
     console.log('dlopen: ' + path + " " + module)
 
     await module.load(this, this.vm);
@@ -5873,34 +5880,37 @@ if (remote) {
         console.log("e2:" + e + "\n" + e.stack);
     });
 } else if (typeof os !== "undefined") {
-    module = new Wasm32Module(new Wasm32Process(system), os.file.readFile(path, "binary"));
-    module.sizes = sizes;
+    let env = environment_variables();
+    WebAssembly.compile(os.file.readFile(path, "binary")).then(compiled => {
+	module = new Wasm32Module(new Wasm32Process(system), compiled);
+	module.sizes = sizes;
 
-    system.instantiate(module, vm, args, environment_variables()).then(() => {
-        try {
-            run = () => {
-                try {
-		    if (!system.step())
-			Promise.resolve().then(run);
-                } catch (e) {
-                    console.log(e);
-		    console.log(e.stack);
-                }
-            };
-            run();
-	    gRetrigger = run;
-        } catch (e) {
-            console.log("exception");
+	return system.instantiate(module, vm, args, env).then(() => {
+            try {
+		run = () => {
+                    try {
+			if (!system.step())
+			    Promise.resolve().then(run);
+                    } catch (e) {
+			console.log(e);
+			console.log(e.stack);
+                    }
+		};
+		run();
+		gRetrigger = run;
+            } catch (e) {
+		console.log("exception");
+		console.log(e);
+		console.log(e.stack);
+            }
+	}).catch((e) => {
+            console.log("caught");
             console.log(e);
-            console.log(e.stack);
-        }
-    }).catch((e) => {
-        console.log("caught");
-        console.log(e);
+	});
     });
 } else if (typeof fetch !== "undefined") {
-    caches.open("v3").then((cache) => {
-        var req = new Request(path);
+	caches.open("v3").then((cache) => {
+            var req = new Request(path);
 
         return cache.match(req).then((response) => {
             if (response === undefined)
@@ -5915,10 +5925,13 @@ if (remote) {
 
             return Promise.reject(response);
         });
-    }).then((ab) => {
-        module = new Wasm32Module(ab);
+	}).then((ab) => {
+	    return WebAssembly.compile(ab);
+	}).then(compiled => {
+            module = new Wasm32Module(ab);
 
-        return system.instantiate(module, vm, args, []);
+            return system.instantiate(module, vm, args, []);
+	});
     }).then(() => {
         try {
             run = () => {
