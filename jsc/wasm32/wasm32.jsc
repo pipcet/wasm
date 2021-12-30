@@ -634,25 +634,6 @@ Wasm32VM.prototype.clonedesc = function ()
     };
 };
 
-Wasm32VM.prototype.alive = function (clonedesc)
-{
-    var HEAPU32 = new Uint32Array(clonedesc.memory);
-    var HEAP32 = new Int32Array(clonedesc.memory);
-    var end = %{zp[&zp->top_of_sbrk]}/4;
-    for (var i = 0; i < end; i++)
-        this.HEAPU32[i] = HEAPU32[i];
-    HEAPU32 = new Uint32Array(clonedesc.stack);
-    var size = clonedesc.sizes.stacksize / 4;
-    for (var i = 0; i < size; i++)
-        this.HEAPU32[clonedesc.sizes.stackbottom + i] = HEAPU32[i];
-
-    this.table_length = clonedesc.table_length;
-    this.shadowtable = clonedesc.table;
-
-    for (var x in clonedesc.table)
-        this.table.set(x, this.table.get(clonedesc.table[x]));
-};
-
 Wasm32VM.prototype.tableset = function (x, y)
 {
     if (!(y in this.shadowtable))
@@ -698,40 +679,6 @@ Wasm32Module.prototype.clonedesc = function ()
         plt: this.imports.sys.plt,
         dyninfo: this.dyninfo,
     };
-};
-
-Wasm32Module.prototype.reload_at = function (thread, vm, clonedesc)
-{
-    this.imports = {};
-    this.imports.sys = {};
-
-    this.imports.sys.call = thread.extcall.bind(thread);
-    this.imports.sys.debug = thread.debug.bind(thread);
-    this.imports.sys.eh_return = thread.eh_return.bind(thread);
-    this.imports.sys.indcall = thread.indcall.bind(thread);
-    this.imports.sys.trace = thread.trace.bind(thread);
-    this.imports.sys.truncdfsi = thread.truncdfsi.bind(thread);
-    this.imports.sys.null = thread.null_called.bind(thread);
-    this.imports.sys.got = clonedesc.got;
-    this.imports.sys.gpo = clonedesc.gpo;
-    this.imports.sys.plt = clonedesc.plt;
-    this.imports.sys.table = vm.table;
-    this.imports.sys.memory = vm.memory;
-
-    return Promise.resolve().then(() => WebAssembly.instantiate(this.module, this.imports))
-        .then((instance) => {
-            this.instance = instance;
-            this.instime = Date.now();
-            thread.exports = this.instance.exports;
-            thread.memory = vm.memory;
-            thread.table = vm.table;
-            if (this.instance.exports.entry !== undefined) {
-                thread.entry = this.imports.sys.plt + this.instance.exports.entry;
-            }
-            return true;
-    }).catch((e) => {
-        console.log("died instantiating: " + e + "\n" + e.stack);
-    });
 };
 
 let last_tom = 16384;
