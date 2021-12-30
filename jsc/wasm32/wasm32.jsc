@@ -3007,7 +3007,7 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	flags_node = "w";
     }
     try {
-	let stats = await fs_promises.lstat(this.path + "/" + path);
+	let stats = await fs_promises.stat(this.path + "/" + path);
 	let file = await fs_promises.open(this.path + "/" + path, flags_node, mode);
 	file.close();
 	if (stats.isFile()) {
