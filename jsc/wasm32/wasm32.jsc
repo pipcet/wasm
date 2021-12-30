@@ -1036,7 +1036,7 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
             if (ptr === 0)
                 return null;
 
-            var str = CStringAt(thread.HEAP8, ptr);
+            var str = thread.c_str(ptr);
 
             this.thread = thread;
             this.address = ptr;
@@ -1063,6 +1063,16 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
     if (this.kport)
         this.kport.start();
 }
+
+Wasm32Thread.prototype.c_str = function (ptr)
+{
+    return CStringAt(this.vm.HEAP8, ptr);
+};
+
+Wasm32Thread.prototype.c_strs = function (ptr)
+{
+    return CStringsAt(this.vm.heap, ptr);
+};
 
 Wasm32Thread.prototype.fd = function (fdno)
 {
@@ -1210,8 +1220,8 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     this.syscall_sp = sp;
     var modstr = b;
     var funstr = c;
-    var mod = CStringAt(this.HEAPU8, modstr);
-    var fun = CStringAt(this.HEAPU8, funstr);
+    var mod = this.c_str(modstr);
+    var fun = this.c_str(funstr);
 
     if (fun !== "write" && fun !== "lseek")
 	if (typeof os !== "undefined" &&
@@ -5120,7 +5130,7 @@ if (typeof(os) !== "undefined" &&
 	return ret;
     };
     ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
-        var path = CStringAt(this.HEAPU8, pathstr);
+        var path = this.c_str(pathstr);
         var dd;
 	if (path[0] === "/") {
 	    dd = this.process.ddroot;
@@ -5433,7 +5443,7 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.execve = function (cpath, argvptr, envpptr)
     {
-	let path = CStringAt(this.HEAP8, cpath);
+	let path = this.c_str(cpath);
 
         return ThinThin.execveat.call(this, 0, cpath, argvptr, envpptr, 0);
     };
@@ -5442,8 +5452,8 @@ if (typeof(os) !== "undefined" &&
         if (this.HEAP8[cpath] === "/".charCodeAt(0))
             fdno = %{AT_FDROOTD};
 
-	let path = CStringAt(this.HEAP8, cpath);
-	let args = CStringsAt(this.HEAP8, argvptr);
+	let path = this.c_str(cpath);
+	let args = this.c_strs(argvptr);
 
 	let process = new Wasm32Process(system);
 	let module;
@@ -5456,7 +5466,8 @@ if (typeof(os) !== "undefined" &&
 	let vm = new Wasm32VM(sizes);
 	process.vm = vm;
 	await module.load({}, vm);
-	await system.instantiate(module, vm, CStringsAt(this.heap, argvptr), CStringsAt(this.heap, envpptr), this.pid);
+	await system.instantiate(module, vm, this.c_strs(argvptr),
+				 this.c_strs(envpptr), this.pid);
 	await module.instantiate(process.threads[0], vm, 0x4000, true);
 	system.runqueue.push(process.threads[0]);
 	system.runqueue.push(system.runqueue.shift());
@@ -5553,7 +5564,7 @@ ThinThin.dlkill = function (modi)
 
 ThinThin.open_dynamic = async function (cpath, who, libinfo)
 {
-    let path = CStringAt(this.HEAP8, cpath);
+    let path = this.c_str(cpath);
     if (path[0] !== "/")
 	path = os.getenv("WASMDIR") + "/wasm/" + path;
     let bytes;
@@ -5594,7 +5605,7 @@ ThinThin.load_dynamic = async function (modid, mem)
 
 ThinThin.dynamic_symbol = async function (resptr, modid, csymbol, cversion)
 {
-    let symbol = CStringAt(this.HEAP8, csymbol);
+    let symbol = this.c_str(csymbol);
     //console.log("symbol", symbol);
     let module = this.process.modules[modid];
     //console.log("module",module,module.symtab,module.symtab[symbol]);
@@ -5611,7 +5622,7 @@ ThinThin.dlsym = function (modi, csym)
     var module = Wasm32Modules[modi];
 
     return new Promise((resolve, reject) => {
-        var symbol = CStringAt(this.HEAP8, csym);
+        var symbol = this.c_str(csym);
 
         let ret = module.symtab[symbol] || 0;
 
@@ -5655,7 +5666,7 @@ ThinThin.syscall = function (n, ...args)
 
 ThinThin.init_trampoline = function (mtramp)
 {
-    var sigstr = CStringAt(this.HEAPU8, this.HEAPU32[mtramp>>2]);
+    var sigstr = this.c_str(this.HEAPU32[mtramp>>2]);
     var sigarray = build_sig(sigstr);
     var length = 8 + 11 + 7 + 1 + 1 + sigarray.length;
     var siglength = sigarray.length;
@@ -5739,7 +5750,7 @@ ThinThin.destroy_trampoline = function (mtramp)
 
 ThinThin.chdir = function (ptr)
 {
-    var path = CStringAt(this.HEAPU8, ptr);
+    var path = this.c_str(ptr);
     if (path[0] === "/")
 	this.pwd = path;
     else
@@ -5771,8 +5782,8 @@ ThinThin.linkat = function (oldfdno, coldpath,
 			    newfdno, cnewpath,
 			    flags)
 {
-    let oldpath = CStringAt(this.HEAPU8, coldpath);
-    let newpath = CStringAt(this.HEAPU8, cnewpath);
+    let oldpath = this.c_str(coldpath);
+    let newpath = this.c_str(cnewpath);
 
     os.system(`cp ${oldpath} ${newpath}`)
 
@@ -5781,8 +5792,8 @@ ThinThin.linkat = function (oldfdno, coldpath,
 
 ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 {
-    var oldpath = CStringAt(this.HEAPU8, coldpath);
-    var newpath = CStringAt(this.HEAPU8, cnewpath);
+    var oldpath = this.c_str(coldpath);
+    var newpath = this.c_str(cnewpath);
 
     if (this.pwd) {
 	if (oldpath[0] !== "/")
@@ -5795,15 +5806,13 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 
     let oldfd = this.fd(oldfdno);
     let newfd = this.fd(newfdno);
-    var oldpath = oldfd.at_resolve(CStringAt(this.HEAPU8, coldpath), flags,
-				   this);
-    var newpath = newfd.at_resolve(CStringAt(this.HEAPU8, cnewpath), flags,
-				   this);
+    var oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
+    var newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
 
 };
 
 ThinThin.openat = function (fdno, ptr, flags, mode) {
-    var path = CStringAt(this.HEAPU8, ptr);
+    var path = this.c_str(ptr);
 
     if (typeof os !== "undefined" &&
 	os.getenv && os.getenv("WASM_STRACE"))
@@ -5875,7 +5884,7 @@ ThinThin.readlinkat = function ()
 ThinThin.unlinkat = function (fdno, cpath)
 {
     let fd = this.fd(fdno);
-    let path = CStringAt(this.HEAP8, cpath);
+    let path = this.c_str(cpath);
 
     if (os.system("test -e " + this.pwd + "/" + path) !== 0)
 	return 0; // -%{ENOENT};
@@ -5885,7 +5894,7 @@ ThinThin.unlinkat = function (fdno, cpath)
 
 ThinThin.mkdirat = function (fdno, cpath)
 {
-    let path = CStringAt(this.HEAP8, cpath);
+    let path = this.c_str(cpath);
     if (os.system("test -d " + this.pwd + "/" + path) === 0)
 	return 0; //-%{EEXIST};
 
