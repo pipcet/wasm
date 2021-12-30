@@ -1760,7 +1760,8 @@ function Wasm32Kernel()
     this.pids_by_port = new WeakMap();
     this.threads_by_port = new WeakMap();
     this.ppids = { 1: 1 };
-    this.wait4 = {};
+    this.wait4_pids = new Set();
+    this.delayed_exits = new Set();
     this.exited = {};
     this.seq = 0;
     this.requesters = {};
@@ -1808,6 +1809,24 @@ Wasm32Kernel.prototype.get_port = function (pid = 1)
     return [channel.port2, channel.port1];
 };
 
+Wasm32Kernel.prototype.exit = async function (pid, exitcode)
+{
+    let ppid = this.ppids[pid];
+    this.exited[pid] = [pid, exitcode];
+    for (let s of this.wait4_pids) {
+	let [ppid2, pid2, seq] = s;
+	if ((ppid === ppid2 || ppid2 === undefined) &&
+	    (pid === pid2 || pid2 === undefined)) {
+	    let pport = this.ports_by_pid[ppid2 || ppid];
+	    pport.postMessage(["response", seq, [pid, exitcode]]);
+	    this.wait4_pids.delete(s);
+	    return;
+	}
+    }
+
+    this.delayed_exits.add([ppid, pid, exitcode]);
+};
+
 Wasm32Kernel.prototype.message = async function (port, data)
 {
     var req = data[0];
@@ -1820,45 +1839,35 @@ Wasm32Kernel.prototype.message = async function (port, data)
 
         this.ports_by_pid[pid].postMessage(["kill", signal]);
     } else if (data[0] === "fork") {
-        var pid = this.space_pids.alloc(1);
-        var [nport, tport] = this.get_port(pid);
-
+        let ppid = this.pids_by_port.get(port);
+        let pid = this.space_pids.alloc(1);
+        let [nport, tport] = this.get_port(pid);
+        this.ppids[pid] = ppid;
 	let newproc = await this.threads_by_port.get(port).process.fork(nport, pid);
 	thread.system.runqueue.push(thread);
         this.ports_by_pid[pid] = tport;
         this.pids_by_port.set(tport, pid);
-        this.ppids[pid] = this.pids_by_port.get(port);
 
         port.postMessage(["response", seq, [pid, nport]], [nport]);
     } else if (data[0] === "exit") {
         var exitcode = data[2];
-        var pid = this.pids_by_port.get(port);
-        var ppid = this.ppids[pid];
-        var pport = this.ports_by_pid[ppid];
-
-	this.exited[pid] = [pid, exitcode];
-	if (pport && (ppid in this.wait4)) {
-            pport.postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
-	    delete this.wait4[ppid];
-	}
-	let thread = this.threads_by_port.get(pport);
-	if (thread && thread.system.runqueue.indexOf(thread) === -1)
-	    thread.system.runqueue.push(thread);
+        let pid = this.pids_by_port.get(port);
+	this.exit(pid, exitcode);
     } else if (data[0] === "wait4") {
-        var pid = this.pids_by_port.get(port);
-        this.wait4[pid] = seq;
-	if (data[2] === -1)
-	    for (let [pid] in this.exited)
-		data[2] = pid;
-	if (this.exited[data[2]]) {
-	    let ppid = pid;
-            let pport = this.ports_by_pid[ppid];
-	    port.postMessage(["response", this.wait4[pid], [data[2], 0]]);
-	    delete this.wait4[pid];
-	    let thread = this.threads_by_port.get(pport);
-	    if (thread && thread.system.runqueue.indexOf(thread) === -1)
-		thread.system.runqueue.push(thread);
+        var ppid = this.pids_by_port.get(port);
+	let pid = data[2] === -1 ? undefined : data[2];
+	for (let s of this.delayed_exits) {
+	    let [ppid2, pid2, exitcode] = s;
+	    if (ppid === ppid2 && (pid2 === pid || pid === undefined)) {
+		this.delayed_exits.delete(s);
+		port.postMessage(["response", seq, [pid2, exitcode]]);
+		this.threads_by_port.get(port).stop(0);
+		this.threads_by_port.get(port).system.runqueue.push(this.threads_by_port.get(port));
+		return;
+	    }
 	}
+	let s = [ppid, pid, seq];
+	this.wait4_pids.add(s);
     } else if (data[0] === "sched_yield") {
 	let thread = this.threads_by_port.get(port);
 	thread.stop(1);
@@ -5504,13 +5513,13 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.wait4 = function (pid, wstatusp, options, rusage)
     {
-        var ret = this.kport.req("wait4", pid);
-
         if (wstatusp)
             this.HEAP32[wstatusp>>2] = 0;
 
         if (options & %{WNOHANG})
             return Promise.resolve(0);
+
+        var ret = this.kport.req("wait4", pid);
 
         return ret.then(([pid, wstatus]) => {
             if (wstatusp)
@@ -5891,7 +5900,7 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 };
 
 ThinThin.exit = function (code) {
-    return this.kport.req("exit", [code]).then(() => new Promise(() => {}))
+    return this.kport.req("exit", code).then(() => new Promise(() => {}))
 };
 
 ThinThin.isatty = function (fdno) {
