@@ -243,51 +243,6 @@ function update() {
     }
 }
 
-if (false) if (typeof window !== "undefined") {
-    document.getElementById("dot-input").oninput = update;
-    window.setInterval(update, 5);
-}
-
-//     worker = new Worker("asmjs-worker.js");
-//     worker.onmessage = function (e) {
-//         var data = e.data;
-
-//         switch (data[0]) {
-//         case "send":
-//             var rfdno = data[1];
-//             var payload = data[2];
-//             var fd = gRemoteFDs[rfdno];
-
-//             if (fd) {
-//                 fd.write(new Uint8Array(payload), 0, payload.byteLength)
-//                     .then((len) => {
-//                         worker.postMessage(["sent", rfdno, len]);
-//                     });
-//             } else {
-//                 alert("unknown rfd " + rfdno + " " + gRemoteFDs);
-//             }
-//             return;
-
-//         case "receive":
-//             var rfdno = data[1];
-//             var fd = gRemoteFDs[rfdno];
-//             var len = data[2];
-
-//             if (fd) {
-//                 var heap = new ArrayBuffer(len);
-//                 var heap8 = new Int8Array(heap);
-
-//                 fd.read(heap8, 0, len).then(l => {
-//                     e.source.postMessage([rfdno, "read", heap], "*");
-//                 });
-//             }
-
-//             return;
-//         }
-//     };
-//     worker.postMessage(["process", sys.processes[0].freeze()]);
-// }
-
 function AllocatorRange(free, start, end)
 {
     this.start = start;
