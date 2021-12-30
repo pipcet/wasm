@@ -292,7 +292,6 @@ Wasm32Symbol.prototype.get_addr = function ()
 	    return def[1];
 
     return undefined;
-    throw "undefined symbol " + this.name;
 };
 
 Wasm32Symbol.prototype.add_reference = function (reference)
