@@ -1098,7 +1098,7 @@ wasm/perl.wasm: wasm32/wasm/bin/perl | wasm
 wasm/python.wasm: wasm32/wasm/bin/python3 | wasm
 	$(LN) ../$< $@
 
-COREUTILS = echo true false ls cat
+COREUTILS = echo true false ls cat seq od printf printenv
 $(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
 	$(LN) ../$< $@
 
