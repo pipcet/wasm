@@ -301,26 +301,38 @@ Wasm32Symbol.prototype.add_reference = function (reference)
 
 function Wasm32Modules()
 {
-    this.by_path = {};
+    this.store = {};
 }
 
-Wasm32Modules.prototype.bytes = async function (name)
+Wasm32Modules.prototype.bytes_by_path = async function (path)
+{
+    let ret;
+    try {
+	ret = os.file.readFile(path, "binary");
+    } catch (e) {
+	return null;
+    }
+    return ret;
+};
+
+Wasm32Modules.prototype.bytes_by_name = async function (name)
 {
     let path;
-    if (name[0] === "/")
-	path = name;
-    else
-	path = os.getenv("WASMDIR") + "/wasm/" + name + ".wasm";
-    return os.file.readFile(path, "binary");
+    path = os.getenv("WASMDIR") + "/wasm/" + name + ".wasm";
+    return await this.bytes_by_path(path);
 };
 
-Wasm32Modules.prototype.module = async function (name)
+Wasm32Modules.prototype.compiled_by_path = async function (path)
 {
-    if (!this.by_path[path])
-	this.by_path[path] = new Wasm32Module(await this.bytes(name), name);
+    if (path in this.store)
+	return this.store[path];
+    let bytes = await this.bytes_by_path(path);
+    console.log("bytes", bytes);
 
-    return this.by_path[path];
-};
+    this.store[path] = await WebAssembly.compile(bytes);
+
+    return this.store[path];
+}
 
 var gWasm32Modules = new Wasm32Modules();
 
