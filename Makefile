@@ -137,7 +137,7 @@ $(eval $(call build-or-install,cross,binutils-gdb))
 wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
 	test -L $@ || $(LN) ../../../subrepos/gcc $@
 
-wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure
+wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure install/gcc-dependencies
 	(cd wasm32/cross/build/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32/cross)
 	touch $@
 
