@@ -1837,19 +1837,27 @@ Wasm32Kernel.prototype.message = async function (port, data)
         var pport = this.ports_by_pid[ppid];
 
 	this.exited[pid] = [pid, exitcode];
-	if (this.ports_by_pid[ppid] && (ppid in this.wait4)) {
-            this.ports_by_pid[ppid].postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
+	if (pport && (ppid in this.wait4)) {
+            pport.postMessage(["response", this.wait4[ppid], [pid, exitcode]]);
 	    delete this.wait4[ppid];
 	}
-	let thread = this.threads_by_port.get(this.ports_by_pid[ppid]);
-	if (thread.system.runqueue.indexOf(thread) === -1)
+	let thread = this.threads_by_port.get(pport);
+	if (thread && thread.system.runqueue.indexOf(thread) === -1)
 	    thread.system.runqueue.push(thread);
     } else if (data[0] === "wait4") {
         var pid = this.pids_by_port.get(port);
         this.wait4[pid] = seq;
+	if (data[2] === -1)
+	    for (let [pid] in this.exited)
+		data[2] = pid;
 	if (this.exited[data[2]]) {
+	    let ppid = pid;
+            let pport = this.ports_by_pid[ppid];
 	    port.postMessage(["response", this.wait4[pid], [data[2], 0]]);
 	    delete this.wait4[pid];
+	    let thread = this.threads_by_port.get(pport);
+	    if (thread && thread.system.runqueue.indexOf(thread) === -1)
+		thread.system.runqueue.push(thread);
 	}
     } else if (data[0] === "sched_yield") {
 	let thread = this.threads_by_port.get(port);
