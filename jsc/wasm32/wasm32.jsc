@@ -5931,28 +5931,27 @@ if (remote) {
             module = new Wasm32Module(ab);
 
             return system.instantiate(module, vm, args, []);
-	});
-    }).then(() => {
-        try {
-            run = () => {
-                try {
-                    system.step();
-                    Promise.resolve().then(run);
-                } catch (e) {
-                    console.log(e);
-		    console.log(e.stack);
-                }
-            };
-            run();
-        } catch (e) {
-            console.log("exception");
+	}).then(() => {
+            try {
+		run = () => {
+                    try {
+			system.step();
+			Promise.resolve().then(run);
+                    } catch (e) {
+			console.log(e);
+			console.log(e.stack);
+                    }
+		};
+		run();
+            } catch (e) {
+		console.log("exception");
+		console.log(e);
+		console.log(e.stack);
+            }
+	}).catch((e) => {
+            console.log("caught");
             console.log(e);
             console.log(e.stack);
-        }
-    }).catch((e) => {
-        console.log("caught");
-        console.log(e);
-        console.log(e.stack);
-    });
+	});
 }
 
