@@ -5525,7 +5525,7 @@ ThinThin.syscall = function (n, ...args)
         return -38;
 };
 
-ThinThin.init_trampoline = function (mtramp)
+ThinThin.init_trampoline = async function (mtramp)
 {
     var sigstr = this.c_str(this.HEAPU32[mtramp>>2]);
     var sigarray = build_sig(sigstr);
@@ -5578,26 +5578,21 @@ ThinThin.init_trampoline = function (mtramp)
         throw "length mismatch";
     }
 
-    return WebAssembly.compile(code).then(module => {
-        var imports = {};
-        imports.sys = {};
-        imports.sys.T = (...args) => {
-            var fnaddr = this.HEAPU32[mtramp+8>>2];
-            var static_chain = this.HEAPU32[mtramp+16>>2];
+    let compiled = await WebAssembly.compile(code);
+    var imports = {};
+    imports.sys = {};
+    imports.sys.T = (...args) => {
+        var fnaddr = this.HEAPU32[mtramp+8>>2];
+        var static_chain = this.HEAPU32[mtramp+16>>2];
 
-            this.set_rv(static_chain);
-            return this.vm.table.get(fnaddr)(...args);
-        };
-        return WebAssembly.instantiate(module, imports);
-    }).then(instance => {
-        let index = this.vm.space_functions.alloc(1);
-        this.vm.table.set(index, instance.exports.T);
-        this.HEAPU32[mtramp+24>>2] = index;
-        return 0;
-    }).catch(e => {
-        console.log("error in build_trampoline: " + e);
-        return -%{EIO};
-    });
+        this.set_rv(static_chain);
+        return this.vm.table.get(fnaddr)(...args);
+    };
+    let instance = await WebAssembly.instantiate(compiled, imports);
+    let index = this.vm.space_functions.alloc(1);
+    this.vm.table.set(index, instance.exports.T);
+    this.HEAPU32[mtramp+24>>2] = index;
+    return 0;
 };
 
 ThinThin.destroy_trampoline = function (mtramp)
@@ -5718,7 +5713,6 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (!dd)
         dd = this.process.ddcwd;
 
-
     return dd.openat(path, flags, mode).then(fd => {
 	return (typeof fd === "object") ? fd.fdno : fd;
     });
@@ -5729,8 +5723,9 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
     return ret;
 };
 
-ThinThin.exit = function (code) {
-    return this.kport.req("exit", code).then(() => new Promise(() => {}))
+ThinThin.exit = async function (code) {
+    await this.kport.req("exit", code);
+    await new Promise(() => {});
 };
 
 ThinThin.isatty = function (fdno) {
@@ -5911,8 +5906,8 @@ async function load_remote(path)
         ab = await response.arrayBuffer();
     else
 	throw response;
-    let [root, cwd, stdin, stdout, stderr] = await remote_process(kernel, ab);,
-        console.log("got ports");
+    let [root, cwd, stdin, stdout, stderr] = await remote_process(kernel, ab);
+    console.log("got ports");
     var process = new Wasm32Process(system);
     var dom = document.getElementById("output");
 
