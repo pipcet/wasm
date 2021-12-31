@@ -5866,7 +5866,8 @@ async function load_os(path)
     }
 }
 
-async function load_fetch(path) {
+async function load_fetch(path)
+{
     let cache = await caches.open("v3");
     let req = new Request(path);
 
@@ -5902,46 +5903,47 @@ async function load_fetch(path) {
     }
 }
 
-if (remote) {
-    fetch(path).then(response => {
-        if (response.ok)
-            return response.arrayBuffer();
-
-        return Promise.reject(response);
-    }).then((ab) => {
-        return remote_process(kernel, ab);
-    }).then(([root, cwd, stdin, stdout, stderr]) => {
+async function load_remote(path)
+{
+    let response = await fetch(path);
+    let ab;
+    if (response.ok)
+        ab = await response.arrayBuffer();
+    else
+	throw response;
+    let [root, cwd, stdin, stdout, stderr] = await remote_process(kernel, ab);,
         console.log("got ports");
-        var process = new Wasm32Process(system);
-        var dom = document.getElementById("output");
+    var process = new Wasm32Process(system);
+    var dom = document.getElementById("output");
 
-        var pipe0 = new ThinThinHalf();
-        var pipe1 = new ThinThinHalf();
-        var pipe2 = new ThinThinHalf();
+    var pipe0 = new ThinThinHalf();
+    var pipe1 = new ThinThinHalf();
+    var pipe2 = new ThinThinHalf();
 
-        new HTMLHalf(pipe0.reverse(), dom);
-        new HTMLHalf(pipe1.reverse(), dom);
-        new HTMLHalf(pipe2.reverse(), dom);
+    new HTMLHalf(pipe0.reverse(), dom);
+    new HTMLHalf(pipe1.reverse(), dom);
+    new HTMLHalf(pipe2.reverse(), dom);
 
-        var rr0 = new RRPort(stdin);
-        var rr1 = new RRPort(stdout);
-        var rr2 = new RRPort(stderr);
+    var rr0 = new RRPort(stdin);
+    var rr1 = new RRPort(stdout);
+    var rr2 = new RRPort(stderr);
 
-        new RRPortHalf(pipe0, rr0, false);
-        new RRPortHalf(pipe1, rr1, false);
-        new RRPortHalf(pipe2, rr2, false);
+    new RRPortHalf(pipe0, rr0, false);
+    new RRPortHalf(pipe1, rr1, false);
+    new RRPortHalf(pipe2, rr2, false);
 
-        rr0.port.start();
-        rr1.port.start();
-        rr2.port.start();
+    rr0.port.start();
+    rr1.port.start();
+    rr2.port.start();
 
-        var f;
-        f = () => document.getElementById("debug2").innerHTML =
-            `${pipe0.debug("pipe0", f)}<br>${pipe1.debug("pipe1", f)}<br>${pipe2.debug("pipe2", f)}`;
-        f();
-    }).catch(e => {
-        console.log("e2:" + e + "\n" + e.stack);
-    });
+    var f;
+    f = () => document.getElementById("debug2").innerHTML =
+        `${pipe0.debug("pipe0", f)}<br>${pipe1.debug("pipe1", f)}<br>${pipe2.debug("pipe2", f)}`;
+    f();
+}
+
+if (remote) {
+    load_remote(path);
 } else if (typeof os !== "undefined") {
     load_os(path);
 } else if (typeof fetch !== "undefined") {
