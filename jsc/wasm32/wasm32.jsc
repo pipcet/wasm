@@ -5866,6 +5866,42 @@ async function load_os(path)
     }
 }
 
+async function load_fetch(path) {
+    let cache = await caches.open("v3");
+    let req = new Request(path);
+
+    let response = cache.match(req);
+    if (response === undefined)
+        response = await fetch(path);
+    cache.put(path, response.clone());
+
+    let ab;
+    if (response.ok)
+        ab = response.arrayBuffer();
+
+    throw response;
+    let compiled = await WebAssembly.compile(ab);
+    module = new Wasm32Module(ab);
+
+    await system.instantiate(module, vm, args, []);
+    try {
+        run = () => {
+            try {
+                system.step();
+                Promise.resolve().then(run);
+            } catch (e) {
+                console.log(e);
+		console.log(e.stack);
+            }
+        };
+        run();
+    } catch (e) {
+        console.log("exception");
+        console.log(e);
+        console.log(e.stack);
+    }
+}
+
 if (remote) {
     fetch(path).then(response => {
         if (response.ok)
@@ -5909,49 +5945,6 @@ if (remote) {
 } else if (typeof os !== "undefined") {
     load_os(path);
 } else if (typeof fetch !== "undefined") {
-    caches.open("v3").then((cache) => {
-        var req = new Request(path);
-
-        return cache.match(req).then((response) => {
-            if (response === undefined)
-                return fetch(path);
-
-            return response;
-        }).then(response => {
-            cache.put(path, response.clone());
-
-            if (response.ok)
-                return response.arrayBuffer();
-
-            return Promise.reject(response);
-        });
-    }).then((ab) => {
-	return WebAssembly.compile(ab);
-    }).then(compiled => {
-        module = new Wasm32Module(ab);
-
-        return system.instantiate(module, vm, args, []);
-    }).then(() => {
-        try {
-            run = () => {
-                try {
-                    system.step();
-                    Promise.resolve().then(run);
-                } catch (e) {
-                    console.log(e);
-		    console.log(e.stack);
-                }
-            };
-            run();
-        } catch (e) {
-            console.log("exception");
-            console.log(e);
-            console.log(e.stack);
-        }
-    }).catch((e) => {
-        console.log("caught");
-        console.log(e);
-        console.log(e.stack);
-    });
+    load_fetch(path);
 }
 
