@@ -1936,13 +1936,13 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 
             %{tp1[&tp1->pc] = "process.entry"}
             if (false && typeof document !== "undefined") {
-                new ThinThinFD(process, 0);
+                new ThinThinTTY(process, 0);
                 new VT100FD(process, document.getElementById("output2"), 1, 0);
-                new ThinThinFD(process, 2);
+                new ThinThinTTY(process, 2);
             } else if (typeof document !== "undefined") {
                 new HTMLFD(process, undefined, 0);
-                new ThinThinFD(process, 1);
-                new ThinThinFD(process, 2);
+                new ThinThinTTY(process, 1);
+                new ThinThinTTY(process, 2);
 
                 ////console.log('restarting');
 
@@ -1964,9 +1964,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 
                 // outstr = "";
             } else {
-                new ThinThinFD(process, 0);
-                new ThinThinFD(process, 1);
-                new ThinThinFD(process, 2);
+                new ThinThinTTY(process, 0);
+                new ThinThinTTY(process, 1);
+                new ThinThinTTY(process, 2);
             }
 	    if (this.runqueue.indexOf(thread) === -1) {
 		this.runqueue.push(thread);
@@ -1979,13 +1979,13 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
     var HEAP32 = vm.HEAP32;
     %{tp1[&tp1->pc] = "process.entry"}
     if (false && typeof document !== "undefined") {
-        new ThinThinFD(process, 0);
+        new ThinThinTTY(process, 0);
         new VT100FD(process, document.getElementById("output2"), 1, 0);
-        new ThinThinFD(process, 2);
+        new ThinThinTTY(process, 2);
     } else if (typeof document !== "undefined") {
         new HTMLFD(process, undefined, 0);
-        new ThinThinFD(process, 1);
-        new ThinThinFD(process, 2);
+        new ThinThinTTY(process, 1);
+        new ThinThinTTY(process, 2);
 
         ////console.log('restarting');
 
@@ -2007,9 +2007,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 
         // outstr = "";
     } else {
-        new ThinThinFD(process, 0);
-        new ThinThinFD(process, 1);
-        new ThinThinFD(process, 2);
+        new ThinThinTTY(process, 0);
+        new ThinThinTTY(process, 1);
+        new ThinThinTTY(process, 2);
     }
     if (this.runqueue.indexOf(thread) === -1) {
 	this.runqueue.push(thread);
@@ -2949,9 +2949,7 @@ ThinThinFD.prototype.clonedesc = function ()
 
 ThinThinFD.prototype.mode = function ()
 {
-    if (this.fdno >= 3)
-	return %{__S_IFREG + 0777};
-    return %{__S_IFCHR + 0777};
+    return %{__S_IFREG + 0777};
 };
 
 ThinThinFD.prototype.size = function ()
@@ -2966,7 +2964,9 @@ ThinThinFD.prototype.open = function ()
 
 ThinThinFD.prototype.close = function ()
 {
-    /* XXX write back modified file data. */
+    if (this.written && this.path !== "" && this.writeData !== "") {
+	fs.writeFileSync(this.path, this.writeData);
+    }
 
     return Promise.resolve(0);
 };
@@ -3201,9 +3201,6 @@ ThinThinFD.prototype.read_string = function (string)
  * data is available to read. */
 ThinThinFD.prototype.read = function (heap, ptr, len)
 {
-    if (this.fdno === 0 && this.readData.length === this.readPosition && this.read_stdin) {
-	return this.read_stdin().then(x => this.read(heap, ptr, len));
-    }
     if (ptr === undefined)
         ptr = 0;
     if (len === undefined)
@@ -3295,7 +3292,7 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
     var data = "";
 
     this.written = true;
-    if (this.writePosition !== undefined && this.writeData) {
+    if (this.writePosition !== undefined) {
 	let data = this.writeData.substr(0, this.writePosition);
 	for (let i = 0; i < len; i++) {
 	    data += String.fromCharCode(heap[ptr+i]);
@@ -3308,17 +3305,14 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 	for (let i=0; i<len; i++)
             data += String.fromCharCode(heap[ptr+i]);
 	this.writePosition = len;
-	//this.writeData = data; don't do this, it breaks coreutils
+	//this.writeData = (this.writeData || "") + data;
     }
 
     if (this.half)
         return this.half[0].write(data);
     else {
-	if (this.fdno >= 3) {
-	    this.writeData = data;
-	} else {
-            putstr(data);
-	}
+	this.writeData = data;
+	this.writePosition = data.length;
 
         return Promise.resolve(data.length);
     }
@@ -3396,6 +3390,47 @@ ThinThinFD.prototype.at_resolve = function (path, flags, thread)
 	return this.path;
     return this.path + "/" + path;
 };
+
+function ThinThinTTY(process, fdno)
+{
+    ThinThinFD.call(this, process, fdno);
+}
+
+ThinThinTTY.prototype = Object.create(ThinThinFD.prototype);
+
+ThinThinTTY.prototype.read = function (heap, ptr, len)
+{
+    if (this.readData.length === this.readPosition && this.read_stdin && !this.readEOF) {
+	return this.read_stdin().then(x => this.read(heap, ptr, len));
+    }
+
+    return ThinThinFD.prototype.read.call(this, heap, ptr, len);
+};
+
+ThinThinTTY.prototype.write = function (heap, ptr, len) {
+    var initialPosition = this.writePosition;
+
+    if (ptr === undefined)
+        ptr = 0;
+    if (len === undefined)
+        len = 0;
+
+    if (len == 0)
+        return Promise.resolve(0);
+
+    let data = "";
+    for (let i = 0; i < len; i++) {
+	data += String.fromCharCode(heap[ptr+i]);
+    }
+    putstr(data);
+    return len;
+};
+
+ThinThinTTY.prototype.mode = function ()
+{
+    return %{__S_IFCHR + 0777};
+};
+
 //** ThinThinFDReader
 function ThinThinFDReader(fd, len)
 {
@@ -4905,6 +4940,8 @@ if (typeof(os) !== "undefined" &&
     for (var syscall in Syscalls)
         ThinThin[syscall] = Syscalls[syscall];
     ThinThin.exit = function (code) {
+	for (let fdno in this.fds)
+	    this.fds[fdno].close();
         if (os.getenv("STATS"))
             console.log("runtime: " + (Date.now() - lastdonetime));
         quit(code);
@@ -5724,6 +5761,8 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 };
 
 ThinThin.exit = async function (code) {
+    for (let fdno in this.fds)
+	this.fds[fdno].close();
     await this.kport.req("exit", code);
     await new Promise(() => {});
 };
@@ -5797,6 +5836,8 @@ ThinThin.getcwd = function (addr, len) {
 };
 
 ThinThin.dup2 = function (oldfd, newfd) {
+    if (this.fds[newfd])
+	this.fds[newfd].close();
     this.fds[newfd] = this.fds[oldfd];
 
     return 0;
