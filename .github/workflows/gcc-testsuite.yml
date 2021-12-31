@@ -1,7 +1,7 @@
 name: gcc-testsuite
 on:
   push:
-    branches: [ daily ]
+    branches: [ master, daily ]
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
