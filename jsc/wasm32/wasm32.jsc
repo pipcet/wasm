@@ -2844,13 +2844,17 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
     /* XXX check path is openable first? */
     let flags_node = "r";
     if ((flags & %{O_WRONLY}) || (flags & %{O_RDWR})) {
-	flags_node = "w";
+	flags_node = "w+";
+    }
+    let stats;
+    try {
+	stats = await fs_promises.stat(this.path + "/" + path);
+    } catch (e) {
     }
     try {
-	let stats = await fs_promises.stat(this.path + "/" + path);
 	let file = await fs_promises.open(this.path + "/" + path, flags_node, mode);
 	file.close();
-	if (stats.isFile()) {
+	if (stats && stats.isFile() || !stats) {
 	    let ret = new ThinThinFD(this.process);
 	    ret.path = this.path + "/" + path;
 	    ret.readData = fs.readFileSync(ret.path, "utf-8");
@@ -5650,7 +5654,16 @@ ThinThin.linkat = function (oldfdno, coldpath,
     let oldpath = this.c_str(coldpath);
     let newpath = this.c_str(cnewpath);
 
-    os.system(`cp ${oldpath} ${newpath}`)
+    if (oldpath[0] !== "/")
+	oldpath = this.pwd + "/" + oldpath;
+
+    if (newpath[0] !== "/")
+	newpath = this.pwd + "/" + newpath;
+
+    if (host_system === "mozilla")
+	os.system(`cp ${oldpath} ${newpath}`)
+    else if (host_system === "node")
+	fs.linkSync(oldpath, newpath);
 
     return 0;
 };
@@ -5762,10 +5775,14 @@ ThinThin.unlinkat = function (fdno, cpath)
 ThinThin.mkdirat = function (fdno, cpath)
 {
     let path = this.c_str(cpath);
-    if (os.system("test -d " + this.pwd + "/" + path) === 0)
-	return 0; //-%{EEXIST};
 
-    os.system("mkdir -p " + this.pwd + "/" + path);
+    if (host_system === "node") {
+	fs.mkdirSync((path[0] === "/" ? "" : this.pwd) + "/" + path);
+    } else if (host_system === "mozilla") {
+	if (os.system("test -d " + this.pwd + "/" + path) === 0)
+	    return 0; //-%{EEXIST};
+	os.system("mkdir -p " + this.pwd + "/" + path);
+    }
     return 0;
 };
 
