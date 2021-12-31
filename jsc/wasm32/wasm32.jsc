@@ -5839,6 +5839,33 @@ var fs;
 var putstr;
 var readline;
 
+async function load_os(path)
+{
+    let env = environment_variables();
+    let compiled = await WebAssembly.compile(os.file.readFile(path, "binary"));
+    let module = new Wasm32Module(new Wasm32Process(system), compiled);
+    module.sizes = sizes;
+
+    await system.instantiate(module, vm, args, env);
+    try {
+	run = () => {
+            try {
+		if (!system.step())
+		    Promise.resolve().then(run);
+            } catch (e) {
+		console.log(e);
+		console.log(e.stack);
+            }
+	};
+	run();
+	gRetrigger = run;
+    } catch (e) {
+	console.log("exception");
+	console.log(e);
+	console.log(e.stack);
+    }
+}
+
 if (remote) {
     fetch(path).then(response => {
         if (response.ok)
@@ -5880,37 +5907,10 @@ if (remote) {
         console.log("e2:" + e + "\n" + e.stack);
     });
 } else if (typeof os !== "undefined") {
-    let env = environment_variables();
-    WebAssembly.compile(os.file.readFile(path, "binary")).then(compiled => {
-	module = new Wasm32Module(new Wasm32Process(system), compiled);
-	module.sizes = sizes;
-
-	return system.instantiate(module, vm, args, env).then(() => {
-            try {
-		run = () => {
-                    try {
-			if (!system.step())
-			    Promise.resolve().then(run);
-                    } catch (e) {
-			console.log(e);
-			console.log(e.stack);
-                    }
-		};
-		run();
-		gRetrigger = run;
-            } catch (e) {
-		console.log("exception");
-		console.log(e);
-		console.log(e.stack);
-            }
-	}).catch((e) => {
-            console.log("caught");
-            console.log(e);
-	});
-    });
+    load_os(path);
 } else if (typeof fetch !== "undefined") {
-	caches.open("v3").then((cache) => {
-            var req = new Request(path);
+    caches.open("v3").then((cache) => {
+        var req = new Request(path);
 
         return cache.match(req).then((response) => {
             if (response === undefined)
@@ -5925,33 +5925,33 @@ if (remote) {
 
             return Promise.reject(response);
         });
-	}).then((ab) => {
-	    return WebAssembly.compile(ab);
-	}).then(compiled => {
-            module = new Wasm32Module(ab);
+    }).then((ab) => {
+	return WebAssembly.compile(ab);
+    }).then(compiled => {
+        module = new Wasm32Module(ab);
 
-            return system.instantiate(module, vm, args, []);
-	}).then(() => {
-            try {
-		run = () => {
-                    try {
-			system.step();
-			Promise.resolve().then(run);
-                    } catch (e) {
-			console.log(e);
-			console.log(e.stack);
-                    }
-		};
-		run();
-            } catch (e) {
-		console.log("exception");
-		console.log(e);
-		console.log(e.stack);
-            }
-	}).catch((e) => {
-            console.log("caught");
+        return system.instantiate(module, vm, args, []);
+    }).then(() => {
+        try {
+            run = () => {
+                try {
+                    system.step();
+                    Promise.resolve().then(run);
+                } catch (e) {
+                    console.log(e);
+		    console.log(e.stack);
+                }
+            };
+            run();
+        } catch (e) {
+            console.log("exception");
             console.log(e);
             console.log(e.stack);
-	});
+        }
+    }).catch((e) => {
+        console.log("caught");
+        console.log(e);
+        console.log(e.stack);
+    });
 }
 

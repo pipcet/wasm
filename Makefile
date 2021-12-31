@@ -137,7 +137,7 @@ $(eval $(call build-or-install,cross,binutils-gdb))
 wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
 	test -L $@ || $(LN) ../../../subrepos/gcc $@
 
-wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure
+wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure install/gcc-dependencies
 	(cd wasm32/cross/build/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32/cross)
 	touch $@
 
@@ -302,7 +302,7 @@ wasm32/native/src/perl: | subrepos/perl wasm32/native/src
 
 wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libutil.wasm wasm32/native/build
 	$(MKDIR) $@T
-	cp -as $(PWD)/subrepos/perl/* $(addprefix $(PWD)/subrepos/perl/.,dir-locals.el editorconfig lgtm.yml travis.yml) $@T/
+	cp -as $(PWD)/subrepos/perl/* $(addprefix $(PWD)/subrepos/perl/.,dir-locals.el editorconfig lgtm.yml metaconf-exclusions.txt travis.yml) $@T/
 	mv $@T $@
 
 wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir wasm32/native/stamp/configure
