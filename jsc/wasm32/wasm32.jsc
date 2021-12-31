@@ -5063,6 +5063,7 @@ if (typeof(os) !== "undefined" &&
                     this.HEAP32[statbufptr+off>>2] = 0;
 
                 %{statbufptr[&stat::st_nlink] = 1LL}
+ 		%{*(statbufptr + &stat::st_mtim + &timespec::tv_sec) = 1LL}
                 %{statbufptr[&stat::st_mode] = "fd.mode()"}
                 %{statbufptr[&stat::st_size] = "fd.size()"}
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
