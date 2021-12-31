@@ -1,4 +1,5 @@
 $VAR1 = {
+          '*(statbufptr + &stat::st_mtim + &timespec::tv_sec) = 1LL' => 'this.HEAP32[statbufptr+88>>2] = 1; this.HEAP32[statbufptr+88+4>>2] = 0;',
           '*intptr = "avail"' => 'this.HEAP32[intptr>>2] = avail;',
           '*intptr = 0' => 'this.HEAP32[intptr>>2] = 0;',
           '0' => '0',
