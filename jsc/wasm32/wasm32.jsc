@@ -5032,16 +5032,6 @@ if (typeof(os) !== "undefined" &&
 	if (this.pwd && path[0] !== "/")
 	    path = this.pwd + "/" + path;
 
-	if (path === "/home/pip/g/wasm/wasm32-unknown-none/wasm32-unknown-none/share/terminfo") {
-	    let fd = dd;
-	    %{statbufptr[&stat::st_nlink] = 1LL}
-            %{statbufptr[&stat::st_mode] = "fd.mode()"}
-            %{statbufptr[&stat::st_size] = "fd.size()"}
-            %{statbufptr[&stat::st_blksize] = "fd.size()"}
-            %{statbufptr[&stat::st_blocks] = "1"}
-	    return 0;
-	}
-
         if (!dd)
             return -%{EBADF};
 
