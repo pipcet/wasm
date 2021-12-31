@@ -3199,7 +3199,7 @@ ThinThinFD.prototype.read_string = function (string)
 
 /* .read(undefined, 0, 0) returns a promise that resolves to 0 when
  * data is available to read. */
-ThinThinFD.prototype.read = function (heap, ptr, len)
+ThinThinFD.prototype.read = async function (heap, ptr, len)
 {
     if (ptr === undefined)
         ptr = 0;
@@ -3224,30 +3224,12 @@ ThinThinFD.prototype.read = function (heap, ptr, len)
         if (true || this.readUnbuffered)
             return Promise.resolve(i);
 
-        return Promise.resolve(this.read(heap, ptr+i, len-i)).then(j => {
-	    return i+j;
-	});
+        return await this.read(heap, ptr+i, len-i) + j;
     }
 
     if (this.readPosition >= this.readData.length)
 	this.readEOF = true;
-    return this.read(heap, ptr, len);
-
-    return this.unpause(len).then(() => {
-        return new Promise((resolve, reject) => {
-            this.onstuff.add(() => {
-                this.pause();
-                resolve(this.read(heap, ptr, len));
-            });
-
-            if (this.readData.length > this.readPosition ||
-                this.readEOF) {
-                var onstuff = this.onstuff;
-                for (var handler of onstuff)
-                    handler();
-            }
-        });
-    });
+    return await this.read(heap, ptr, len);
 };
 
 ThinThinFD.prototype.available = function ()
