@@ -932,9 +932,27 @@ Wasm32Thread.prototype.c_strs = function (ptr)
     return CStringsAt(this.vm.heap, ptr);
 };
 
-Wasm32Thread.prototype.fd = function (fdno)
+Wasm32Thread.prototype.open_fd = function (fd, fdno = undefined)
 {
-    return this.fds[fdno];
+    if (fdno === undefined)
+	for (fdno = 0; !this.fds[fdno]; fdno++)
+	    ;
+
+    this.fds[fdno] = fd;
+
+    return fdno;
+};
+
+Wasm32Thread.prototype.close_fdno = function (fdno)
+{
+    let fd = this.fds[fdno];
+    let ret = -%{EBADF};
+    if (fd)
+	ret = fd.close();
+
+    delete this.fds[fdno];
+
+    return ret;
 };
 
 Wasm32Thread.prototype.find_type = function (typeid)
