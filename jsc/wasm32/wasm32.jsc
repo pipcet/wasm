@@ -1962,7 +1962,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
             } else if (typeof document !== "undefined") {
                 new HTMLFD(process, undefined, 0);
                 new ThinThinTTY(process, 1);
-                new ThinThinTTY(process, 2);
+                (new ThinThinTTY(process, 2)).read_stdin = null;
 
                 ////console.log('restarting');
 
@@ -1986,7 +1986,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
             } else {
                 new ThinThinTTY(process, 0);
                 new ThinThinTTY(process, 1);
-                new ThinThinTTY(process, 2);
+                (new ThinThinTTY(process, 2)).read_stdin = null;
             }
 	    if (this.runqueue.indexOf(thread) === -1) {
 		this.runqueue.push(thread);
@@ -2029,7 +2029,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
     } else {
         new ThinThinTTY(process, 0);
         new ThinThinTTY(process, 1);
-        new ThinThinTTY(process, 2);
+        (new ThinThinTTY(process, 2)).read_stdin = null;
     }
     if (this.runqueue.indexOf(thread) === -1) {
 	this.runqueue.push(thread);
@@ -3218,23 +3218,6 @@ ThinThinFD.prototype.readAsArrayBuffer = function ()
     });
 };
 
-ThinThinFD.prototype.read_stdin = async function ()
-{
-    let line;
-    if (typeof(this.readData) !== "string")
-	this.readData = "";
-    if (host_system === "mozilla") {
-	while ((line = readline()) !== null)
-	    this.readData += line + "\n";
-    } else if (host_system === "node") {
-	await new Promise(r => process.stdin.once("readable", r));
-	let read_data = process.stdin.read();
-	if (read_data !== null) {
-	    this.readData += read_data.toString();
-	}
-    }
-};
-
 ThinThinFD.prototype.read_string = function (string)
 {
     this.readData = string;
@@ -3428,6 +3411,24 @@ ThinThinTTY.prototype.isatty = function ()
     return 1;
 };
 
+ThinThinTTY.prototype.read_stdin = async function ()
+{
+    let line;
+    if (typeof(this.readData) !== "string")
+	this.readData = "";
+    if (host_system === "mozilla") {
+	while ((line = readline()) !== null)
+	    this.readData += line + "\n";
+    } else if (host_system === "node") {
+	console.error("reading stdin");
+	await new Promise(r => process.stdin.once("readable", r));
+	let read_data = process.stdin.read();
+	if (read_data !== null) {
+	    this.readData += read_data.toString();
+	}
+    }
+};
+
 ThinThinTTY.prototype.read = function (heap, ptr, len)
 {
     if (this.readData.length === this.readPosition && this.read_stdin && !this.readEOF) {
@@ -3435,6 +3436,11 @@ ThinThinTTY.prototype.read = function (heap, ptr, len)
     }
 
     return ThinThinFD.prototype.read.call(this, heap, ptr, len);
+};
+
+ThinThinTTY.prototype.close = function ()
+{
+    return 0;
 };
 
 ThinThinTTY.prototype.write = function (heap, ptr, len) {
@@ -5991,4 +5997,3 @@ if (remote) {
 } else if (typeof fetch !== "undefined") {
     load_fetch(path);
 }
-
