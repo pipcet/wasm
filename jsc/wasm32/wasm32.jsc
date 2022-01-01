@@ -5714,7 +5714,7 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 
 };
 
-ThinThin.openat = function (fdno, ptr, flags, mode) {
+ThinThin.openat = async function (fdno, ptr, flags, mode) {
     var path = this.c_str(ptr);
 
     if (path.match(/^\/dev\/tty/))
@@ -5729,12 +5729,8 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (path.match(/^\//)) {
 	try {
 	    dd = this.process.ddroot;
-	    let ret = dd.openat(path, flags, mode);
-	    return ret.then(fd => {
-		if (typeof fd === "object")
-		    return fd.fdno;
-		return fd;
-	    });
+	    let fd = await dd.openat(path, flags, mode);
+	    return this.open_fd(fd, (typeof fd === "object") && fd.fdno);
 	} catch (e) {
 	    console.log("exception!");
 	    return -%{ENOENT};
@@ -5756,9 +5752,8 @@ ThinThin.openat = function (fdno, ptr, flags, mode) {
     if (!dd)
         dd = this.process.ddcwd;
 
-    return dd.openat(path, flags, mode).then(fd => {
-	return (typeof fd === "object") ? fd.fdno : fd;
-    });
+    let fd = await dd.openat(path, flags, mode);
+    return this.open_fd(fd, (typeof fd === "object") && fd.fdno);
 };
 
 ThinThin.faccessat = function (fdno, ptr, flags, mode) {
