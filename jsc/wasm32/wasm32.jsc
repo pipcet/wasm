@@ -5696,27 +5696,6 @@ ThinThin.linkat = function (oldfdno, coldpath,
     return 0;
 };
 
-ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
-{
-    var oldpath = this.c_str(coldpath);
-    var newpath = this.c_str(cnewpath);
-
-    if (this.pwd) {
-	if (oldpath[0] !== "/")
-	    oldpath = this.pwd + "/" + oldpath;
-	if (newpath[0] !== "/")
-	    newpath = this.pwd + "/" + newpath;
-    }
-    os.system(`mv ${oldpath} ${newpath}`);
-    return Promise.resolve(0);
-
-    let oldfd = this.fds[oldfdno];
-    let newfd = this.fds[newfdno];
-    var oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
-    var newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
-
-};
-
 ThinThin.openat = async function (fdno, ptr, flags, mode) {
     var path = this.c_str(ptr);
 
@@ -5797,6 +5776,21 @@ ThinThin.readlinkat = function ()
 };
 
 if (host_system === "node") {
+    ThinThin.renameat2 = async function (oldfdno, coldpath, newfdno, cnewpath, flags)
+    {
+	var oldpath = this.c_str(coldpath);
+	var newpath = this.c_str(cnewpath);
+
+	if (this.pwd) {
+	    if (oldpath[0] !== "/")
+		oldpath = this.pwd + "/" + oldpath;
+	    if (newpath[0] !== "/")
+		newpath = this.pwd + "/" + newpath;
+	}
+	fs.renameSync(oldpath, newpath);
+	return 0;
+    };
+
     ThinThin.unlinkat = function (fdno, cpath)
     {
 	let fd = this.fds[fdno];
@@ -5815,6 +5809,27 @@ if (host_system === "node") {
 	return 0;
     };
 } else if (host_system === "mozilla") {
+    ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
+    {
+	var oldpath = this.c_str(coldpath);
+	var newpath = this.c_str(cnewpath);
+
+	if (this.pwd) {
+	    if (oldpath[0] !== "/")
+		oldpath = this.pwd + "/" + oldpath;
+	    if (newpath[0] !== "/")
+		newpath = this.pwd + "/" + newpath;
+	}
+	os.system(`mv ${oldpath} ${newpath}`);
+	return Promise.resolve(0);
+
+	let oldfd = this.fds[oldfdno];
+	let newfd = this.fds[newfdno];
+	var oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
+	var newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
+
+    };
+
     ThinThin.unlinkat = function (fdno, cpath)
     {
 	let fd = this.fds[fdno];
