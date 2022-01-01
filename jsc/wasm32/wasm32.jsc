@@ -5010,7 +5010,7 @@ if (typeof(os) !== "undefined" &&
 	delete this.fds[fdno];
 	return ret;
     };
-    ThinThin.newfstatat = function (fdno, pathstr, statbufptr, flags) {
+    ThinThin.newfstatat = async function (fdno, pathstr, statbufptr, flags) {
         var path = this.c_str(pathstr);
         var dd;
 	if (path[0] === "/") {
@@ -5026,9 +5026,6 @@ if (typeof(os) !== "undefined" &&
 	else
 	    return -%{EBADF};
 	fdno = dd.fdno;
-	if (typeof os !== "undefined" &&
-	    os.getenv && os.getenv("WASM_STRACE"))
-	    console.log("newfstatat", fdno, "path", path);
 
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
@@ -5039,11 +5036,11 @@ if (typeof(os) !== "undefined" &&
         if (!dd)
             return -%{EBADF};
 
-        if (path.length === 0)
-            return Promise.resolve(dd).then(fd => {
-                var off;
-                for (off = 0; off < %{sizeof(struct stat)}; off += 4)
-                    this.HEAP32[statbufptr+off>>2] = 0;
+        if (path.length === 0) {
+	    let fd = dd;
+            let off;
+            for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+                this.HEAP32[statbufptr+off>>2] = 0;
 
                 %{statbufptr[&stat::st_nlink] = 1LL}
                 %{statbufptr[&stat::st_mode] = "fd.mode()"}
@@ -5051,16 +5048,16 @@ if (typeof(os) !== "undefined" &&
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
                 %{statbufptr[&stat::st_blocks] = "1"}
 
-                return 0;
-            });
+            return 0;
+        };
 
         if ("openat" in dd) {
-            return dd.openat(path, flags).then(fd => {
-		if (typeof fd === "number")
-		    return fd;
-                var off;
-                for (off = 0; off < %{sizeof(struct stat)}; off += 4)
-                    this.HEAP32[statbufptr+off>>2] = 0;
+	    let fd = dd.openat(path, flags);
+	    if (typeof fd === "number")
+		return fd;
+            let off;
+            for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+                this.HEAP32[statbufptr+off>>2] = 0;
 
                 %{statbufptr[&stat::st_nlink] = 1LL}
  		%{*(statbufptr + &stat::st_mtim + &timespec::tv_sec) = 1LL}
@@ -5069,10 +5066,9 @@ if (typeof(os) !== "undefined" &&
                 %{statbufptr[&stat::st_blksize] = "fd.size()"}
                 %{statbufptr[&stat::st_blocks] = "1"}
 
-		this.fds[fd.fdno].close();
-		delete this.fds[fd.fdno];
-                return 0;
-            });
+	    this.fds[fd.fdno].close();
+	    delete this.fds[fd.fdno];
+            return 0;
 	} else {
             var fd = dd;
             var off;
