@@ -955,6 +955,16 @@ Wasm32Thread.prototype.close_fdno = function (fdno)
     return ret;
 };
 
+Wasm32Thread.prototype.close_all_fds = function ()
+{
+    let fdnos = [];
+    for (let fdno in this.fds)
+	fdnos.push(fdno);
+
+    for (let fdno in fdnos)
+	this.close_fdno(fdno);
+};
+
 Wasm32Thread.prototype.find_type = function (typeid)
 {
     typeid = typeid.replace(/^P/, "");
@@ -4954,8 +4964,7 @@ if (typeof(os) !== "undefined" &&
     for (var syscall in Syscalls)
         ThinThin[syscall] = Syscalls[syscall];
     ThinThin.exit = function (code) {
-	for (let fdno in this.fds)
-	    this.fds[fdno].close();
+	this.close_all_fds();
         if (os.getenv("STATS"))
             console.log("runtime: " + (Date.now() - lastdonetime));
         quit(code);
