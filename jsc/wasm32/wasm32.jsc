@@ -5058,11 +5058,11 @@ if (typeof(os) !== "undefined" &&
 	    dd = this.process.ddcwd;
 	else
 	    return -%{EBADF};
-	fdno = dd.fdno;
 
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
+	fdno = dd.fdno;
 	if (this.pwd && path[0] !== "/")
 	    path = this.pwd + "/" + path;
 
