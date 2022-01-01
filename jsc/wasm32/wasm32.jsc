@@ -5197,10 +5197,12 @@ if (typeof(os) !== "undefined" &&
 	    return 0;
         } else {
             this.HEAP32[bufptr+6*4>>2] = 1 << 15;
-	    let i = await fd.read();
-	    this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
-	    this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
-	    this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
+	    if (!(fd instanceof ThinThinTTY)) {
+		let i = await fd.read();
+		this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
+		this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
+		this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
+	    }
 	    return 0;
         }
     };
