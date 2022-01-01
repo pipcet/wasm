@@ -5444,13 +5444,13 @@ ThinThin.dlreaddep = function (modi, mem, len)
     return ret;
 };
 
-ThinThin.dlinstantiate = function (modi, mem)
+ThinThin.dlinstantiate = async function (modi, mem)
 {
-    var module = Wasm32Modules[modi];
+    let module = Wasm32Modules[modi];
 
-    return module.instantiate(this, this.vm, mem).then(() => {
-        return 0;
-    });
+    await module.instantiate(this, this.vm, mem);
+
+    return 0;
 };
 
 ThinThin.dlkill = function (modi)
