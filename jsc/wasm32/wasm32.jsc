@@ -2097,12 +2097,12 @@ ThinThin.sbrk = function (size)
 
     return ret;
 };
-//** ThinThin.brk (unused)
+
 ThinThin.brk = function (addr)
 {
     return 0;
 };
-//* globals
+
 var data = {};
 var offsets = {};
 
@@ -2116,7 +2116,7 @@ var initsp;
 var MyCode;
 
 var args;
-//** argument initialization
+
 if (args) {
 }
 else if (typeof process !== "undefined") {
@@ -2127,7 +2127,7 @@ else if (typeof scriptArgs !== "undefined") {
 } else {
     args = ["<this program>"];
 }
-//* Syscall
+
 function Syscall(number, argspec0, argspec1, argspec2, argspec3, argspec4)
 {
     var argspecs = [];
@@ -2153,7 +2153,7 @@ function Syscall(number, argspec0, argspec1, argspec2, argspec3, argspec4)
         return ret;
     };
 }
-//* Syscall64
+
 function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
                    argspec4, argspec5)
 {
@@ -2205,17 +2205,17 @@ function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
         return ret;
     };
 }
-//* init_syscall
+
 function init_syscall(name, number, ...args)
 {
     Syscalls[name] = Syscalls[number] = new Syscall(number, ...args);
 }
-//* init_syscall64
+
 function init_syscall64(name, number, ...args)
 {
     Syscalls[name] = Syscalls[number] = new Syscall64(number, ...args);
 }
-//* syscall table
+
 var Syscalls = {};
 
 init_syscall(  "read",            0, "fd", "ptr", "u64");
@@ -2333,15 +2333,14 @@ var SyscallSignatures = {
     renameat2:    [316, "fd", "ptr", "fd", "ptr", "u64"],
     execveat:     [333, "fd", "ptr", "aptr", "aptr", "u64"],
 };
-//* utility
-//** TimeoutPromise
+
 function TimeoutPromise(timeout)
 {
     return new Promise((resolve, reject) => {
         setTimeout(resolve, timeout);
     });
 }
-//** SplitPromise
+
 function SplitPromise(n, promise)
 {
     var resolve_lhs, resolve_rhs;
@@ -2367,7 +2366,7 @@ function SplitPromise(n, promise)
 
     return [promise_lhs, promise_rhs];
 }
-//** DissectedPromise
+
 function DissectedPromise()
 {
     this.promise = new Promise((resolve, reject) => {
@@ -2380,7 +2379,7 @@ DissectedPromise.prototype.then = function (consequence)
 {
     return this.promise.then(consequence);
 };
-//** ImmediatePromise
+
 function ImmediatePromise(v)
 {
     if (v instanceof Promise)
@@ -2393,7 +2392,7 @@ ImmediatePromise.prototype.then = function (consequence)
 {
     return consequence(this.value);
 };
-//** ThinThinRWer
+
 function ThinThinRWer()
 {
 }
@@ -2413,7 +2412,7 @@ ThinThinRWer.prototype.debug = function (f)
 
     return this.toString();
 };
-//** ThinThinReader
+
 function ThinThinReader()
 {
 }
@@ -2436,7 +2435,7 @@ ThinThinReader.prototype.done = function ()
 {
     return true;
 };
-//** ThinThinWriter
+
 function ThinThinWriter()
 {
 }
@@ -2458,7 +2457,7 @@ ThinThinWriter.prototype.done = function ()
 {
     return true;
 };
-//** ThinThinMetaReader
+
 function ThinThinMetaReader(req, resolve, reject)
 {
     this.req = req;
@@ -2484,7 +2483,7 @@ ThinThinMetaReader.prototype.done = function ()
 {
     return true;
 };
-//** ThinThinMetaWriter
+
 function ThinThinMetaWriter()
 {
 }
@@ -2502,7 +2501,7 @@ ThinThinMetaWriter.prototype.done = function ()
 {
     return false;
 };
-//** ThinThinFlow
+
 function ThinThinFlow()
 {
     this.readers = [];
@@ -2606,7 +2605,7 @@ ThinThinFlow.prototype.metaconnect = function ()
         });*/
     }
 };
-//** ThinThinFlowReader
+
 function ThinThinFlowReader(nmax, resolve, reject)
 {
     this.nmax = nmax;
@@ -2638,14 +2637,14 @@ ThinThinFlowReader.prototype.close = function (err)
 {
     this.reject(err);
 };
-//** ThinThinFlow
+
 ThinThinFlow.prototype.read = function (n)
 {
     return new Promise((resolve, reject) => {
         this.reader(new ThinThinFlowReader(n, resolve, reject));
     });
 };
-//** ThinThinFlowWriter
+
 function ThinThinFlowWriter(s, resolve, reject)
 {
     this.s = s;
@@ -2675,7 +2674,7 @@ ThinThinFlowWriter.prototype.close = function (err)
 {
     this.reject(err);
 };
-//** ThinThinFlow
+
 ThinThinFlow.prototype.write = function (s)
 {
     return new Promise((resolve, reject) => {
@@ -2704,7 +2703,7 @@ ThinThinFlow.prototype.debug = function (name, f)
 
     return str;
 };
-//** ThinThinHalf
+
 function ThinThinHalf(flows, metas)
 {
     Array.call(this);
@@ -2735,7 +2734,7 @@ ThinThinHalf.prototype.meta = function (request)
 {
     return this[0].meta(request);
 };
-//*** sendflow (unused?)
+
 function sendflow(flow1, flow2, n, count)
 {
     if (count === undefined)
@@ -2756,7 +2755,7 @@ function sendflow(flow1, flow2, n, count)
         return sendflow(flow1, flow2, n, count);
     });
 }
-//** ThinThinDD (kill)
+
 function ThinThinDD(process, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -2911,7 +2910,6 @@ ThinThinNodeDD.prototype.readdir = function ()
     });
 };
 
-//** ThinThinFetchDD (kill)
 function ThinThinFetchDD(process, parent, stem, cache, fdno)
 {
     ThinThinDD.call(this, process, fdno);
@@ -2920,7 +2918,7 @@ function ThinThinFetchDD(process, parent, stem, cache, fdno)
 }
 
 ThinThinFetchDD.prototype = Object.create(ThinThinDD.prototype);
-//** ThinThinFetchDD
+
 ThinThinFetchDD.prototype.discover = function (component, isdir)
 {
     var url = this.stem + "/" + component;
@@ -2948,7 +2946,7 @@ ThinThinFetchDD.prototype.openat = function (path)
                                 this.cache))
         .open();
 };
-//** ThinThinFD
+
 function ThinThinFD(process, fdno)
 {
     if (fdno === undefined)
@@ -3455,7 +3453,6 @@ ThinThinTTY.prototype.mode = function ()
     return %{__S_IFCHR + 0777};
 };
 
-//** ThinThinFDReader
 function ThinThinFDReader(fd, len)
 {
     this.fd = fd;
@@ -3482,7 +3479,7 @@ ThinThinFDReader.prototype.done = function ()
 {
     return true;
 };
-//** ThinThinFDWriter
+
 function ThinThinFDWriter(fd)
 {
     this.fd = fd;
@@ -3514,7 +3511,7 @@ ThinThinFDWriter.prototype.done = function ()
 {
     return true;
 };
-//** ThinThinHalfFD
+
 function ThinThinHalfFD(process, half, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -3629,7 +3626,6 @@ SparseMetaWriter.prototype.provide = function (request)
         return this.half.base.meta(request);
 };
 
-//** SparseHalf
 function SparseHalf(flows, base)
 {
     ThinThinHalf.call(this, flows);
@@ -3671,7 +3667,6 @@ SparseHalf.prototype.openat_dir = function (path, flags, mode)
     });
 };
 
-//** HTMLReader
 function HTMLReader()
 {
 }
@@ -3695,7 +3690,7 @@ HTMLReader.prototype.done = function ()
 {
     return false;
 };
-//** BufferedWriter
+
 function BufferedWriter(writer)
 {
     this.writer = writer;
@@ -3736,7 +3731,7 @@ BufferedWriter.prototype.done = function ()
 
     return this.writer.done();
 };
-//** HTMLWriter
+
 function HTMLWriter(dom)
 {
     this.dom = dom;
@@ -3814,7 +3809,7 @@ HTMLWriter.prototype.done = function ()
 {
     return !this.active;
 };
-//** BufferedWriter
+
 function BufferedWriter(writer)
 {
     this.writer = writer;
@@ -3855,7 +3850,7 @@ BufferedWriter.prototype.done = function ()
 
     return this.writer.done();
 };
-//** HTMLWriter
+
 function HTMLWriter(dom)
 {
     this.dom = dom;
@@ -3931,7 +3926,7 @@ HTMLWriter.prototype.done = function ()
 {
     return !this.active;
 };
-//** HTMLMetaWriter
+
 function HTMLMetaWriter(half)
 {
     this.half = half;
@@ -3955,7 +3950,7 @@ HTMLMetaWriter.prototype.provide = function (request)
 
     return [[]];
 };
-//** HTMLHalf
+
 function HTMLHalf(flows, dom)
 {
     ThinThinHalf.call(this, flows);
@@ -4067,7 +4062,7 @@ HTMLHalf.prototype.readdir = function ()
         });
     });
 };
-//** CLogReader
+
 function CLogReader()
 {
 }
@@ -4091,7 +4086,7 @@ CLogReader.prototype.done = function ()
 {
     return false;
 };
-//** CLogHalf
+
 function CLogHalf(flows)
 {
     ThinThinHalf.call(this, flows);
@@ -4099,7 +4094,7 @@ function CLogHalf(flows)
     this[0].reader(new CLogReader());
 }
 CLogHalf.prototype = Object.create(ThinThinHalf.prototype);
-//** ForwardReader
+
 function ForwardReader(half)
 {
     this.half = half;
@@ -4124,7 +4119,7 @@ ForwardReader.prototype.done = function ()
 {
     return false;
 };
-//** ForwardWriter
+
 function ForwardWriter(half)
 {
     this.half = half;
@@ -4146,7 +4141,7 @@ ForwardWriter.prototype.done = function ()
 {
     return false;
 };
-//** ForwardMetaWriter
+
 function ForwardMetaWriter(half)
 {
     this.half = half;
@@ -4164,7 +4159,7 @@ ForwardMetaWriter.prototype.done = function ()
 {
     return false;
 };
-//** ForwardHalf
+
 function ForwardHalf(flows, half)
 {
     ThinThinHalf.call(this, flows);
@@ -4175,7 +4170,7 @@ function ForwardHalf(flows, half)
     this[1].metawriter(new ForwardMetaWriter(half));
 }
 ForwardHalf.prototype = Object.create(ThinThinHalf.prototype);
-//** MessagePortReader1
+
 function MessagePortReader1(port)
 {
     this.port = port;
@@ -4206,7 +4201,7 @@ MessagePortReader1.prototype.done = function ()
 {
     return !this.port;
 };
-//** MessagePortWriter1
+
 function MessagePortWriter1(port)
 {
     this.port = port;
@@ -4240,7 +4235,7 @@ MessagePortWriter1.prototype.done = function ()
 {
     return !this.port;
 };
-//** MessagePortHalf1
+
 function MessagePortHalf1(flows, port)
 {
     ThinThinHalf.call(this, flows);
@@ -4249,7 +4244,7 @@ function MessagePortHalf1(flows, port)
     this[1].writer(new MessagePortWriter1(port));
 }
 MessagePortHalf1.prototype = Object.create(ThinThinHalf.prototype);
-//** RRPort
+
 function RRPort(port)
 {
     this.port = port;
@@ -4314,7 +4309,7 @@ RRPort.prototype.resp = function (kind, f)
 {
     this.responders[kind] = f;
 };
-//** RRPortReader
+
 function RRPortReader(rr) {
     this.rr = rr;
 }
@@ -4336,7 +4331,7 @@ RRPortReader.prototype.done = function ()
 {
     return this.rr.req("done");
 };
-//** RRPortWriter
+
 function RRPortWriter(rr) {
     this.rr = rr;
     this.max = {};
@@ -4399,7 +4394,7 @@ RRPortWriter.prototype.done = function ()
 {
     return false;
 };
-//** RRPortMetaWriter
+
 function RRPortMetaWriter(rr)
 {
     this.rr = rr;
@@ -4412,7 +4407,7 @@ RRPortMetaWriter.prototype.provide = function (request)
 {
     return this.rr.req("meta", request);
 };
-//** RRPortHalf
+
 function RRPortHalf(flows, rr, metawriter)
 {
     ThinThinHalf.call(this, flows);
@@ -4430,7 +4425,7 @@ function RRPortHalf(flows, rr, metawriter)
     }
 }
 RRPortHalf.prototype = Object.create(ThinThinHalf.prototype);
-//** WebSocketWriter
+
 function WebSocketWriter(websocket)
 {
     this.websocket = websocket;
@@ -4475,14 +4470,14 @@ WebSocketWriter.prototype.done = function ()
 {
     return true;
 };
-//** WebSocketHalf
+
 function WebSocketHalf(flows, webSocket)
 {
     ThinThinHalf.call(this, flows);
     this[1].writer(new BufferedWriter(new WebSocketWriter(webSocket)));
 }
 WebSocketHalf.prototype = Object.create(ThinThinHalf.prototype);
-//** FileListMetaWriter
+
 function FileListMetaWriter(filelist)
 {
     this.filelist =  filelist;
@@ -4507,7 +4502,7 @@ FileListMetaWriter.prototype.provide = function (request)
         return Promise.resolve([[names]]);
     }
 };
-//** FileListHalf
+
 function FileListHalf(flows, filelist)
 {
     ThinThinHalf.call(this, flows);
@@ -4517,7 +4512,7 @@ function FileListHalf(flows, filelist)
     this[1].metawriter(this.meta);
 }
 FileListHalf.prototype = Object.create(ThinThinHalf.prototype);
-//** FileWriter
+
 function FileWriter(file)
 {
     this.file = file;
@@ -4553,19 +4548,19 @@ FileWriter.prototype.done = function ()
 {
     return true;
 };
-//** FileHalf
+
 function FileHalf(flows, file)
 {
     ThinThinHalf.call(this, flows);
     this[1].writer(new BufferedWriter(new FileWriter(file)));
 }
 FileHalf.prototype = Object.create(ThinThinHalf.prototype);
-//* globals
+
 var gLimboFD;
 var gLimboPath;
 
 var gRemoteFDs = {};
-//** FrozenThinThinFD
+
 function FrozenThinThinFD(fd)
 {
     var rfdno;
@@ -4586,7 +4581,7 @@ FrozenThinThinFD.prototype.thaw = function (process, target)
 
     return fd;
 };
-//** ThinThinFetchFD (kill)
+
 function ThinThinFetchFD(process, url, cache, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -4688,7 +4683,7 @@ ThinThinFetchFD.prototype.inputPromise = function ()
     }
 
 };
-//** SparseDD (kill)
+
 function SparseDD(base, fdno)
 {
     ThinThinDD.call(this, base.process, fdno);
@@ -4758,7 +4753,7 @@ SparseDD.prototype.openat = function (path)
             return this.base.openat(path);
     }
 };
-//** ReadableFD
+
 function ReadableFD(process, readable, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -4802,7 +4797,7 @@ ReadableFD.prototype.stopStuffing = function ()
     readable.removeListener("data", this.ondata);
     delete this.ondata;
 };
-//** WritableFD
+
 function WritableFD(process, writable, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -4825,7 +4820,7 @@ WritableFD.prototype.outputPromise = function (heap, ptr, len)
 
     return Promise.resolve(len);
 };
-//** ArrayBufferFD
+
 function ArrayBufferFD(process, abufPromise, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -4833,7 +4828,7 @@ function ArrayBufferFD(process, abufPromise, fdno)
     this.abufPromise = abufPromise;
 }
 ArrayBufferFD.prototype = Object.create(ThinThinFD.prototype);
-//**  MessagePortDD
+
 function MessagePortDD(process, port, fdno)
 {
     ThinThinDD.call(this, process, fdno);
@@ -4885,7 +4880,7 @@ MessagePortDD.prototype.openat_dir = function (path)
         this.port.postMessage([seq, "openat_dir", path]);
     });
 };
-//** RemoteFD
+
 function RemoteFD(process, target, rfdno, fdno)
 {
     ThinThinFD.call(this, process, fdno);
@@ -4919,7 +4914,7 @@ RemoteFD.prototype.outputPromise = function (heap, ptr, len)
 
     return Promise.resolve(len);
 };
-//** FSDD
+
 var fs;
 
 //if (typeof global !== "undefined")
@@ -4958,7 +4953,7 @@ FSDD.prototype.openat = function (path, flags, mode)
         });
     });
 };
-//** syscalls
+
 if (typeof(os) !== "undefined" &&
     typeof(os.sys) !== "undefined") {
     for (var syscall in Syscalls)
