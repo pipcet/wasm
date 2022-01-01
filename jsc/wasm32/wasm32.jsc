@@ -3004,7 +3004,7 @@ ThinThinFD.prototype.unref = function ()
 
 ThinThinFD.prototype.close = async function ()
 {
-    if (this.written && this.path !== "" && this.writeData !== "") {
+    if (this.written && this.path !== undefined && this.path !== "" && this.writeData !== "") {
 	fs.writeFileSync(this.path, this.writeData);
     }
 
