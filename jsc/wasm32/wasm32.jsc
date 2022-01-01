@@ -5815,12 +5815,19 @@ if (host_system === "node") {
 
     ThinThin.mkdirat = function (fdno, cpath)
     {
-	let path = this.c_str(cpath);
+	if (host_system === "node") {
+	    let path = this.c_str(cpath);
 
-	fs.mkdirSync((path[0] === "/" ? "" : this.pwd) + "/" + path);
-	os.system("mkdir -p " + this.pwd + "/" + path);
+	    fs.mkdirSync((path[0] === "/" ? "" : this.pwd) + "/" + path);
 
-	return 0;
+	    return 0;
+	} else {
+	    let path = this.c_str(cpath);
+
+	    os.system("mkdir -p " + this.pwd + "/" + path);
+
+	    return 0;
+	}
     };
 } else if (host_system === "mozilla") {
     ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
