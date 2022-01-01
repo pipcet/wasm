@@ -5093,20 +5093,20 @@ if (typeof(os) !== "undefined" &&
         if ("openat" in dd) {
 	    let fd = await dd.openat(path, flags);
 	    if (typeof fd === "number")
-		return fd;
+		return fd; // XXX
             let off;
             for (off = 0; off < %{sizeof(struct stat)}; off += 4)
                 this.HEAP32[statbufptr+off>>2] = 0;
 
-                %{statbufptr[&stat::st_nlink] = 1LL}
- 		%{*(statbufptr + &stat::st_mtim + &timespec::tv_sec) = 1LL}
-                %{statbufptr[&stat::st_mode] = "fd.mode()"}
-                %{statbufptr[&stat::st_size] = "fd.size()"}
-                %{statbufptr[&stat::st_blksize] = "fd.size()"}
-                %{statbufptr[&stat::st_blocks] = "1"}
+	    %{statbufptr[&stat::st_nlink] = 1LL}
+	    %{*(statbufptr + &stat::st_mtim + &timespec::tv_sec) = 1LL}
+	    %{statbufptr[&stat::st_mode] = "fd.mode()"}
+	    %{statbufptr[&stat::st_size] = "fd.size()"}
+	    %{statbufptr[&stat::st_blksize] = "fd.size()"}
+	    %{statbufptr[&stat::st_blocks] = "1"}
 
-	    this.fds[fd.fdno].close();
-	    delete this.fds[fd.fdno];
+	    fd.close();
+	    delete this.fds[fd.fdno]; // XXX
             return 0;
 	} else {
             var fd = dd;
@@ -5159,8 +5159,8 @@ if (typeof(os) !== "undefined" &&
 
 	return ret;
     };
-    ThinThin.fstat = function (fdno, bufptr) {
-        var fd = this.fds[fdno];
+    ThinThin.fstat = async function (fdno, bufptr) {
+        let fd = this.fds[fdno];
 	if (!fd)
 	    return -%{EINVAL};
         this.HEAP32[bufptr+ 0>>2] = 0;
@@ -5183,55 +5183,54 @@ if (typeof(os) !== "undefined" &&
 
         if (fd instanceof ThinThinDD) {
             this.HEAP32[bufptr+6*4>>2] = 4 << 12;
-	    return Promise.resolve(0);
+	    return 0;
         } else {
             this.HEAP32[bufptr+6*4>>2] = 1 << 15;
-            return Promise.resolve(fd.read()).then(i => {
-		this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
-		this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
-		this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
-		return 0;
-            });
+	    let i = await fd.read();
+	    this.HEAP32[bufptr+0x30>>2] = fd.readData.length;
+	    this.HEAP32[bufptr+0x38>>2] = fd.readData.length;
+	    this.HEAP32[bufptr+0x40>>2] = fd.readData.length;
+	    return 0;
         }
     };
-    ThinThin.ioctl_p = function (fdno, code, intptr) {
-        fdno = 0;
-        var fd = this.fds[fdno];
+    ThinThin.ioctl_p = async function (fdno, code, intptr) {
+        fdno = 0; // XXX
+        let fd = this.fds[fdno];
 
         switch (code) {
-        case %{FIONREAD}:
-            return fd.available().then(avail => {
-                if (avail) {
-                    %{*intptr = "avail"}
-                } else {
-                    %{*intptr = 0}
-                }
+        case %{FIONREAD}: {
+	    let avail = await fd.available();
+            if (avail) {
+                %{*intptr = "avail"}
+            } else {
+                %{*intptr = 0}
+            }
 
-                return 0;
-            });
+            return 0;
+	}
 
         default:
             return -%{EINVAL};
-        }
+	}
     };
-    ThinThin.ppoll = function (fdsptr, nfds, tvptr, sigmaskptr) {
-        var incall = true;
-        var retval = 0;
-        var retry = () => {
+    ThinThin.ppoll = async function (fdsptr, nfds, tvptr, sigmaskptr) {
+        let incall = true;
+        let retval = 0;
+        let retry = () => {
             if (incall)
                 return ThinThin.ppoll.call(this,
                                            fdsptr, nfds, tvptr, sigmaskptr);
         };
 
-        var all = [];
-        var any = [];
+        let all = [];
+        let any = [];
 
-        var ii;
+        let ii;
         for (ii = 0; ii < nfds; ii++) {
-            var i = ii;
-            var fdno = %{fdsptr[i+&pollfd::fd]};
-            var fd = this.fds[fdno];
-            var events = %{fdsptr[i+&pollfd::events]};
+            let i = ii;
+            let fdno = %{fdsptr[i+&pollfd::fd]};
+            let fd = this.fds[fdno];
+            let events = %{fdsptr[i+&pollfd::events]};
             %{fdsptr[i+&pollfd::revents] = 0}
             if (events & %{POLLIN}) {
                 all.push(Promise.resolve(fd.read()).then(() => {
@@ -5253,13 +5252,13 @@ if (typeof(os) !== "undefined" &&
             if (retval)
                 return retval;
 
-            var a = [];
+            let a = [];
             a.push(Promise.race(any.map(p => Promise.resolve(p()))).then(() => retry()));
             if (tvptr) {
-                var s = %{tvptr[&timeval::tv_sec]};
-                var ns = %{tvptr[&timeval::tv_usec]};
+                let s = %{tvptr[&timeval::tv_sec]};
+                let ns = %{tvptr[&timeval::tv_usec]};
 
-                var ms = 1000 * s + 1e-6 * ns;
+                let ms = 1000 * s + 1e-6 * ns;
 
                 a.push(TimeoutPromise(ms).then(() => {
                     return 0;
@@ -5273,7 +5272,7 @@ if (typeof(os) !== "undefined" &&
         });
     };
     ThinThin.lseek = function (fdno, pos, whence) {
-        var fd = this.fds[fdno];
+        let fd = this.fds[fdno];
 
 	if (!fd)
 	    return -%{EINVAL};
@@ -5303,9 +5302,9 @@ if (typeof(os) !== "undefined" &&
     //ThinThin.rename =       Module._rename;
     //ThinThin.chdir =        Module._chdir;
     ThinThin.gettimeofday = function (tvptr, tzptr) {
-        var date = new Date();
-        var s = date / 1000.0;
-        var us = (date % 1000.0) * 1000.0;
+        let date = new Date();
+        let s = date / 1000.0;
+        let us = (date % 1000.0) * 1000.0;
 
         %{tvptr[&timeval::tv_sec] = "s"}
         %{tvptr[&timeval::tv_usec] = "us"}
@@ -5314,10 +5313,10 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.fork = async function ()
     {
-        var okay = false;
+        let okay = false;
         return new Promise((resolve, reject) => {
-            var test; test = () => {
-                var sp = this.syscall_sp;
+            let test; test = () => {
+                let sp = this.syscall_sp;
 
                 if (this.extcallRet[sp] instanceof Promise ||
                     okay) {
@@ -5334,8 +5333,8 @@ if (typeof(os) !== "undefined" &&
 	    this.kport.channel.kernel.threads_by_port.set(this.kport.channel.port2, this);
 	    return this.kport.req("fork");
 	}).then(data => new Promise((resolve, reject) => {
-            var pid = data[0];
-            var kport = data[1];
+            let pid = data[0];
+            let kport = data[1];
 	    resolve(pid);
 	    run();
         }));
@@ -5393,7 +5392,7 @@ if (typeof(os) !== "undefined" &&
         if (options & %{WNOHANG})
             return Promise.resolve(0);
 
-        var ret = this.kport.req("wait4", pid);
+        let ret = this.kport.req("wait4", pid);
 
         return ret.then(([pid, wstatus]) => {
             if (wstatusp)
@@ -5416,10 +5415,10 @@ ThinThin.getpid = ThinThin.getppid = function ()
 
 ThinThin.dlload = function (addr, len, memp)
 {
-    var sab = this.heap.slice(addr, addr+len);
-    var ab = new ArrayBuffer(len);
-    var sav = new Uint8Array(sab);
-    var av = new Uint8Array(ab);
+    let sab = this.heap.slice(addr, addr+len);
+    let ab = new ArrayBuffer(len);
+    let sav = new Uint8Array(sab);
+    let av = new Uint8Array(ab);
     for (var i=0; i < len; i++)
         av[i] = sav[i];
     return WebAssembly.compile(ab).then(compiled => {
