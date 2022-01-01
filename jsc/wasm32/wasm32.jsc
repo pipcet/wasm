@@ -2880,7 +2880,7 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	if (e.code === "ENOENT") {
 	    return -%{ENOENT};
 	}
-	if (e.code == "EISDIR") {
+	if (e.code === "EISDIR") {
 	    return new ThinThinNodeDD(this.process, this.path + "/" + path);
 	}
 	throw e;
