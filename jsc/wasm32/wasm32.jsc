@@ -948,7 +948,7 @@ Wasm32Thread.prototype.close_fdno = function (fdno)
     let fd = this.fds[fdno];
     let ret = -%{EBADF};
     if (fd)
-	ret = fd.close();
+	ret = fd.unref();
 
     delete this.fds[fdno];
 
@@ -2949,6 +2949,7 @@ ThinThinFetchDD.prototype.openat = function (path)
 
 function ThinThinFD(process, fdno)
 {
+    this.refcount = 1;
     if (fdno === undefined)
         for (fdno = 0; process.fds[fdno]; fdno++)
             ;
@@ -2997,13 +2998,31 @@ ThinThinFD.prototype.open = function ()
     return Promise.resolve(this);
 };
 
-ThinThinFD.prototype.close = function ()
+ThinThinFD.prototype.ref = function ()
 {
+    this.refcount++;
+    return this;
+};
+
+ThinThinFD.prototype.unref = function ()
+{
+    this.refcount--;
+    if (this.refcount === 0)
+	return this.close();
+
+    return 0;
+};
+
+ThinThinFD.prototype.close = async function ()
+{
+    if (--this.refcount)
+	return 0;
+
     if (this.written && this.path !== "" && this.writeData !== "") {
 	fs.writeFileSync(this.path, this.writeData);
     }
 
-    return Promise.resolve(0);
+    return 0;
 };
 
 ThinThinFD.prototype.advance = function (i)
@@ -3056,7 +3075,7 @@ ThinThinFD.prototype.provideError = function (error)
     for (var handler of onprovide)
         handler();
 
-    this.close();
+    this.unref(); // XXX
 };
 
 ThinThinFD.prototype.provideEOF = function ()
@@ -3109,7 +3128,7 @@ ThinThinFD.prototype.stuffError = function (error)
     for (var handler of onstuff)
         handler();
 
-    this.close();
+    this.unref(); // XXX
 };
 
 ThinThinFD.prototype.stuffEOF = function ()
@@ -5031,16 +5050,9 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.close = function (fdno) {
 	if (fdno < 3)
-	    return 0;
+	    return 0; // XXX
 
-        var fd = this.fds[fdno];
-
-        if (!fd)
-            return -%{EBADF};
-
-        let ret = fd.close();
-	delete this.fds[fdno];
-	return ret;
+	return this.close_fdno(fdno);
     };
     ThinThin.newfstatat = async function (fdno, pathstr, statbufptr, flags) {
         var path = this.c_str(pathstr);
@@ -5854,9 +5866,8 @@ ThinThin.getcwd = function (addr, len) {
 };
 
 ThinThin.dup2 = function (oldfd, newfd) {
-    if (this.fds[newfd])
-	this.fds[newfd].close();
-    this.fds[newfd] = this.fds[oldfd];
+    this.close_fdno(newfd);
+    this.fds[newfd] = this.fds[oldfd].ref();
 
     return 0;
 };
