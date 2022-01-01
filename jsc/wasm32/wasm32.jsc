@@ -2822,19 +2822,6 @@ ThinThinDD.prototype.openat = function (path, flags)
     return Promise.resolve(-%{ENOENT});
 };
 
-ThinThinDD.prototype.walk = function (component, isdir)
-{
-    if (component in this.entries)
-        return this.entries[component];
-
-    var ret = Promise.resolve(this.discover(component, isdir));
-
-    return ret.then(entry => {
-        if (entry)
-            this.entries[component] = entry;
-    });
-};
-
 ThinThinDD.prototype.readdir = function ()
 {
     let ret = [];
@@ -2899,8 +2886,6 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	throw e;
     }
 };
-
-ThinThinNodeDD.prototype.walk = null;
 
 ThinThinNodeDD.prototype.readdir = function ()
 {
