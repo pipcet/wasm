@@ -1411,11 +1411,6 @@ all: sequence
 
 .PHONY: %! clean all
 .SUFFIXES:
-build/wasm32/gcc-testsuite-tar/%.{dejagnu}.tar: build/wasm32/gcc-testsuite-make/%.{dejagnu}.mk build/wasm32/gcc-testsuite/site.exp | build/wasm32/gcc-testsuite-tar
-	$(MKDIR) build/wasm32/gcc-testsuite-tar/$(dir $*)
-	$(MKDIR) build/wasm32/gcc-testsuite/$(dir $*)
-	$(MAKE) -f $< build/wasm32/gcc-testsuite/$*.all || true
-	tar cf $@ build/wasm32/gcc-testsuite/$(dir $*)
 
 wasm32/cross/stamp/configure/python: | wasm32/cross/stamp/build/gcc wasm32/native/src/python wasm32/native/build/python wasm32/native/stamp/configure
 	(cd wasm32/native/build/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/python/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-ipv6 --with-ensurepip=no)
