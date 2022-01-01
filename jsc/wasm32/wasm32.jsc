@@ -2850,6 +2850,13 @@ function ThinThinNodeDD(process, path, fdno)
 }
 ThinThinNodeDD.prototype = Object.create(ThinThinDD.prototype);
 
+ThinThinNodeDD.prototype.subpath = function (path)
+{
+    let ret = this.path + "/" + path;
+    ret = ret.replace(/\/\/+/g, "/");
+    return ret;
+}
+
 ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 {
     if (path[0] === "/") {
@@ -2875,8 +2882,10 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	file.close();
 	if (stats && stats.isFile() || !stats) {
 	    let ret = new ThinThinFD(this.process);
-	    ret.path = this.path + "/" + path;
-	    ret.readData = fs.readFileSync(ret.path, "utf-8");
+	    ret.path = this.subpath(path);
+	    ret.readData = "";
+	    for (let v of fs.readFileSync(ret.path))
+		ret.readData += String.fromCharCode(v);
 	    return ret;
 	}
 	return new ThinThinNodeDD(this.process, this.path + "/" + path);
