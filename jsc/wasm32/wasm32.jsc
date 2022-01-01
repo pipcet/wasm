@@ -5227,62 +5227,65 @@ if (typeof(os) !== "undefined" &&
 	}
     };
     ThinThin.ppoll = async function (fdsptr, nfds, tvptr, sigmaskptr) {
-        let incall = true;
-        let retval = 0;
-        let retry = () => {
-            if (incall)
-                return ThinThin.ppoll.call(this,
-                                           fdsptr, nfds, tvptr, sigmaskptr);
-        };
+	let retval = 0;
+	let incall = true;
+	let any = new Set();
 
-        let all = [];
-        let any = [];
-
-        let ii;
-        for (ii = 0; ii < nfds; ii++) {
-            let i = ii;
-            let fdno = %{fdsptr[i+&pollfd::fd]};
-            let fd = this.fds[fdno];
-            let events = %{fdsptr[i+&pollfd::events]};
+	let watch_fd = (fdno, events, i) => {
+	    if (!incall)
+		return;
+	    let fd = this.fds[fdno];
             %{fdsptr[i+&pollfd::revents] = 0}
             if (events & %{POLLIN}) {
-                all.push(Promise.resolve(fd.read()).then(() => {
-                    return fd.available();
-                }).then(avail => {
-                    if (incall) {
-                        if (avail > 0) {
-                            if (%{fdsptr[i+&pollfd::revents]} == 0)
-                                retval++;
-                            %{fdsptr[i+&pollfd::revents]} |= %{POLLIN};
-                        }
-                    }
-                }));
-                any.push(() => Promise.resolve(fd.read()));
-            }
+		let p; p = Promise.resolve(fd.read()).then(async function () {
+		    if (!incall)
+			return;
+		    let avail = await Promise.resolve(fd.available());
+		    if (!incall)
+			return;
+		    any.delete(p);
+		    if (avail > 0) {
+                        if (%{fdsptr[i+&pollfd::revents]} == 0)
+			    if (retval >= 0)
+				retval++;
+                        %{fdsptr[i+&pollfd::revents]} |= %{POLLIN};
+                    } else {
+			watch_fd(fdno, events);
+		    }
+                }.bind(this));
+		any.add(p);
+	    }
         }
 
-        return Promise.all(all).then(() => {
-            if (retval)
-                return retval;
+	for (let ii = 0; ii < nfds; ii++) {
+	    let i = ii;
+	    let fdno = %{fdsptr[i+&pollfd::fd]};
+            let events = %{fdsptr[i+&pollfd::events]};
+	    watch_fd(fdno, events, i)
+        }
 
-            let a = [];
-            a.push(Promise.race(any.map(p => Promise.resolve(p()))).then(() => retry()));
-            if (tvptr) {
-                let s = %{tvptr[&timeval::tv_sec]};
-                let ns = %{tvptr[&timeval::tv_usec]};
+	if (tvptr) {
+            let s = %{tvptr[&timeval::tv_sec]};
+            let ns = %{tvptr[&timeval::tv_usec]};
 
-                let ms = 1000 * s + 1e-6 * ns;
+            let ms = 1000 * s + 1e-6 * ns;
 
-                a.push(TimeoutPromise(ms).then(() => {
-                    return 0;
-                }));
-            }
+            any.add(TimeoutPromise(ms).then(() => {
+		if (retval === 0)
+		    retval = -%{ETIME};
+            }));
+        }
 
-            return Promise.race(a).then(rval => {
-                incall = false;
-                return rval;
-            });
-        });
+	while (retval === 0) {
+	    await Promise.race([...any]);
+	}
+
+	incall = false;
+
+	if (retval === -%{ETIME})
+	    return 0;
+
+	return retval;
     };
     ThinThin.lseek = function (fdno, pos, whence) {
         let fd = this.fds[fdno];
