@@ -5112,45 +5112,41 @@ if (typeof(os) !== "undefined" &&
             return 0;
         }
     };
-    ThinThin.getdents = function (fdno, direntp, count)
+    ThinThin.getdents = async function (fdno, direntp, count)
     {
-        var fd = this.fds[fdno];
+        let fd = this.fds[fdno];
 
         if (!fd)
             return -%{EBADF};
 
-        return new Promise((resolve, reject) => {
-            if (!fd.readdir_entries) {
-                resolve(Promise.resolve(fd.readdir()).then(entries => {
-                    fd.readdir_entries = entries;
-                }).then(() => ThinThin.getdents.call(this, fdno, direntp,
-                                                     count)));
-                return;
-            }
+	let es = fd.readdir_entries;
+	if (!es) {
+	    let entries = await fd.readdir();
+	    fd.readdir_entries = entries;
+	    return await ThinThin.getdents.call(this, fdno, direntp, count);
+	}
 
-            var es = fd.readdir_entries;
-            var ret = 0;
+	let ret = 0;
 
-            if (es.length === 0) {
-                delete fd.readdir_entries;
-                resolve(0);
-                return;
-            }
+	if (es.length === 0) {
+	    delete fd.readdir_entries;
+	    return 0;
+	}
 
-            var s = %{sizeof(dirent)};
-            while (es.length && ret === 0 &&
-                   ret + 4 * es[0].length + s < count) {
-                %{direntp[&dirent::d_ino] = 1}
-                %{direntp[&dirent::d_off] = "0"}
-                var l = CStringTo(es[0], this.HEAP8, %{direntp + &dirent::d_name});
-                %{direntp[&dirent::d_reclen] = "s + l"}
-                ret += s + l;
-                direntp += s + l;
-                es.shift();
-            }
+	let s = %{sizeof(dirent)};
 
-            resolve(ret);
-        });
+        while (es.length && ret === 0 &&
+               ret + 4 * es[0].length + s < count) {
+            %{direntp[&dirent::d_ino] = 1}
+            %{direntp[&dirent::d_off] = "0"}
+            let l = CStringTo(es[0], this.HEAP8, %{direntp + &dirent::d_name});
+            %{direntp[&dirent::d_reclen] = "s + l"}
+            ret += s + l;
+            direntp += s + l;
+            es.shift();
+        }
+
+	return ret;
     };
     ThinThin.fstat = function (fdno, bufptr) {
         var fd = this.fds[fdno];
