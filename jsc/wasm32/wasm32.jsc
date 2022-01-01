@@ -3441,7 +3441,7 @@ ThinThinTTY.prototype.read_stdin = async function ()
 
 ThinThinTTY.prototype.read = function (heap, ptr, len)
 {
-    if (this.readData.length === this.readPosition && this.read_stdin && !this.readEOF) {
+    if (this.readData.length === this.readPosition && this.read_stdin) {
 	return this.read_stdin().then(x => this.read(heap, ptr, len));
     }
 
