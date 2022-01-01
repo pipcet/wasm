@@ -5786,30 +5786,42 @@ ThinThin.readlinkat = function ()
     return -%{EINVAL};
 };
 
-ThinThin.unlinkat = function (fdno, cpath)
-{
-    let fd = this.fds[fdno];
-    let path = this.c_str(cpath);
+if (host_system === "node") {
+    ThinThin.unlinkat = function (fdno, cpath)
+    {
+	let fd = this.fds[fdno];
+	let path = this.c_str(cpath);
 
-    if (os.system("test -e " + this.pwd + "/" + path) !== 0)
-	return 0; // -%{ENOENT};
+	return 0;
+    };
 
-    return 0;
-};
+    ThinThin.mkdirat = function (fdno, cpath)
+    {
+	let path = this.c_str(cpath);
 
-ThinThin.mkdirat = function (fdno, cpath)
-{
-    let path = this.c_str(cpath);
-
-    if (host_system === "node") {
 	fs.mkdirSync((path[0] === "/" ? "" : this.pwd) + "/" + path);
-    } else if (host_system === "mozilla") {
-	if (os.system("test -d " + this.pwd + "/" + path) === 0)
-	    return 0; //-%{EEXIST};
 	os.system("mkdir -p " + this.pwd + "/" + path);
-    }
-    return 0;
-};
+
+	return 0;
+    };
+} else if (host_system === "mozilla") {
+    ThinThin.unlinkat = function (fdno, cpath)
+    {
+	let fd = this.fds[fdno];
+	let path = this.c_str(cpath);
+
+	return 0;
+    };
+
+    ThinThin.mkdirat = function (fdno, cpath)
+    {
+	let path = this.c_str(cpath);
+
+	fs.mkdirSync((path[0] === "/" ? "" : this.pwd) + "/" + path);
+
+	return 0;
+    };
+}
 
 ThinThin.fcntl_v = function ()
 {
