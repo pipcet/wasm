@@ -2950,7 +2950,7 @@ function ThinThinFD(process, fdno)
     this.onstuff = new Set();
 
     this.writers = 0;
-    this.writeData = "";
+    this.write_string = "";
     this.writePosition = 0;
     this.writeTo = 0;
     this.onprovide = new Set();
@@ -3002,18 +3002,32 @@ ThinThinFD.prototype.unref = function ()
     return 0;
 };
 
-ThinThinFD.prototype.close = async function ()
-{
-    if (this.written && this.path !== undefined && this.path !== "" && this.writeData !== "") {
-	fs.writeFileSync(this.path, this.writeData);
-    }
+if (host_system === "node") {
+    ThinThinFD.prototype.close = async function ()
+    {
+	if (this.written && this.path !== undefined && this.path !== "" && this.write_string !== "") {
+	    let buf = Buffer.alloc(this.write_string.length);
+	    for (let i = 0; i < this.write_string.length; i++)
+		buf[i] = this.write_string.charCodeAt(i);
+	    fs.writeFileSync(this.path, buf);
+	}
 
-    return 0;
-};
+	return 0;
+    };
+} else {
+    ThinThinFD.prototype.close = async function ()
+    {
+	if (this.written && this.path !== undefined && this.path !== "" && this.writeData !== "") {
+	    fs.writeFileSync(this.path, this.writeData);
+	}
+
+	return 0;
+    };
+}
 
 ThinThinFD.prototype.advance = function (i)
 {
-    this.writeData = this.writeData.substr(i);
+    this.write_string = this.write_string.substr(i);
 
     var onadvance = this.onadvance;
     this.onadvance = new Set();
@@ -3030,7 +3044,7 @@ ThinThinFD.prototype.consume = function (i)
 
 ThinThinFD.prototype.provideString = function (data)
 {
-    this.writeData += data;
+    this.write_string += data;
 
     var onprovide = this.onprovide;
     this.onprovide = new Set();
@@ -3298,25 +3312,25 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 
     this.written = true;
     if (this.writePosition !== undefined) {
-	let data = this.writeData.substr(0, this.writePosition);
+	let data = this.write_string.substr(0, this.writePosition);
 	for (let i = 0; i < len; i++) {
 	    data += String.fromCharCode(heap[ptr+i]);
 	}
 	this.writePosition += len;
-	data += this.writeData.substr(this.writePosition);
-	this.writeData = data;
+	data += this.write_string.substr(this.writePosition);
+	this.write_string = data;
 	return len;
     } else {
 	for (let i=0; i<len; i++)
             data += String.fromCharCode(heap[ptr+i]);
 	this.writePosition = len;
-	//this.writeData = (this.writeData || "") + data;
+	//this.write_string = (this.write_string || "") + data;
     }
 
     if (this.half)
         return this.half[0].write(data);
     else {
-	this.writeData = data;
+	this.write_string = data;
 	this.writePosition = data.length;
 
         return Promise.resolve(data.length);
@@ -3325,9 +3339,9 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 
 ThinThinFD.prototype.providee = function () {
     var handler; handler = () => {
-        var len = this.writeData.length;
+        var len = this.write_string.length;
 
-        putstr(this.writeData);
+        putstr(this.write_string);
 
         this.advance(len);
 
@@ -3502,7 +3516,7 @@ ThinThinFDWriter.prototype.kind = () => "fd-writer";
 
 ThinThinFDWriter.prototype.provide = function (n)
 {
-    return this.fd.writeData;
+    return this.fd.write_string;
 };
 
 ThinThinFDWriter.prototype.consume = function (s)
@@ -3544,7 +3558,7 @@ ThinThinHalfFD.prototype.unpause = function (len)
 
 ThinThinHalfFD.prototype.providee = function () {
     var handler; handler = () => {
-        if (this.writeData.length > 0) {
+        if (this.write_string.length > 0) {
             this.half[1].writer(new ThinThinFDWriter(this));
         }
 
@@ -3593,11 +3607,11 @@ ThinThinHalfFD.prototype.write = function (heap, ptr, len)
     let ret = ThinThinFD.prototype.write.call(this, heap, ptr, len);
     if (!this.other.reader_promise) {
 	return new Promise(r => this.other.reader_promise_promise = r).then(() => {
-	    this.other.reader_promise(this.writeData);
+	    this.other.reader_promise(this.write_string);
 	    return ret;
 	})
     }
-    this.other.reader_promise(this.writeData);
+    this.other.reader_promise(this.write_string);
     return ret;
 };
 
@@ -3702,18 +3716,18 @@ HTMLReader.prototype.done = function ()
     return false;
 };
 
-function BufferedWriter(writer)
+function ThinThinBufferedWriter(writer)
 {
     this.writer = writer;
 }
-BufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
+ThinThinBufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
 
-BufferedWriter.prototype.kind = function ()
+ThinThinBufferedWriter.prototype.kind = function ()
 {
     return "buffered(" + this.writer.kind() + ")";
 };
 
-BufferedWriter.prototype.provide = function (n)
+ThinThinBufferedWriter.prototype.provide = function (n)
 {
     if (this.buffer === undefined) {
         return this.writer.provide(n).then(s => {
@@ -3728,14 +3742,14 @@ BufferedWriter.prototype.provide = function (n)
     return this.buffer;
 };
 
-BufferedWriter.prototype.advance = function (n)
+ThinThinBufferedWriter.prototype.advance = function (n)
 {
     this.buffer = this.buffer.substr(n);
     if (this.buffer === "")
         delete this.buffer;
 };
 
-BufferedWriter.prototype.done = function ()
+ThinThinBufferedWriter.prototype.done = function ()
 {
     if (this.buffer)
         return false;
@@ -3821,18 +3835,18 @@ HTMLWriter.prototype.done = function ()
     return !this.active;
 };
 
-function BufferedWriter(writer)
+function ThinThinBufferedWriter(writer)
 {
     this.writer = writer;
 }
-BufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
+ThinThinBufferedWriter.prototype = Object.create(ThinThinWriter.prototype);
 
-BufferedWriter.prototype.kind = function ()
+ThinThinBufferedWriter.prototype.kind = function ()
 {
     return "buffered(" + this.writer.kind() + ")";
 };
 
-BufferedWriter.prototype.provide = function (n)
+ThinThinBufferedWriter.prototype.provide = function (n)
 {
     if (this.buffer === undefined) {
         return this.writer.provide(n).then(s => {
@@ -3847,14 +3861,14 @@ BufferedWriter.prototype.provide = function (n)
     return this.buffer;
 };
 
-BufferedWriter.prototype.advance = function (n)
+ThinThinBufferedWriter.prototype.advance = function (n)
 {
     this.buffer = this.buffer.substr(n);
     if (this.buffer === "")
         delete this.buffer;
 };
 
-BufferedWriter.prototype.done = function ()
+ThinThinBufferedWriter.prototype.done = function ()
 {
     if (this.buffer)
         return false;
@@ -3968,7 +3982,7 @@ function HTMLHalf(flows, dom)
 
     this.dom = dom;
     this[0].reader(new HTMLReader());
-    this[1].writer(new BufferedWriter(new HTMLWriter(this.dom)));
+    this[1].writer(new ThinThinBufferedWriter(new HTMLWriter(this.dom)));
     this.meta = new HTMLMetaWriter(this);
     this[0].metawriter(this.meta);
     this[1].metawriter(this.meta);
@@ -4485,7 +4499,7 @@ WebSocketWriter.prototype.done = function ()
 function WebSocketHalf(flows, webSocket)
 {
     ThinThinHalf.call(this, flows);
-    this[1].writer(new BufferedWriter(new WebSocketWriter(webSocket)));
+    this[1].writer(new ThinThinBufferedWriter(new WebSocketWriter(webSocket)));
 }
 WebSocketHalf.prototype = Object.create(ThinThinHalf.prototype);
 
@@ -4563,7 +4577,7 @@ FileWriter.prototype.done = function ()
 function FileHalf(flows, file)
 {
     ThinThinHalf.call(this, flows);
-    this[1].writer(new BufferedWriter(new FileWriter(file)));
+    this[1].writer(new ThinThinBufferedWriter(new FileWriter(file)));
 }
 FileHalf.prototype = Object.create(ThinThinHalf.prototype);
 
@@ -5276,8 +5290,8 @@ if (typeof(os) !== "undefined" &&
         if (whence === %{SEEK_SET}) {
             fd.readPosition = (pos || 0);
 	    fd.writePosition = pos;
-	    if (fd.readData.length > fd.writeData.length)
-		fd.writeData = fd.readData;
+	    if (fd.readData.length > fd.write_string.length)
+		fd.write_string = fd.readData;
 	} else if (whence === %{SEEK_CUR})
             fd.readPosition += pos;
 	else if (whence === %{SEEK_END})
