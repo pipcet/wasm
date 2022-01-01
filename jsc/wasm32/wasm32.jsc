@@ -3431,7 +3431,6 @@ ThinThinTTY.prototype.read_stdin = async function ()
 	while ((line = readline()) !== null)
 	    this.readData += line + "\n";
     } else if (host_system === "node") {
-	console.error("reading stdin");
 	await new Promise(r => process.stdin.once("readable", r));
 	let read_data = process.stdin.read();
 	if (read_data !== null) {
