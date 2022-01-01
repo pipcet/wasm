@@ -934,6 +934,9 @@ Wasm32Thread.prototype.c_strs = function (ptr)
 
 Wasm32Thread.prototype.open_fd = function (fd, fdno = undefined)
 {
+    if (!(fd instanceof ThinThinFD))
+	return fd;
+
     if (fdno === undefined)
 	for (fdno = 0; !this.fds[fdno]; fdno++)
 	    ;
