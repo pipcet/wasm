@@ -16,6 +16,7 @@ $VAR1 = {
           'ENOSYS' => '38',
           'ENOTDIR' => '20',
           'ERANGE' => '34',
+          'ETIME' => '62',
           'FIONREAD' => '21531',
           'F_DUPFD' => '0',
           'F_GETFL' => '3',
