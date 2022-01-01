@@ -1109,11 +1109,6 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     var mod = this.c_str(modstr);
     var fun = this.c_str(funstr);
 
-    if (fun !== "write" && fun !== "lseek")
-	if (typeof os !== "undefined" &&
-	    os.getenv && os.getenv("WASM_STRACE"))
-	    console.log("mod", mod, "fun", fun);
-
     if (sp in this.extcallRet) {
         var ret = this.extcallRet[sp];
 
@@ -1209,9 +1204,6 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     }
 
     if (retv !== undefined && retv === retv) {
-	if (typeof os !== "undefined" &&
-	    os.getenv && os.getenv("WASM_STRACE"))
-	    console.log("returningv", retv, fun);
         this.set_rv(retv);
     } else if (retv !== retv) {
         this.stop(1);
@@ -5729,10 +5721,6 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 ThinThin.openat = function (fdno, ptr, flags, mode) {
     var path = this.c_str(ptr);
 
-    if (typeof os !== "undefined" &&
-	os.getenv && os.getenv("WASM_STRACE"))
-	console.log("openat", path);
-
     if (path.match(/^\/dev\/tty/))
 	return 1;
 
@@ -5839,14 +5827,6 @@ ThinThin.fcntl_i = function (fdno, control, value) {
 	let newfdno = this.fds.length;
 	ThinThin.dup2.call(this, fdno, newfdno);
 	return newfdno;
-    }
-    if (typeof os !== "undefined" &&
-	os.getenv && os.getenv("WASM_STRACE")) {
-	try {
-	    i.dont.exist++;
-	} catch (e) {
-	    console.log(e.stack);
-	}
     }
 
     return 0;
