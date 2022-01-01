@@ -2944,6 +2944,11 @@ function ThinThinFD(process, fdno)
     this.process = process;
 }
 
+ThinThinFD.prototype.isatty = function ()
+{
+    return 0;
+};
+
 ThinThinFD.prototype.clonedesc = function ()
 {
     return {
@@ -3383,6 +3388,11 @@ function ThinThinTTY(process, fdno)
 }
 
 ThinThinTTY.prototype = Object.create(ThinThinFD.prototype);
+
+ThinThinTTY.prototype.isatty = function ()
+{
+    return 1;
+};
 
 ThinThinTTY.prototype.read = function (heap, ptr, len)
 {
@@ -5750,7 +5760,11 @@ ThinThin.exit = async function (code) {
 };
 
 ThinThin.isatty = function (fdno) {
-    return fdno < 3 ? 1 : 0;
+    let fd = this.fds[fdno];
+    if (!fd)
+	return -%{EINVAL};
+
+    return fd.isatty();
 };
 
 ThinThin.readlinkat = function ()
