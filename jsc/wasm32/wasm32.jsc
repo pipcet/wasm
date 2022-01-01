@@ -5703,8 +5703,8 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
     os.system(`mv ${oldpath} ${newpath}`);
     return Promise.resolve(0);
 
-    let oldfd = this.fd(oldfdno);
-    let newfd = this.fd(newfdno);
+    let oldfd = this.fds[oldfdno];
+    let newfd = this.fds[newfdno];
     var oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
     var newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
 
@@ -5788,7 +5788,7 @@ ThinThin.readlinkat = function ()
 
 ThinThin.unlinkat = function (fdno, cpath)
 {
-    let fd = this.fd(fdno);
+    let fd = this.fds[fdno];
     let path = this.c_str(cpath);
 
     if (os.system("test -e " + this.pwd + "/" + path) !== 0)
