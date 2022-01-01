@@ -5720,6 +5720,18 @@ ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
 ThinThin.openat = async function (fdno, ptr, flags, mode) {
     var path = this.c_str(ptr);
 
+    /* Emacs uses this trick to check whether a path refers to a directory. */
+    if (path.match(/\/$/) || (flags & %{O_DIRECTORY})) {
+	let ret = await ThinThin.openat.call(this, fdno, ptr, flags &~ %{O_DIRECTORY}, mode);
+	if (ret >= 0) {
+	    let fd = this.process.fds[ret];
+	    if (!(fd.mode() & %{S_IFDIR})) {
+		return -%{ENOTDIR};
+	    }
+	}
+	return ret;
+    }
+
     if (path.match(/^\/dev\/tty/))
 	return 1;
 

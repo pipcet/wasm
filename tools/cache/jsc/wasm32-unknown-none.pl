@@ -29,6 +29,7 @@ $VAR1 = {
           'SEEK_CUR' => '1',
           'SEEK_END' => '2',
           'SEEK_SET' => '0',
+          'S_IFDIR' => '16384',
           'S_IFDIR + 0777' => '16895',
           'WNOHANG' => '1',
           '__S_IFCHR + 0777' => '8703',
