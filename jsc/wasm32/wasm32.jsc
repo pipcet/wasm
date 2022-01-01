@@ -5080,7 +5080,7 @@ if (typeof(os) !== "undefined" &&
         };
 
         if ("openat" in dd) {
-	    let fd = dd.openat(path, flags);
+	    let fd = await dd.openat(path, flags);
 	    if (typeof fd === "number")
 		return fd;
             let off;
