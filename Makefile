@@ -1107,7 +1107,7 @@ test/wasm32!: run-all-tests!
 
 test!: test/wasm32!
 
-github/install/binfmt_misc: | github/install
+github/install/binfmt_misc: | github/install/
 	$(MKDIR) $@
 
 github/install/binfmt_misc/elf32-wasm32: | github/install/ github/install/binfmt_misc
