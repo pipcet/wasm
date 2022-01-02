@@ -5669,8 +5669,8 @@ ThinThin.pipe2 = function (ptr, flags)
 	       new ThinThinHalfFD(this.process, pipe)];
     fds[0].other = fds[1];
     fds[1].other = fds[0];
-    this.HEAP32[ptr >> 2] = fds[0].fdno;
-    this.HEAP32[ptr + 4 >> 2] = fds[1].fdno;
+    this.HEAP32[ptr >> 2] = this.open_fd(fds[0]);
+    this.HEAP32[ptr + 4 >> 2] = this.open_fd(fds[1]);
     return 0;
 };
 
