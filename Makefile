@@ -1586,10 +1586,10 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up arti
 	$(MAKE) wasm/libstdc++.wasm
 	tar cf artifacts/up/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MKDIR) stamp/wasm32/cross/download
-	touch stamp/wasm32/cross/download/binutils-gdb
-	touch stamp/wasm32/cross/download/gcc-preliminary
-	touch stamp/wasm32/cross/download/glibc
-	touch stamp/wasm32/cross/download/gcc
+	touch stamp/wasm32/cross/binutils-gdb/download
+	touch stamp/wasm32/cross/gcc-preliminary/download
+	touch stamp/wasm32/cross/glibc/download
+	touch stamp/wasm32/cross/gcc/download
 	tar cf artifacts/up/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
 	cp wasm/libstdc++.wasm artifacts/up
 	$(MAKE) artifact-push!
@@ -1834,22 +1834,22 @@ artifact-push!:
 	(cd artifacts/up; for file in *; do if [ "$$file" -nt ../../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ../..; bash github/ul-artifact "$$name" "artifacts/up/$$name"); fi; done)
 
 ifneq ($(DAILY),)
-stamp/wasm32/native/download/%: stamp/wasm32/native/download extracted/daily/wasm32-native-%.tar.gz
+stamp/wasm32/native/%/download: stamp/wasm32/native/%/ extracted/daily/wasm32-native-%.tar.gz
 	touch $@
 
-stamp/wasm32/cross/download/binutils-gdb: stamp/wasm32/cross/download
+stamp/wasm32/cross/binutils-gdb/download: stamp/wasm32/cross/binutils-gdb/
 	touch $@
 
-stamp/wasm32/cross/download/gcc-preliminary: stamp/wasm32/cross/download
+stamp/wasm32/cross/gcc-preliminary/download: stamp/wasm32/cross/gcc-preliminary/
 	touch $@
 
-stamp/wasm32/native/download/glibc: stamp/wasm32/native/download
+stamp/wasm32/native/glibc/download: stamp/wasm32/native/glibc/
 	touch $@
 
-stamp/wasm32/cross/download/gcc: stamp/wasm32/cross/download
+stamp/wasm32/cross/gcc/download: stamp/wasm32/cross/gcc/
 	touch $@
 else
-stamp/wasm32/native/download/%: stamp/wasm32/native/download extracted/artifacts/down/wasm32-native-%.tar
+stamp/wasm32/native/%/download: stamp/wasm32/native/%/ extracted/artifacts/down/wasm32-native-%.tar
 	touch $@
 endif
 endif
