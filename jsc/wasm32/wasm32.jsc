@@ -1433,10 +1433,15 @@ function Wasm32Process(system, fds)
 	this.fds = fds ? fds : [];
 	this.ddroot = system.ddroot = new ThinThinNodeDD(this, "/", 4);
 	this.ddcwd = new ThinThinNodeDD(this, ".", 5);
+	this.fds[4] = this.ddroot; // XXX %{AT_FDROOTD}
+	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
     } else {
 	this.fds = fds ? fds : [];
 	this.ddroot = system.ddroot = new ThinThinDD(this, 4);
 	this.ddcwd = new ThinThinDD(this, 5);
+
+	this.fds[4] = this.ddroot; // XXX %{AT_FDROOTD}
+	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
     }
 
     //system.ddroot.open();
@@ -1987,10 +1992,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 
                 // outstr = "";
             } else {
-                new ThinThinTTY(process, 0);
-                new ThinThinTTY(process, 1);
-		process.fds[1] = process.fds[0];
-                (new ThinThinTTY(process, 2)).read_stdin = null;
+		process.fds[1] = process.fds[0] = new ThinThinTTY(process, 0);
+                process.fds[2] = new ThinThinTTY(process, 2);
+		process.fds[2].read_stdin = null;
             }
 	    if (this.runqueue.indexOf(thread) === -1) {
 		this.runqueue.push(thread);
@@ -2031,10 +2035,9 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 
         // outstr = "";
     } else {
-        new ThinThinTTY(process, 0);
-        new ThinThinTTY(process, 1);
-	process.fds[1] = process.fds[0];
-        (new ThinThinTTY(process, 2)).read_stdin = null;
+	process.fds[1] = process.fds[0] = new ThinThinTTY(process, 0);
+        process.fds[2] = new ThinThinTTY(process, 2);
+	process.fds[2].read_stdin = null;
     }
     if (this.runqueue.indexOf(thread) === -1) {
 	this.runqueue.push(thread);
@@ -2941,10 +2944,6 @@ ThinThinFetchDD.prototype.openat = function (path)
 function ThinThinFD(process, fdno)
 {
     this.refcount = 1;
-    if (fdno === undefined)
-        for (fdno = 0; process.fds[fdno]; fdno++)
-            ;
-    this.fdno = fdno;
     this.readers = 0;
     this.readData = "";
     this.readPosition = 0;
@@ -5078,7 +5077,6 @@ if (typeof(os) !== "undefined" &&
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
-	fdno = dd.fdno;
 	if (this.pwd && path[0] !== "/")
 	    path = this.pwd + "/" + path;
 
@@ -5102,10 +5100,7 @@ if (typeof(os) !== "undefined" &&
 
         if ("openat" in dd) {
 	    let fd = await dd.openat(path, flags);
-	    if (typeof fd === "number")
-		return fd; // XXX
-            let off;
-            for (off = 0; off < %{sizeof(struct stat)}; off += 4)
+            for (let off = 0; off < %{sizeof(struct stat)}; off += 4)
                 this.HEAP32[statbufptr+off>>2] = 0;
 
 	    %{statbufptr[&stat::st_nlink] = 1LL}
@@ -5116,7 +5111,6 @@ if (typeof(os) !== "undefined" &&
 	    %{statbufptr[&stat::st_blocks] = "1"}
 
 	    fd.close();
-	    delete this.fds[fd.fdno]; // XXX
             return 0;
 	} else {
             var fd = dd;
@@ -5741,7 +5735,7 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 	try {
 	    dd = this.process.ddroot;
 	    let fd = await dd.openat(path, flags, mode);
-	    return this.open_fd(fd, (typeof fd === "object") && fd.fdno);
+	    return this.open_fd(fd);
 	} catch (e) {
 	    console.log("exception!");
 	    return -%{ENOENT};
@@ -5764,7 +5758,7 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
         dd = this.process.ddcwd;
 
     let fd = await dd.openat(path, flags, mode);
-    return this.open_fd(fd, (typeof fd === "object") && fd.fdno);
+    return this.open_fd(fd);
 };
 
 ThinThin.faccessat = function (fdno, ptr, flags, mode) {
