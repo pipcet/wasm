@@ -77,6 +77,8 @@ if (typeof os !== "undefined")
     args.unshift(os.getenv("EXECUTABLE"));
 var remote;
 
+var run;
+
 function backtick(command)
 {
     let timestamp = Date.now();
@@ -94,9 +96,9 @@ function backtick(command)
 
 function CStringAt(heap, offset)
 {
-    var ret = '';
+    let ret = '';
 
-    for (var i0 = offset; heap[i0]; i0++) {
+    for (let i0 = offset; heap[i0]; i0++) {
         ret += String.fromCharCode(heap[i0]);
     }
 
@@ -105,9 +107,9 @@ function CStringAt(heap, offset)
 
 function CStringsAt(heap, ptr)
 {
-    var HEAP32 = new Int32Array(heap);
-    var HEAP8 = new Int8Array(heap);
-    var res = [];
+    let HEAP32 = new Int32Array(heap);
+    let HEAP8 = new Int8Array(heap);
+    let res = [];
 
     while (HEAP32[ptr>>2]) {
         res.push(CStringAt(HEAP8, HEAP32[ptr>>2]));
@@ -119,7 +121,7 @@ function CStringsAt(heap, ptr)
 
 function CStringTo(str, heap, offset)
 {
-    var i0;
+    let i0;
 
     for (i0 = 0; i0 < str.length; i0++) {
         heap[offset + i0] = str.charCodeAt(i0);
@@ -137,15 +139,15 @@ var copyvars = ["HOME", "MAKE", "LIBPERL_A", "PERL_CORE", "PATH", "EMACSLOADPATH
 
 function environment_variables()
 {
-    var env = [];
+    let env = [];
 
     if (typeof os === "undefined") {
     } else if ("getenvironment" in os) {
         env = os.getenvironment();
     } else {
-        for (var i = 0; i < copyvars.length; i++) {
-            var copyvar = copyvars[i];
-            var value = os.getenv(copyvar);
+        for (let i = 0; i < copyvars.length; i++) {
+            let copyvar = copyvars[i];
+            let value = os.getenv(copyvar);
 
             if (value !== undefined)
                 env.push(copyvar + "=" + value);
@@ -351,7 +353,7 @@ function Wasm32LM(vm)
 
 Wasm32LM.prototype.dyninfo_fixups = function (dyninfo, imports, module)
 {
-    var vm = this.vm;
+    let vm = this.vm;
 
     for (let [addr1, addr2] of dyninfo.fixup || []) {
         addr1 = addr1 - 0x4000 + imports.sys.got;
@@ -682,9 +684,9 @@ let last_tom = 16384;
 
 Wasm32Module.prototype.check_libs = function (thread)
 {
-    var promise = Promise.resolve(0);
+    let promise = Promise.resolve(0);
 
-    for (var lib0 in this.vm.base_lm.dep) {
+    for (let lib0 in this.vm.base_lm.dep) {
         let lib = lib0;
         if (this.vm.base_lm.dep[lib] === -1) {
             promise = promise.then(() => {
@@ -707,20 +709,20 @@ Wasm32Module.prototype.check_libs = function (thread)
 		    if (!bytes)
 			throw("couldn't load " + lib);
 		    return WebAssembly.compile(bytes).then(compiled => {
-			var module = new Wasm32Module(thread.process, compiled, lib);
+			let module = new Wasm32Module(thread.process, compiled, lib);
 			return module.load(thread, this.vm).then(() => {
-                            var mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
-                            var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+                            let mem = last_tom;//this.vm.%{zp[&zp->top_of_sbrk]};
+                            let tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
 			    last_tom = tom;
                             //this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
-                            var ret = module.instantiate(thread, this.vm, mem, true);
+                            let ret = module.instantiate(thread, this.vm, mem, true);
                             this.vm.base_lm.dep[lib] = 0;
 
                             return ret;
 			});
                     });
                 } else if (typeof fetch !== "undefined") {
-                    var module;
+                    let module;
                     return fetch(lib).then(response => {
                         if (response.ok)
                             return response.arrayBuffer();
@@ -733,10 +735,10 @@ Wasm32Module.prototype.check_libs = function (thread)
 
                         return module.load(thread, this.vm);
                     }).then(() => {
-                        var mem = this.vm.%{zp[&zp->top_of_sbrk]};
-                        var tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
+                        let mem = this.vm.%{zp[&zp->top_of_sbrk]};
+                        let tom = (mem + module.dyninfo.data_end - 0x4000 + 4095)&-4096;
                         this.vm.%{zp[&zp->top_of_sbrk] = "tom"}
-                        var ret = module.instantiate(thread, this.vm, mem, true);
+                        let ret = module.instantiate(thread, this.vm, mem, true);
                         this.vm.base_lm.dep[lib] = 0;
 
                         return ret;
@@ -832,7 +834,7 @@ Wasm32Module.prototype.instantiate = async function (thread, vm, mem, recurse)
 	    vm.HEAP32[header + 24 >> 2] = vm.HEAP32[header + 16 >> 2];
 	}
     }
-    var tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
+    let tom = (mem + this.dyninfo.data_end - 0x4000 + 4095)&-4096;
     last_tom = tom;
     if (recurse)
         return this.check_libs(thread);
@@ -852,14 +854,14 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
     this.kport.start();
     this.process = process;
     process.threads.push(this);
-    var system = process.system;
+    let system = process.system;
 
     this.fds = process.fds;
 
     this.system = system;
     system.threads.push(this);
 
-    var sizes = {
+    let sizes = {
         tablesize: 4 * %{default_sizes.tablesize},
         memsize: %{default_sizes.memsize},
         stacksize: %{default_sizes.stacksize},
@@ -887,14 +889,14 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
     this.vars = {};
     this.queue = [];
 
-    var thread = this;
+    let thread = this;
 
     this.types_by_id["Kc"] = this.types["string"] = {
         constructor: function (thread, ptr) {
             if (ptr === 0)
                 return null;
 
-            var str = thread.c_str(ptr);
+            let str = thread.c_str(ptr);
 
             this.thread = thread;
             this.address = ptr;
@@ -904,7 +906,7 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
                 return this.str;
             };
 
-            var ret = new String(this.str);
+            let ret = new String(this.str);
 
             ret.address = ptr;
 
@@ -1021,11 +1023,9 @@ Wasm32Thread.prototype.initsp = function ()
     return %{tp[&tp->initsp]};
 };
 
-var run;
-
 Wasm32Thread.prototype.stop = function (reason)
 {
-    var stopped = this.stopped();
+    let stopped = this.stopped();
     %{tp[&tp->stop_reason]} = reason;
 
     if (stopped && reason == 0) {
@@ -1105,15 +1105,15 @@ Wasm32Thread.prototype.read_debug = function (chp)
 
 Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 {
-    var sp = sp1 - 56 - 16 + 16;
+    let sp = sp1 - 56 - 16 + 16;
     this.syscall_sp = sp;
-    var modstr = b;
-    var funstr = c;
-    var mod = this.c_str(modstr);
-    var fun = this.c_str(funstr);
+    let modstr = b;
+    let funstr = c;
+    let mod = this.c_str(modstr);
+    let fun = this.c_str(funstr);
 
     if (sp in this.extcallRet) {
-        var ret = this.extcallRet[sp];
+        let ret = this.extcallRet[sp];
 
         if (ret !== undefined) {
             if (typeof Promise !== "undefined" &&
@@ -1130,19 +1130,19 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
         }
     }
 
-    var nargs = this.HEAP32[sp1+8>>2];
+    let nargs = this.HEAP32[sp1+8>>2];
     if (nargs == -1)
         nargs = 7;
-    var is_void = ((nargs & 0x40000000) != 0) !=
+    let is_void = ((nargs & 0x40000000) != 0) !=
         ((nargs & 0x80000000) != 0);
-    var is_void_2 = this.HEAP32[sp1>>2] != 0;
+    let is_void_2 = this.HEAP32[sp1>>2] != 0;
 
     if (is_void)
         nargs ^= 0x40000000;
 
-    var args = [];
+    let args = [];
     if (nargs >= 0) {
-        for (var ai = 0; ai < nargs; ai++) {
+        for (let ai = 0; ai < nargs; ai++) {
             args[ai] = this.HEAP32[sp1+16+4*ai>>2];
         }
     }
@@ -1220,11 +1220,11 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 
 Wasm32Thread.prototype.restart = function (dst, src, len, entry)
 {
-    var initsp = this.initsp();
+    let initsp = this.initsp();
 
     this.restartCode = () => {
         if (len) {
-            var i;
+            let i;
 
             for (i = 0; i < len; i++)
                 this.HEAP8[dst+i] = this.HEAP8[src+i];
@@ -1246,14 +1246,14 @@ Wasm32Thread.prototype.restart = function (dst, src, len, entry)
 
 Wasm32Thread.prototype.step = function ()
 {
-    var first = this.first;
+    let first = this.first;
     if (first === undefined)
         first = true;
-    var dpc = this.%{tp1[&tp1->initsp]};
-    var pc0 = this.%{tp1[&tp1->pc]};
-    var sp = this.%{tp1[&tp1->sp]};
-    var rpc = 0;
-    var ret;
+    let dpc = this.%{tp1[&tp1->initsp]};
+    let pc0 = this.%{tp1[&tp1->pc]};
+    let sp = this.%{tp1[&tp1->sp]};
+    let rpc = 0;
+    let ret;
 
     while (true) {
         if (first) {
@@ -1289,7 +1289,7 @@ Wasm32Thread.prototype.trace = function (off, pc0, dpc, a0, a1, a2)
     console.log("trace off " + off + " sp " + pc0 + " fp " + dpc +
                 a0 + " " + a1 + " " + a2);
 
-    var start = new Date();
+    let start = new Date();
 
     while ((new Date()) - start < 100);
     return 0;
@@ -1308,11 +1308,11 @@ Wasm32Thread.prototype.null_called = function ()
 
 function build_sig(sigstr)
 {
-    var ret = [];
+    let ret = [];
     ret.push(1); // 1 signature;
     ret.push(0x60); // signature;
     ret.push(sigstr.length - 3);
-    for (var i = 2; i < sigstr.length && sigstr[i] !== 'E'; i++) {
+    for (let i = 2; i < sigstr.length && sigstr[i] !== 'E'; i++) {
         switch (sigstr[i]) {
         case 'i':
             ret.push(0x7f);
@@ -1376,10 +1376,10 @@ Wasm32Thread.prototype.set_arg = function (index, arg)
 
 Wasm32Thread.prototype.eh_return = function (fp, sp, handler)
 {
-    var a0 = this.HEAP32[fp+48>>2]|0;
-    var a1 = this.HEAP32[fp+56>>2]|0;
-    var a2 = this.HEAP32[fp+64>>2]|0;
-    var a3 = this.HEAP32[fp+72>>2]|0;
+    let a0 = this.HEAP32[fp+48>>2]|0;
+    let a1 = this.HEAP32[fp+56>>2]|0;
+    let a2 = this.HEAP32[fp+64>>2]|0;
+    let a3 = this.HEAP32[fp+72>>2]|0;
 
     this.set_arg(0, a0);
     this.set_arg(1, a1);
@@ -1414,7 +1414,7 @@ Wasm32Thread.prototype.from_address = function (type, addr)
     if (addr === 0)
         return null;
 
-    var t = this.types_by_id[type];
+    let t = this.types_by_id[type];
 
     return new t.constructor(this, address);
 };
@@ -1501,11 +1501,11 @@ function FrozenWasm32Process(process)
     this.functions = process.functions;
     this.heap = process.heap;
 
-    for (var i = 0; i < this.threads.length; i++)
+    for (let i = 0; i < this.threads.length; i++)
         this.threads[i] = this.threads[i].freeze();
 
-    var fds = [];
-    for (var i = 0; i < this.fds.length; i++)
+    let fds = [];
+    for (let i = 0; i < this.fds.length; i++)
         fds[i] = this.fds[i].freeze();
 
     this.fds = fds;
@@ -1516,11 +1516,11 @@ function FrozenWasm32Process(process)
 
 FrozenWasm32Process.prototype.thaw = function (system)
 {
-    var n = new Wasm32Process(system);
+    let n = new Wasm32Process(system);
 
-    var fds = [];
-    for (var i = 0; i < this.fds.length; i++) {
-        var fd = this.fds[i];
+    let fds = [];
+    for (let i = 0; i < this.fds.length; i++) {
+        let fd = this.fds[i];
         fds[i] = FrozenThinThinFD.prototype.thaw.call(fd,
                                                       n,
                                                       function (x) { return global.postMessage(x) });
@@ -1531,9 +1531,9 @@ FrozenWasm32Process.prototype.thaw = function (system)
     n.system = system;
     n.functions = {};
     n.heap = new ArrayBuffer(this.heap.byteLength);
-    var newHEAP8 = new Int8Array(n.heap);
-    var oldHEAP8 = new Int8Array(this.heap);
-    for (var i = 0; i < this.heap.byteLength; i++)
+    let newHEAP8 = new Int8Array(n.heap);
+    let oldHEAP8 = new Int8Array(this.heap);
+    for (let i = 0; i < this.heap.byteLength; i++)
         newHEAP8[i] = oldHEAP8[i];
 
     n.newHEAP8 = newHEAP8;
@@ -1548,7 +1548,7 @@ FrozenWasm32Process.prototype.thaw = function (system)
     n.HEAPF32 = new Float32Array(n.heap);
     n.HEAPF64 = new Float64Array(n.heap);
 
-    for (var i = 0; i < this.threads.length; i++)
+    for (let i = 0; i < this.threads.length; i++)
         n.threads[i] = FrozenWasm32Thread.prototype.thaw.call(this.threads[i],
                                                               n,
                                                               gMod);
@@ -1565,21 +1565,21 @@ function MessageChannel(kernel)
     this.port2.channel = this;
     this.port1.start = this.port2.start = () => {};
     this.port1.req = (kind, ...data) => {
-        var seq = this.kernel.seq++;
+        let seq = this.kernel.seq++;
 	this.kernel.requesters[seq] = () => {
 	};
 	return new Promise((resolve, reject) => {
-            var seq = this.kernel.seq++;
-            var msg = [kind, seq];
+            let seq = this.kernel.seq++;
+            let msg = [kind, seq];
             msg.push(...data);
 
             this.port1.postMessage(msg);
 	});
     };
     this.port2.req = (kind, ...data) => {
-        var seq = this.kernel.seq++;
+        let seq = this.kernel.seq++;
 	return new Promise((resolve, reject) => {
-            var msg = [kind, seq];
+            let msg = [kind, seq];
             msg.push(...data);
 
 	    this.kernel.requesters[seq] = data => {
@@ -1642,7 +1642,7 @@ Wasm32Kernel.prototype.init_port = function (thread, pid = 1)
 
 Wasm32Kernel.prototype.get_port = function (pid = 1)
 {
-    var channel = new MessageChannel(this);
+    let channel = new MessageChannel(this);
 
     channel.port1.onmessage = event => {
         this.message(channel.port1, event.data);
@@ -1680,13 +1680,13 @@ Wasm32Kernel.prototype.exit = async function (pid, exitcode)
 
 Wasm32Kernel.prototype.message = async function (port, data)
 {
-    var req = data[0];
-    var seq = data[1];
+    let req = data[0];
+    let seq = data[1];
     let thread = this.threads_by_port.get(port);
 
     if (data[0] === "kill") {
-        var pid = data[1];
-        var signal = data[2];
+        let pid = data[1];
+        let signal = data[2];
 
         this.ports_by_pid[pid].postMessage(["kill", signal]);
     } else if (data[0] === "fork") {
@@ -1701,11 +1701,11 @@ Wasm32Kernel.prototype.message = async function (port, data)
 
         port.postMessage(["response", seq, [pid, nport]], [nport]);
     } else if (data[0] === "exit") {
-        var exitcode = data[2];
+        let exitcode = data[2];
         let pid = this.pids_by_port.get(port);
 	this.exit(pid, exitcode);
     } else if (data[0] === "wait4") {
-        var ppid = this.pids_by_port.get(port);
+        let ppid = this.pids_by_port.get(port);
 	let pid = data[2] === -1 ? undefined : data[2];
 	for (let s of this.delayed_exits) {
 	    let [ppid2, pid2, exitcode] = s;
@@ -1742,19 +1742,19 @@ function Wasm32System(port)
 
 Wasm32System.prototype.init_sp = function (vm, off, args, env)
 {
-    var HEAP8 = vm.HEAP8;
-    var HEAP32 = vm.HEAP32;
-    var i;
-    var eo = [];
-    var ao = [];
+    let HEAP8 = vm.HEAP8;
+    let HEAP32 = vm.HEAP32;
+    let i;
+    let eo = [];
+    let ao = [];
     for (i = env.length-1; i >= 0; i--) {
-        var str = env[i];
+        let str = env[i];
         off -= str.length+1;
         CStringTo(str, HEAP8, off);
         eo.push(off);
     }
     for (i = args.length-1; i >= 0; i--) {
-        var str = args[i];
+        let str = args[i];
         off -= str.length+1;
         CStringTo(str, HEAP8, off);
         ao.push(off);
@@ -1767,7 +1767,7 @@ Wasm32System.prototype.init_sp = function (vm, off, args, env)
         HEAP32[(off-=4)>>2] = eo[i];
     }
 
-    var envp = off;
+    let envp = off;
 
     HEAP32[(off-=4)>>2] = 0;
 
@@ -1775,8 +1775,8 @@ Wasm32System.prototype.init_sp = function (vm, off, args, env)
         HEAP32[(off-=4)>>2] = ao[i];
     }
 
-    var argv = off;
-    var argc = ao.length;
+    let argv = off;
+    let argc = ao.length;
 
     off &= -16;
 
@@ -1800,15 +1800,15 @@ Wasm32System.prototype.init_sp = function (vm, off, args, env)
 
 function remote_process(kernel, arraybuffer)
 {
-    var [kport, kport2] = kernel.get_port();
+    let [kport, kport2] = kernel.get_port();
     kport.start();
     kport2.start();
 
-    var mchs = [new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel()];
-    var lports = mchs.map(x => x.port1);
-    var rports = mchs.map(x => x.port2);
+    let mchs = [new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel(), new MessageChannel()];
+    let lports = mchs.map(x => x.port1);
+    let rports = mchs.map(x => x.port2);
 
-    var worker = new Worker("wasm32-worker.js");
+    let worker = new Worker("wasm32-worker.js");
 
     lports[5].onmessage = function (event) {
         document.getElementById("debug").innerHTML = event.data;
@@ -1825,7 +1825,7 @@ function abtoascii(ab)
     let h8 = new Uint8Array(ab);
     let s = "";
 
-    for (var i = 0; i < h8.byteLength; i++) {
+    for (let i = 0; i < h8.byteLength; i++) {
         let c = h8[i];
 
         if (c >= 0x80)
@@ -1841,8 +1841,8 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 						 fds, extcallRet, heap, pwd,
 						 heap32, pid)
 {
-    var process;
-    var thread;
+    let process;
+    let thread;
     process = new Wasm32Process(this, fds);
     thread = new Wasm32Thread(kport, process, 8192, undefined, pid);
     thread.pwd = pwd || ".";
@@ -1851,11 +1851,11 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     process.vm = vm;
     process.pid = pid;
     for (let module of [modules[0]]) {
-        var tos = (module.dyninfo.data_end + 4095) & -4096;
+        let tos = (module.dyninfo.data_end + 4095) & -4096;
         //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 	await module.load(thread, vm);
-        var ret = await module.instantiate(thread, vm, 0x4000, true);
-        var tos = (module.dyninfo.data_end + 4095) & -4096;
+        let ret = await module.instantiate(thread, vm, 0x4000, true);
+        let tos = (module.dyninfo.data_end + 4095) & -4096;
         //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 
         process.HEAP8 = vm.HEAP8;
@@ -1877,7 +1877,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
         thread.HEAPF32 = vm.HEAPF32;
         thread.HEAPF64 = vm.HEAPF32;
 
-        var HEAP32 = vm.HEAP32;
+        let HEAP32 = vm.HEAP32;
 
 	thread.%{zp[&zp->top_of_memory] = 512 * 1024 * 1024LL}
 	thread.%{zp[&zp->thread_list]} = %{tp1};
@@ -1894,7 +1894,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 	thread.%{tp1[&tp1->pc] = "pc"}
     }
     let count = 0;
-    var HEAP32 = heap32;
+    let HEAP32 = heap32;
     let lim = %{zp[&zp->top_of_sbrk]};
     for (let i = 0; i < lim/4; i++)
 	vm.HEAP32[i] = heap32[i];
@@ -1912,15 +1912,15 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
 
 Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
 {
-    var process;
-    var thread;
+    let process;
+    let thread;
     process = module.process;
     if (!process.threads.length) {
         thread = new Wasm32Thread(process.kernel, process, 8192, vm, pid);
 	thread.main_thread = true;
         return module.load(thread, vm).then(() => {
-            var ret = module.instantiate(thread, vm, 0x4000, true);
-            var tos = (module.dyninfo.data_end + 4095) & -4096;
+            let ret = module.instantiate(thread, vm, 0x4000, true);
+            let tos = (module.dyninfo.data_end + 4095) & -4096;
 
             vm.%{zp[&zp->top_of_sbrk] = "32 * 1024 * 1024"}
 
@@ -1945,7 +1945,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
             thread.HEAPF32 = vm.HEAPF32;
             thread.HEAPF64 = vm.HEAPF32;
 
-            var HEAP32 = vm.HEAP32;
+            let HEAP32 = vm.HEAP32;
 
 	    %{zp[&zp->top_of_memory] = 512 * 1024 * 1024LL}
             %{zp[&zp->thread_list]} = %{tp1};
@@ -1958,7 +1958,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
             %{tp1[&tp1->top_of_stack] = "module.top_of_stack"}
 
             module.top_of_stack = module.sizes.stackbottom + module.sizes.stacksize;
-            var sp = this.init_sp(vm, module.top_of_stack, args, env);
+            let sp = this.init_sp(vm, module.top_of_stack, args, env);
             %{tp1[&tp1->sp] = "sp"}
             %{tp1[&tp1->initsp] = "sp"}
 
@@ -1980,7 +1980,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
                 //     if (first) {
                 //         first = false;
                 //         return new Promise((resolve,reject) => {
-                //             var content = document.getElementById("dot-input").innerHTML;
+                //             let content = document.getElementById("dot-input").innerHTML;
                 //             //console.log(content);
                 //             resolve(content);
                 //         });
@@ -2004,7 +2004,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
         process = this.processes[0];
         thread = this.threads[0];
     }
-    var HEAP32 = vm.HEAP32;
+    let HEAP32 = vm.HEAP32;
     %{tp1[&tp1->pc] = "process.entry"}
     if (false && typeof document !== "undefined") {
         new ThinThinTTY(process, 0);
@@ -2023,7 +2023,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
         //     if (first) {
         //         first = false;
         //         return new Promise((resolve,reject) => {
-        //             var content = document.getElementById("dot-input").innerHTML;
+        //             let content = document.getElementById("dot-input").innerHTML;
         //             //console.log(content);
         //             resolve(content);
         //         });
@@ -2049,7 +2049,7 @@ Wasm32System.prototype.step = function ()
     if (this.runqueue.length == 0)
         return true;
 
-    var thread = this.runqueue.shift();
+    let thread = this.runqueue.shift();
 
     thread.step();
 
@@ -2087,7 +2087,7 @@ ThinThin.abort = function ()
 ThinThin.sbrk = function (size)
 {
     size = (size + 4095) & -4096;
-    var ret = this.%{zp[&zp->top_of_sbrk]};
+    let ret = this.%{zp[&zp->top_of_sbrk]};
 
     this.%{zp[&zp->top_of_sbrk]} += size;
 
@@ -2130,19 +2130,19 @@ else if (typeof scriptArgs !== "undefined") {
 
 function Syscall(number, argspec0, argspec1, argspec2, argspec3, argspec4)
 {
-    var argspecs = [];
+    let argspecs = [];
     if (argspec0 !== undefined) argspecs.push(argspec0);
     if (argspec1 !== undefined) argspecs.push(argspec1);
     if (argspec2 !== undefined) argspecs.push(argspec2);
     if (argspec3 !== undefined) argspecs.push(argspec3);
     if (argspec4 !== undefined) argspecs.push(argspec4);
     return function(arg0, arg1, arg2, arg3, arg4, arg5) {
-        var args = [arg0, arg1, arg2, arg3, arg4, arg5];
-        var rargs = [number];
-        var i;
-        var ret;
+        let args = [arg0, arg1, arg2, arg3, arg4, arg5];
+        let rargs = [number];
+        let i;
+        let ret;
         for (i = 0; i < argspecs.length; i++) {
-            var spec = argspecs[i];
+            let spec = argspecs[i];
             if (spec == "ptr") {
                 rargs.push(this.HEAPU8);
             }
@@ -2157,7 +2157,7 @@ function Syscall(number, argspec0, argspec1, argspec2, argspec3, argspec4)
 function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
                    argspec4, argspec5)
 {
-    var argspecs = [];
+    let argspecs = [];
     if (argspec0 !== undefined) argspecs.push(argspec0);
     if (argspec1 !== undefined) argspecs.push(argspec1);
     if (argspec2 !== undefined) argspecs.push(argspec2);
@@ -2165,12 +2165,12 @@ function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
     if (argspec4 !== undefined) argspecs.push(argspec4);
     if (argspec5 !== undefined) argspecs.push(argspec5);
     return function(arg0, arg1, arg2, arg3, arg4, arg5) {
-        var args = [arg0, arg1, arg2, arg3, arg4, arg5];
-        var rargs = [number, 0];
-        var i;
-        var ret;
+        let args = [arg0, arg1, arg2, arg3, arg4, arg5];
+        let rargs = [number, 0];
+        let i;
+        let ret;
         for (i = 0; i < argspecs.length; i++) {
-            var spec = argspecs[i];
+            let spec = argspecs[i];
             switch (spec) {
             case "fd":
             case "u64":
@@ -2187,8 +2187,8 @@ function Syscall64(number, argspec0, argspec1, argspec2, argspec3,
 
             case "ptrs":
             case "strs":
-                var arg = [];
-                var j;
+                let arg = [];
+                let j;
 
                 for (j = 0; this.HEAP32[args[i]+4*j>>2]; j++) {
                     arg.push(this.HEAPU8);
@@ -2343,22 +2343,22 @@ function TimeoutPromise(timeout)
 
 function SplitPromise(n, promise)
 {
-    var resolve_lhs, resolve_rhs;
-    var reject_lhs, reject_rhs;
+    let resolve_lhs, resolve_rhs;
+    let reject_lhs, reject_rhs;
 
-    var promise_lhs = new Promise((resolve, reject) => {
+    let promise_lhs = new Promise((resolve, reject) => {
         resolve_lhs = resolve;
         reject_lhs = reject;
     });
 
-    var promise_rhs = new Promise((resolve, reject) => {
+    let promise_rhs = new Promise((resolve, reject) => {
         resolve_rhs = resolve;
         reject_rhs = reject;
     });
 
     promise.then(value => {
-        var lhs = value.substr(0, n);
-        var rhs = value.substr(n);
+        let lhs = value.substr(0, n);
+        let rhs = value.substr(n);
 
         resolve_rhs(rhs);
         resolve_lhs(lhs);
@@ -2537,9 +2537,9 @@ ThinThinFlow.prototype.metawriter = function (writer)
 ThinThinFlow.prototype.connect = function ()
 {
     if (this.readers.length && this.writers.length) {
-        var r = this.readers.shift();
-        var w = this.writers.shift();
-        var nmax;
+        let r = this.readers.shift();
+        let w = this.writers.shift();
+        let nmax;
 
         this.state = 0;
 
@@ -2578,8 +2578,8 @@ ThinThinFlow.prototype.connect = function ()
 ThinThinFlow.prototype.metaconnect = function ()
 {
     if (this.metareaders.length && this.metawriters.length) {
-        var r = this.metareaders[0];
-        var w = this.metawriters[0];
+        let r = this.metareaders[0];
+        let w = this.metawriters[0];
 
         Promise.resolve(r.request()).then(request => {
             return w.provide(request);
@@ -2691,7 +2691,7 @@ ThinThinFlow.prototype.meta = function (request)
 
 ThinThinFlow.prototype.debug = function (name, f)
 {
-    var str = "";
+    let str = "";
 
     str += `flow ${name}<br>`;
     str += (this.readers.map(x => x.debug(f)).join(":")) + " <- " + (this.writers.map(x => x.debug(f))) + "["+this.state+"]";
@@ -2719,7 +2719,7 @@ ThinThinHalf.prototype.reverse = function()
 
 ThinThinHalf.prototype.debug = function (name, f)
 {
-    var str = "";
+    let str = "";
 
     str += `half ${name}<br>`;
     str += this[0].debug(`${name}[0]`, f);
@@ -2912,8 +2912,8 @@ ThinThinFetchDD.prototype = Object.create(ThinThinDD.prototype);
 
 ThinThinFetchDD.prototype.discover = function (component, isdir)
 {
-    var url = this.stem + "/" + component;
-    var ret;
+    let url = this.stem + "/" + component;
+    let ret;
 
     if (isdir) {
         ret = new ThinThinFetchDD(this.process, this, url, this.cache);
@@ -3024,10 +3024,10 @@ ThinThinFD.prototype.advance = function (i)
 {
     this.write_string = this.write_string.substr(i);
 
-    var onadvance = this.onadvance;
+    let onadvance = this.onadvance;
     this.onadvance = new Set();
 
-    for (var handler of onadvance)
+    for (let handler of onadvance)
         handler();
 };
 
@@ -3041,10 +3041,10 @@ ThinThinFD.prototype.provideString = function (data)
 {
     this.write_string += data;
 
-    var onprovide = this.onprovide;
+    let onprovide = this.onprovide;
     this.onprovide = new Set();
 
-    for (var handler of onprovide)
+    for (let handler of onprovide)
         handler();
 };
 
@@ -3052,10 +3052,10 @@ ThinThinFD.prototype.provideOpened = function ()
 {
     this.writeOpened = true;
 
-    var onprovide = this.onprovide;
+    let onprovide = this.onprovide;
     this.onprovide = new Set();
 
-    for (var handler of onprovide)
+    for (let handler of onprovide)
         handler();
 };
 
@@ -3064,10 +3064,10 @@ ThinThinFD.prototype.provideError = function (error)
     this.writeError = error;
     this.writeEOF = true;
 
-    var onprovide = this.onprovide;
+    let onprovide = this.onprovide;
     this.onprovide = new Set();
 
-    for (var handler of onprovide)
+    for (let handler of onprovide)
         handler();
 
     this.unref(); // XXX
@@ -3077,10 +3077,10 @@ ThinThinFD.prototype.provideEOF = function ()
 {
     this.writeEOF = true;
 
-    var onprovide = this.onprovide;
+    let onprovide = this.onprovide;
     this.onprovide = new Set();
 
-    for (var handler of onprovide)
+    for (let handler of onprovide)
         handler();
 };
 
@@ -3092,11 +3092,11 @@ ThinThinFD.prototype.stuffString = function (data)
 {
     this.readData += data;
 
-    var onstuff = this.onstuff;
+    let onstuff = this.onstuff;
     this.onstuff = new Set();
 
 
-    for (var handler of onstuff) {
+    for (let handler of onstuff) {
         handler();
     }
 };
@@ -3105,10 +3105,10 @@ ThinThinFD.prototype.stuffOpened = function ()
 {
     this.readOpened = true;
 
-    var onstuff = this.onstuff;
+    let onstuff = this.onstuff;
     this.onstuff = new Set();
 
-    for (var handler of onstuff)
+    for (let handler of onstuff)
         handler();
 };
 
@@ -3117,10 +3117,10 @@ ThinThinFD.prototype.stuffError = function (error)
     this.readError = error;
     this.readEOF = true;
 
-    var onstuff = this.onstuff;
+    let onstuff = this.onstuff;
     this.onstuff = new Set();
 
-    for (var handler of onstuff)
+    for (let handler of onstuff)
         handler();
 
     this.unref(); // XXX
@@ -3130,10 +3130,10 @@ ThinThinFD.prototype.stuffEOF = function ()
 {
     this.readEOF = true;
 
-    var onstuff = this.onstuff;
+    let onstuff = this.onstuff;
     this.onstuff = new Set();
 
-    for (var handler of onstuff)
+    for (let handler of onstuff)
         handler();
 };
 
@@ -3160,7 +3160,7 @@ ThinThinFD.prototype.startStuffing = function ()
 ThinThinFD.prototype.stopStuffing = function ()
 {
     if (this.activeInputPromise) {
-        var activeInputPromise = this.activeInputPromise;
+        let activeInputPromise = this.activeInputPromise;
         delete this.activeInputPromise;
         activeInputPromise.resolve(data);
     }
@@ -3214,10 +3214,10 @@ ThinThinFD.prototype.readAsString = function ()
 ThinThinFD.prototype.readAsArrayBuffer = function ()
 {
     return Promise.resolve(this.readAsString()).then(str => {
-        var ab = new ArrayBuffer(str.length);
-        var av = new Uint8Array(ab);
+        let ab = new ArrayBuffer(str.length);
+        let av = new Uint8Array(ab);
 
-        for (var i = 0; i < str.length; i++)
+        for (let i = 0; i < str.length; i++)
             av[i] = str.charCodeAt(i)&0xff;
 
         return ab;
@@ -3291,7 +3291,7 @@ ThinThinFD.prototype.inputPromise = function () {
 };
 
 ThinThinFD.prototype.write = function (heap, ptr, len) {
-    var initialPosition = this.writePosition;
+    let initialPosition = this.writePosition;
 
     if (ptr === undefined)
         ptr = 0;
@@ -3301,7 +3301,7 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
     if (len == 0)
         return Promise.resolve(0);
 
-    var data = "";
+    let data = "";
 
     this.written = true;
     if (this.writePosition !== undefined) {
@@ -3331,8 +3331,8 @@ ThinThinFD.prototype.write = function (heap, ptr, len) {
 };
 
 ThinThinFD.prototype.providee = function () {
-    var handler; handler = () => {
-        var len = this.write_string.length;
+    let handler; handler = () => {
+        let len = this.write_string.length;
 
         putstr(this.write_string);
 
@@ -3349,9 +3349,9 @@ ThinThinFD.prototype.domPromise = function () {
 };
 
 ThinThinFD.prototype.connectPort = function (port) {
-    var n = 0;
+    let n = 0;
 
-    var handler = () => {
+    let handler = () => {
         if (this.readData.length > this.readPosition ||
             this.readEOF) {
             if (n > this.readData.length - this.readPosition)
@@ -3364,8 +3364,8 @@ ThinThinFD.prototype.connectPort = function (port) {
     };
 
     port.onmessage = event => {
-        var data = event.data;
-        var kind = data[0];
+        let data = event.data;
+        let kind = data[0];
 
         if (kind === "write") {
             this.provideString(data[1]);
@@ -3447,7 +3447,7 @@ ThinThinTTY.prototype.close = function ()
 };
 
 ThinThinTTY.prototype.write = function (heap, ptr, len) {
-    var initialPosition = this.writePosition;
+    let initialPosition = this.writePosition;
 
     if (ptr === undefined)
         ptr = 0;
@@ -3549,7 +3549,7 @@ ThinThinHalfFD.prototype.unpause = function (len)
 };
 
 ThinThinHalfFD.prototype.providee = function () {
-    var handler; handler = () => {
+    let handler; handler = () => {
         if (this.write_string.length > 0) {
             this.half[1].writer(new ThinThinFDWriter(this));
         }
@@ -3573,14 +3573,14 @@ ThinThinHalfFD.prototype.openat = function (path, flags)
     return new Promise((resolve, reject) => {
         this.half[1].metareader(new ThinThinMetaReader(["openat", path, flags], resolve, reject));
     }).then(response => {
-        var obj = response[0][0];
+        let obj = response[0][0];
 
         if ((obj instanceof Array) && obj.length && (obj[0] instanceof File)) {
-            var pipe = new ThinThinHalf();
+            let pipe = new ThinThinHalf();
             new FileListHalf(pipe, obj);
             return new ThinThinHalfFD(this.process, pipe);
         } else if (obj instanceof File) {
-            var pipe = new ThinThinHalf();
+            let pipe = new ThinThinHalf();
             new FileHalf(pipe, obj);
             return new ThinThinHalfFD(this.process, pipe);
         }
@@ -3654,9 +3654,9 @@ SparseHalf.prototype = Object.create(ThinThinHalf.prototype);
 
 SparseHalf.prototype.readdir = function ()
 {
-    var ret = [];
+    let ret = [];
 
-    for (var name in this.entries)
+    for (let name in this.entries)
         ret.push(name);
 
     return ret;
@@ -3664,7 +3664,7 @@ SparseHalf.prototype.readdir = function ()
 
 SparseHalf.prototype.openat = function (path, flags, mode)
 {
-    var ret = this.base.openat(path, flags, mode);
+    let ret = this.base.openat(path, flags, mode);
 
     return ret.then(obj => {
         this.entries[path] = true;
@@ -3675,7 +3675,7 @@ SparseHalf.prototype.openat = function (path, flags, mode)
 
 SparseHalf.prototype.openat_dir = function (path, flags, mode)
 {
-    var ret = this.base.openat_dir(path, flags, mode);
+    let ret = this.base.openat_dir(path, flags, mode);
 
     return ret.then(obj => {
         this.entries[path] = true;
@@ -3989,7 +3989,7 @@ HTMLHalf.prototype.openat = function (path, flags)
                 this.dom.removeChild(this.input_f);
             return dir.getFilesAndDirectories();
         }).then(fs => {
-            for (var f of fs) {
+            for (let f of fs) {
                 if (f.name === path) {
                     resolve(f);
                     break;
@@ -4008,7 +4008,7 @@ HTMLHalf.prototype.openat = function (path, flags)
         this.input_f.addEventListener("change", () => {
             if (this.input_d)
                 this.dom.removeChild(this.input_d);
-            var flist = this.input_f.files;
+            let flist = this.input_f.files;
 
             if (!flist || flist.length !== 1)
                 resolve([["no such file"]]);
@@ -4029,8 +4029,8 @@ HTMLHalf.prototype.openat_dir = function (path, flags)
         this.dom.appendChild(this.input_f);
 
         this.input_f.addEventListener("change", () => {
-            var flist = this.input_f.files;
-            var array = [...flist];
+            let flist = this.input_f.files;
+            let array = [...flist];
 
             resolve([[array]]);
 
@@ -4052,9 +4052,9 @@ HTMLHalf.prototype.pickdir = function ()
 
         this.input_d.addEventListener("change", () => {
             this.input_d.getFilesAndDirectories().then(ds => {
-                var promises = [];
+                let promises = [];
 
-                for (var d of ds) {
+                for (let d of ds) {
                     this.directory = d;
                     resolve(d);
                     this.dom.removeChild(this.input_d);
@@ -4068,11 +4068,11 @@ HTMLHalf.prototype.pickdir = function ()
 
 HTMLHalf.prototype.readdir = function ()
 {
-    var names = [];
+    let names = [];
 
     return Promise.resolve(this.pickdir()).then(d => {
         return d.getFilesAndDirectories().then(fs => {
-            for (var f of fs)
+            for (let f of fs)
                 names.push(f.name);
 
             return names;
@@ -4272,19 +4272,19 @@ function RRPort(port)
     this.rejecters = {};
 
     this.port.addEventListener("message", event => {
-        var [kind, seq, data] = event.data;
+        let [kind, seq, data] = event.data;
 
         if (kind === "response") {
-            var requester = this.requesters[seq];
+            let requester = this.requesters[seq];
             delete this.requesters[seq];
             delete this.rejecters[seq];
 
             requester(data);
         } else if (kind in this.responders) {
-            var responder = this.responders[kind];
+            let responder = this.responders[kind];
 
             Promise.resolve(responder(data)).then(([resp, transfer]) => {
-                var msg = ["response", seq];
+                let msg = ["response", seq];
                 msg.push(resp);
                 this.port.postMessage(msg, transfer);
             });
@@ -4295,7 +4295,7 @@ function RRPort(port)
     this.port.start();
 
     this.port.onclose = event => {
-        for (var seq in this.rejecters)
+        for (let seq in this.rejecters)
             this.rejecters[seq](event);
     };
 }
@@ -4308,8 +4308,8 @@ RRPort.prototype.open = function ()
 RRPort.prototype.req = function (kind, ...data)
 {
     return new Promise((resolve, reject) => {
-        var seq = this.seq++;
-        var msg = [kind, seq];
+        let seq = this.seq++;
+        let msg = [kind, seq];
         msg.push(...data);
 
         this.requesters[seq] = data => {
@@ -4470,9 +4470,9 @@ WebSocketWriter.prototype.provide = function (n)
         this.reject = reject;
         return reader.readAsArrayBuffer(this.webSocket);
     }).then(abuf => {
-        var view = new Uint8Array(abuf);
-        var s = "";
-        for (var i = 0; i < abuf.byteLength; i++)
+        let view = new Uint8Array(abuf);
+        let s = "";
+        for (let i = 0; i < abuf.byteLength; i++)
             s += String.fromCharCode(view[i]);
 
         return s;
@@ -4506,14 +4506,14 @@ FileListMetaWriter.prototype.kind = () => "filelist-metawriter";
 FileListMetaWriter.prototype.provide = function (request)
 {
     if (request[0] === "openat") {
-        for (var i = 0; i < this.filelist.length; i++)
+        for (let i = 0; i < this.filelist.length; i++)
             if (this.filelist[i].name === request[1])
                 return Promise.resolve([[this.filelist[i]]]);
         return Promise.reject();
     } else if (request[0] === "readdir") {
-        var names = [];
+        let names = [];
 
-        for (var i = 0; i < this.filelist.length; i++)
+        for (let i = 0; i < this.filelist.length; i++)
             names.push(this.filelist[i].name);
 
         return Promise.resolve([[names]]);
@@ -4541,16 +4541,16 @@ FileWriter.prototype.kind = () => "file-writer";
 FileWriter.prototype.provide = function (n)
 {
     return new Promise((resolve, reject) => {
-        var reader = new FileReader();
+        let reader = new FileReader();
 
         reader.onload = () => {
             resolve(reader.result);
         };
 	return reader.readAsArrayBuffer(this.file);
     }).then(abuf => {
-        var view = new Uint8Array(abuf);
-        var s = "";
-        for (var i = 0; i < abuf.byteLength; i++)
+        let view = new Uint8Array(abuf);
+        let s = "";
+        for (let i = 0; i < abuf.byteLength; i++)
             s += String.fromCharCode(view[i]);
 
         return s;
@@ -4580,7 +4580,7 @@ var gRemoteFDs = {};
 
 function FrozenThinThinFD(fd)
 {
-    var rfdno;
+    let rfdno;
 
     for (rfdno = 0; rfdno in gRemoteFDs; rfdno++);
 
@@ -4592,7 +4592,7 @@ function FrozenThinThinFD(fd)
 
 FrozenThinThinFD.prototype.thaw = function (process, target)
 {
-    var fd = new RemoteFD(process, target, this.rfdno, this.fdno);
+    let fd = new RemoteFD(process, target, this.rfdno, this.fdno);
     gRemoteFDs[this.rfdno] = fd;
     fd.target = target;
 
@@ -4613,7 +4613,7 @@ ThinThinFetchFD.prototype.open = function ()
 {
     return new Promise((resolve, reject) => {
         this.unpause(0).then(() => {
-            var handler = () => {
+            let handler = () => {
                 if (this.readError) {
                     reject(this.readError);
                 } else if (this.readOpened || this.readEOF) {
@@ -4629,7 +4629,7 @@ ThinThinFetchFD.prototype.open = function ()
 
 ThinThinFetchFD.prototype.startStuffing = function ()
 {
-    var url = this.url;
+    let url = this.url;
 
     delete this.url;
 
@@ -4640,7 +4640,7 @@ ThinThinFetchFD.prototype.startStuffing = function ()
     delete this.cache;
 
     if (this.cache) {
-        var req = new Request(url);
+        let req = new Request(url);
 
         return this.cache.match(req).then(response => {
             if (response === undefined) {
@@ -4655,11 +4655,11 @@ ThinThinFetchFD.prototype.startStuffing = function ()
 
             return Promise.reject(response);
         }).then(abuf => {
-            var view = new Uint8Array(abuf);
-            var text = "";
+            let view = new Uint8Array(abuf);
+            let text = "";
 
-            for (var i = 0; i < abuf.byteLength; i++) {
-                var cc = view[i];
+            for (let i = 0; i < abuf.byteLength; i++) {
+                let cc = view[i];
                 if (cc & 0x80) cc += 0x100;
                 text += String.fromCharCode(cc);
             }
@@ -4675,11 +4675,11 @@ ThinThinFetchFD.prototype.startStuffing = function ()
 
         return Promise.reject(response);
     }).then(abuf => {
-        var view = new Uint8Array(abuf);
-        var text = "";
+        let view = new Uint8Array(abuf);
+        let text = "";
 
-        for (var i = 0; i < abuf.byteLength; i++) {
-            var cc = view[i];
+        for (let i = 0; i < abuf.byteLength; i++) {
+            let cc = view[i];
             if (cc & 0x80) cc += 0x100;
             text += String.fromCharCode(cc);
         }
@@ -4691,7 +4691,7 @@ ThinThinFetchFD.prototype.startStuffing = function ()
 
 ThinThinFetchFD.prototype.inputPromise = function ()
 {
-    var url = this.url;
+    let url = this.url;
 
     delete this.url;
 
@@ -4734,9 +4734,9 @@ SparseDD.prototype.readMeta = function ()
     return this.base.openat(".dirs").then(fd => {
         return fd.readAsString();
     }).then(str => {
-        var dirs = str.split(/\0/);
+        let dirs = str.split(/\0/);
 
-        for (var dir of dirs) {
+        for (let dir of dirs) {
             dir = dir.replace(/^\.\//, "");
             this.entries[dir] = true;
         }
@@ -4747,7 +4747,7 @@ SparseDD.prototype.readMeta = function ()
 
 SparseDD.prototype.openat = function (path)
 {
-    var m;
+    let m;
     if (m = path.match(/^([^/]+)\/(.+)$/)) {
         return this.openat(m[1]).then(fd => {
             return fd.open().then(() => {
@@ -4782,15 +4782,15 @@ ReadableFD.prototype = Object.create(ThinThinFD.prototype);
 
 ReadableFD.prototype.startStuffing = function ()
 {
-    var readable = this.readable;
+    let readable = this.readable;
     this.onend = () => {
         this.stuffEOF();
     };
     this.ondata = (data) => {
-        var text = "";
+        let text = "";
 
-        for (var i = 0; i < data.length; i++) {
-            var cc = data[i];
+        for (let i = 0; i < data.length; i++) {
+            let cc = data[i];
             if (cc & 0x80) cc += 0x100;
             text += String.fromCharCode(cc);
         }
@@ -4806,7 +4806,7 @@ ReadableFD.prototype.startStuffing = function ()
 
 ReadableFD.prototype.stopStuffing = function ()
 {
-    var readable = this.readable;
+    let readable = this.readable;
 
     readable.removeListener("end", this.onend);
     delete this.onend;
@@ -4825,7 +4825,7 @@ WritableFD.prototype = Object.create(ThinThinFD.prototype);
 
 WritableFD.prototype.outputPromise = function (heap, ptr, len)
 {
-    var data = "";
+    let data = "";
 
     if (len == 0)
         return 0;
@@ -4854,8 +4854,8 @@ function MessagePortDD(process, port, fdno)
     this.onmessage = {};
 
     this.port.onmessage = (event) => {
-        var data = event.data;
-        var seq = data[0];
+        let data = event.data;
+        let seq = data[0];
 
         this.onmessage[seq](data);
     };
@@ -4865,10 +4865,10 @@ MessagePortDD.prototype = Object.create(ThinThinDD.prototype);
 MessagePortDD.prototype.openat = function (path)
 {
     return new Promise((resolve, reject) => {
-        var seq = this.seq++;
+        let seq = this.seq++;
         this.onmessage[seq] = (data) => {
             delete this.onmessage[seq];
-            var success = data[1];
+            let success = data[1];
 
             if (success)
                 resolve(new MessagePortFD(this.process, data[2]));
@@ -4883,10 +4883,10 @@ MessagePortDD.prototype.openat = function (path)
 MessagePortDD.prototype.openat_dir = function (path)
 {
     return new Promise((resolve, reject) => {
-        var seq = this.seq++;
+        let seq = this.seq++;
         this.onmessage[seq] = (data) => {
             delete this.onmessage[seq];
-            var success = data[1];
+            let success = data[1];
 
             if (success)
                 resolve(new MessagePortDD(this.process, data[2]));
@@ -4922,9 +4922,9 @@ RemoteFD.prototype.inputPromise = function ()
 
 RemoteFD.prototype.outputPromise = function (heap, ptr, len)
 {
-    var buf = new ArrayBuffer(len);
-    var buf8 = new Uint8Array(buf);
-    for (var i = 0; i < buf.byteLength; i++)
+    let buf = new ArrayBuffer(len);
+    let buf8 = new Uint8Array(buf);
+    for (let i = 0; i < buf.byteLength; i++)
         buf8[i] = heap[ptr+i];
 
     this.target(["send", this.rfdno, buf]);
@@ -4968,7 +4968,7 @@ FSDD.prototype.openat = function (path, flags, mode)
 
 if (typeof(os) !== "undefined" &&
     typeof(os.sys) !== "undefined") {
-    for (var syscall in Syscalls)
+    for (let syscall in Syscalls)
         ThinThin[syscall] = Syscalls[syscall];
     ThinThin.exit = function (code) {
 	this.close_all_fds();
@@ -5001,9 +5001,9 @@ if (typeof(os) !== "undefined" &&
     }
     ThinThin.clock_gettime = function (clk_id, timespec)
     {
-        var date = new Date();
-        var s = date / 1000.0;
-        var ns = (date % 1000.0) * 1000000.0;
+        let date = new Date();
+        let s = date / 1000.0;
+        let ns = (date % 1000.0) * 1000000.0;
 
         %{timespec[&timespec::tv_sec] = 0LL}
         %{timespec[&timespec::tv_nsec] = 0LL}
@@ -5018,7 +5018,7 @@ if (typeof(os) !== "undefined" &&
         return 0;
     };
     ThinThin.read = function (fdno, ptr, len) {
-        var fd = this.fds[fdno];
+        let fd = this.fds[fdno];
 
         if (!fd)
             return -%{EBADF};
@@ -5026,12 +5026,12 @@ if (typeof(os) !== "undefined" &&
         if (len == 0)
             return 0;
 
-        var ret = fd.read(this.HEAPU8, ptr, len);
+        let ret = fd.read(this.HEAPU8, ptr, len);
 
         return ret;
     };
     ThinThin[1] = ThinThin.write = function (fdno, ptr, len) {
-        var fd = this.fds[fdno];
+        let fd = this.fds[fdno];
 
         if (!fd)
             return -%{EBADF};
@@ -5048,8 +5048,8 @@ if (typeof(os) !== "undefined" &&
 	return this.close_fdno(fdno);
     };
     ThinThin.newfstatat = async function (fdno, pathstr, statbufptr, flags) {
-        var path = this.c_str(pathstr);
-        var dd;
+        let path = this.c_str(pathstr);
+        let dd;
 	if (path[0] === "/") {
 	    dd = this.process.ddroot;
 	} else if (path === "") {
@@ -5102,8 +5102,8 @@ if (typeof(os) !== "undefined" &&
 	    fd.close();
             return 0;
 	} else {
-            var fd = dd;
-            var off;
+            let fd = dd;
+            let off;
             for (off = 0; off < %{sizeof(struct stat)}; off += 4)
                 this.HEAP32[statbufptr+off>>2] = 0;
 
@@ -5412,10 +5412,10 @@ ThinThin.dlload = function (addr, len, memp)
     let ab = new ArrayBuffer(len);
     let sav = new Uint8Array(sab);
     let av = new Uint8Array(ab);
-    for (var i=0; i < len; i++)
+    for (let i=0; i < len; i++)
         av[i] = sav[i];
     return WebAssembly.compile(ab).then(compiled => {
-	var module = new Wasm32Module(this.process, compiled);
+	let module = new Wasm32Module(this.process, compiled);
 
 	return module.load(this, this.vm).then(ret => {
             this.HEAP32[memp>>2] = module.dyninfo.data_end - module.dyninfo.data;
@@ -5431,8 +5431,8 @@ ThinThin.dlload = function (addr, len, memp)
 
 ThinThin.dlreaddep = function (modi, mem, len)
 {
-    var module = Wasm32Modules[modi];
-    var ret = 0;
+    let module = Wasm32Modules[modi];
+    let ret = 0;
 
     while (module.depstring.length > 0 && ret < len) {
         this.HEAPU8[mem+ret] = module.depstring.charCodeAt(0);
@@ -5454,7 +5454,7 @@ ThinThin.dlinstantiate = async function (modi, mem)
 
 ThinThin.dlkill = function (modi)
 {
-    var module = Wasm32Modules[modi];
+    let module = Wasm32Modules[modi];
 
     return module.kill(this, this.vm);
 };
@@ -5517,10 +5517,10 @@ ThinThin.dynamic_symbol = async function (resptr, modid, csymbol, cversion)
 
 ThinThin.dlsym = function (modi, csym)
 {
-    var module = Wasm32Modules[modi];
+    let module = Wasm32Modules[modi];
 
     return new Promise((resolve, reject) => {
-        var symbol = this.c_str(csym);
+        let symbol = this.c_str(csym);
 
         let ret = module.symtab[symbol] || 0;
 
@@ -5530,13 +5530,13 @@ ThinThin.dlsym = function (modi, csym)
 
 ThinThin[20] = ThinThin.writev = function (fd, iov, iovcnt)
 {
-    var gret = 0;
+    let gret = 0;
     if (iovcnt == 0)
         return 0;
-    var i = 0;
+    let i = 0;
     while (%{iov[i+&iovec::iov_len]} == 0)
         i++;
-    var ret = ThinThin.write.call(this, fd, %{iov[i+&iovec::iov_base]}, %{iov[i+&iovec::iov_len]});
+    let ret = ThinThin.write.call(this, fd, %{iov[i+&iovec::iov_base]}, %{iov[i+&iovec::iov_len]});
 
     return ret;
 };
@@ -5564,13 +5564,13 @@ ThinThin.syscall = function (n, ...args)
 
 ThinThin.init_trampoline = async function (mtramp)
 {
-    var sigstr = this.c_str(this.HEAPU32[mtramp>>2]);
-    var sigarray = build_sig(sigstr);
-    var length = 8 + 11 + 7 + 1 + 1 + sigarray.length;
-    var siglength = sigarray.length;
-    var ab = new ArrayBuffer (length);
-    var code = new Uint8Array (ab);
-    var i = 0;
+    let sigstr = this.c_str(this.HEAPU32[mtramp>>2]);
+    let sigarray = build_sig(sigstr);
+    let length = 8 + 11 + 7 + 1 + 1 + sigarray.length;
+    let siglength = sigarray.length;
+    let ab = new ArrayBuffer (length);
+    let code = new Uint8Array (ab);
+    let i = 0;
 
     /* "asm\0" magic */
     code[i++] = 0x00;
@@ -5617,11 +5617,11 @@ ThinThin.init_trampoline = async function (mtramp)
     }
 
     let compiled = await WebAssembly.compile(code);
-    var imports = {};
+    let imports = {};
     imports.sys = {};
     imports.sys.T = (...args) => {
-        var fnaddr = this.HEAPU32[mtramp+8>>2];
-        var static_chain = this.HEAPU32[mtramp+16>>2];
+        let fnaddr = this.HEAPU32[mtramp+8>>2];
+        let static_chain = this.HEAPU32[mtramp+16>>2];
 
         this.set_rv(static_chain);
         return this.vm.table.get(fnaddr)(...args);
@@ -5635,7 +5635,7 @@ ThinThin.init_trampoline = async function (mtramp)
 
 ThinThin.destroy_trampoline = function (mtramp)
 {
-    var index = this.HEAPU32[mtramp+24>>2];
+    let index = this.HEAPU32[mtramp+24>>2];
 
     this.vm.space_functions.free(index);
 
@@ -5644,7 +5644,7 @@ ThinThin.destroy_trampoline = function (mtramp)
 
 ThinThin.chdir = function (ptr)
 {
-    var path = this.c_str(ptr);
+    let path = this.c_str(ptr);
     if (path[0] === "/")
 	this.pwd = path;
     else
@@ -5662,7 +5662,7 @@ ThinThin.chdir = function (ptr)
 
 ThinThin.pipe2 = function (ptr, flags)
 {
-    var pipe = new ThinThinHalf();
+    let pipe = new ThinThinHalf();
     let fds = [new ThinThinHalfFD(this.process, pipe),
 	       new ThinThinHalfFD(this.process, pipe)];
     fds[0].other = fds[1];
@@ -5694,7 +5694,7 @@ ThinThin.linkat = function (oldfdno, coldpath,
 };
 
 ThinThin.openat = async function (fdno, ptr, flags, mode) {
-    var path = this.c_str(ptr);
+    let path = this.c_str(ptr);
 
     /* Emacs uses this trick to check whether a path refers to a directory. */
     if (path.match(/\/$/) || (flags & %{O_DIRECTORY})) {
@@ -5730,7 +5730,7 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 
     if (this.pwd && path[0] !== "/")
 	path = this.pwd + "/" + path;
-    var dd;
+    let dd;
     if (fdno >= 0)
 	dd = this.fds[fdno];
     else if (fdno === %{AT_FDROOTD})
@@ -5739,7 +5739,7 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 	dd = this.process.ddcwd;
     else
 	return -%{EBADF};
-    var dd = this.fds[fdno];
+    let dd = this.fds[fdno];
     if (!dd)
         dd = this.process.ddcwd;
 
@@ -5775,8 +5775,8 @@ ThinThin.readlinkat = function ()
 if (host_system === "node") {
     ThinThin.renameat2 = async function (oldfdno, coldpath, newfdno, cnewpath, flags)
     {
-	var oldpath = this.c_str(coldpath);
-	var newpath = this.c_str(cnewpath);
+	let oldpath = this.c_str(coldpath);
+	let newpath = this.c_str(cnewpath);
 
 	if (this.pwd) {
 	    if (oldpath[0] !== "/")
@@ -5815,8 +5815,8 @@ if (host_system === "node") {
 } else if (host_system === "mozilla") {
     ThinThin.renameat2 = function (oldfdno, coldpath, newfdno, cnewpath, flags)
     {
-	var oldpath = this.c_str(coldpath);
-	var newpath = this.c_str(cnewpath);
+	let oldpath = this.c_str(coldpath);
+	let newpath = this.c_str(cnewpath);
 
 	if (this.pwd) {
 	    if (oldpath[0] !== "/")
@@ -5829,8 +5829,8 @@ if (host_system === "node") {
 
 	let oldfd = this.fds[oldfdno];
 	let newfd = this.fds[newfdno];
-	var oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
-	var newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
+	let oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
+	let newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
 
     };
 
@@ -5995,20 +5995,20 @@ async function load_remote(path)
 	throw response;
     let [root, cwd, stdin, stdout, stderr] = await remote_process(kernel, ab);
     console.log("got ports");
-    var process = new Wasm32Process(system);
-    var dom = document.getElementById("output");
+    let process = new Wasm32Process(system);
+    let dom = document.getElementById("output");
 
-    var pipe0 = new ThinThinHalf();
-    var pipe1 = new ThinThinHalf();
-    var pipe2 = new ThinThinHalf();
+    let pipe0 = new ThinThinHalf();
+    let pipe1 = new ThinThinHalf();
+    let pipe2 = new ThinThinHalf();
 
     new HTMLHalf(pipe0.reverse(), dom);
     new HTMLHalf(pipe1.reverse(), dom);
     new HTMLHalf(pipe2.reverse(), dom);
 
-    var rr0 = new RRPort(stdin);
-    var rr1 = new RRPort(stdout);
-    var rr2 = new RRPort(stderr);
+    let rr0 = new RRPort(stdin);
+    let rr1 = new RRPort(stdout);
+    let rr2 = new RRPort(stderr);
 
     new RRPortHalf(pipe0, rr0, false);
     new RRPortHalf(pipe1, rr1, false);
@@ -6018,7 +6018,7 @@ async function load_remote(path)
     rr1.port.start();
     rr2.port.start();
 
-    var f;
+    let f;
     f = () => document.getElementById("debug2").innerHTML =
         `${pipe0.debug("pipe0", f)}<br>${pipe1.debug("pipe1", f)}<br>${pipe2.debug("pipe2", f)}`;
     f();
