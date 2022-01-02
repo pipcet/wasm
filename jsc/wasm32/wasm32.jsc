@@ -938,7 +938,7 @@ Wasm32Thread.prototype.open_fd = function (fd, fdno = undefined)
 	return fd;
 
     if (fdno === undefined)
-	for (fdno = 0; !this.fds[fdno]; fdno++)
+	for (fdno = 0; this.fds[fdno]; fdno++)
 	    ;
 
     this.fds[fdno] = fd;
