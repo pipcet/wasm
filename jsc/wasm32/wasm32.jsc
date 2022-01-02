@@ -3246,7 +3246,7 @@ ThinThinFD.prototype.read = async function (heap, ptr, len)
 
     if (this.readData.length > this.readPosition ||
         this.readEOF) {
-        var i = 0;
+        let i = 0;
 
 	let data = this.readData.substr(this.readPosition, len);
 	for (let c of data) {
@@ -3276,7 +3276,7 @@ ThinThinFD.prototype.available = async function ()
         return this.readData.length - this.readPosition;
 
     if (!this.readAvailable) {
-        var readAvailable = () => {
+        let readAvailable = () => {
             this.pause();
             this.onstuff.delete(this.readAvailable);
             delete this.readAvailable;
