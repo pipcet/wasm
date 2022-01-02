@@ -1460,7 +1460,7 @@ Wasm32Process.prototype.fork = function (kport, pid)
     for (let sp in this.threads[0].extcallRet) {
 	extcallRet[sp] = 0;
     }
-    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice(), pid);
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x.ref()), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice(), pid);
     return ret.then(process => {
 	process.threads[0].extcallRet = extcallRet;
 	return process;
