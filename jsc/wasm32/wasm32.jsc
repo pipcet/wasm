@@ -1437,8 +1437,8 @@ function Wasm32Process(system, fds)
 	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
     } else {
 	this.fds = fds ? fds : [];
-	this.ddroot = system.ddroot = new ThinThinDD(this, 4);
-	this.ddcwd = new ThinThinDD(this, 5);
+	this.ddroot = system.ddroot = new ThinThinDD(this);
+	this.ddcwd = new ThinThinDD(this);
 
 	this.fds[4] = this.ddroot; // XXX %{AT_FDROOTD}
 	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
@@ -2788,7 +2788,7 @@ ThinThinDD.prototype.openat = function (path, flags)
     if (path.match(/^\/dev\/(u?random)$/))
 	return Promise.resolve(-%{ENOENT});
     if (path === "" || path === "." || path.match(/\/\.$/)) {
-	let ret = new ThinThinDD(this.process);
+	let ret = new ThinThinDD();
 	let data = os.file.readFile(path + "/.dir", "utf-8");
 	ret.entries = this.entries;
 	ret.readData = data;
@@ -2814,7 +2814,7 @@ ThinThinDD.prototype.openat = function (path, flags)
     try {
 	let data = os.file.readFile(path + "/.dir", "utf-8");
 	if (data !== null) {
-	    let ret = new ThinThinDD(this.process);
+	    let ret = new ThinThinDD();
 	    ret.readData = data;
 	    ret.read = ThinThinFD.prototype.read;
 	    ret.path = path;
@@ -2903,7 +2903,7 @@ ThinThinNodeDD.prototype.readdir = function ()
 
 function ThinThinFetchDD(process, parent, stem, cache, fdno)
 {
-    ThinThinDD.call(this, process, fdno);
+    ThinThinDD.call(this);
     this.stem = stem;
     this.cache = cache;
 }
@@ -4703,7 +4703,7 @@ ThinThinFetchFD.prototype.inputPromise = function ()
 
 function SparseDD(base, fdno)
 {
-    ThinThinDD.call(this, base.process, fdno);
+    ThinThinDD.call(this);
     this.base = base;
 
     this.entries = {};
@@ -4848,7 +4848,7 @@ ArrayBufferFD.prototype = Object.create(ThinThinFD.prototype);
 
 function MessagePortDD(process, port, fdno)
 {
-    ThinThinDD.call(this, process, fdno);
+    ThinThinDD.call(this);
     this.port = port;
     this.seq = 1;
     this.onmessage = {};
@@ -4940,7 +4940,7 @@ var fs;
 function FSDD(process, root, fdno)
 {
 
-    ThinThinDD.call(this, process, fdno);
+    ThinThinDD.call(this);
     this.root = root;
 }
 
