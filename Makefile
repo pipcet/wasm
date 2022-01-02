@@ -27,6 +27,9 @@ all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.
 extracted github/assets github/release github/install install ship src stamp test wasm wasm32/cross/test/gcc/tmp:
 	$(MKDIR) $@
 
+%/:
+	$(MKDIR) $@
+
 start-over!:
 	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32
 
