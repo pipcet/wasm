@@ -1792,11 +1792,7 @@ github/check-release!: | github
 	fi; \
 	true
 
-github/latest: | github
-	$(MKDIR) $@
-
-artifacts/up artifacts/down: | .github-init
-	$(MKDIR) $@
+artifacts/up/ artifacts/down/: | .github-init
 
 daily:
 	$(MKDIR) $@
