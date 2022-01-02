@@ -2313,7 +2313,6 @@ var SyscallSignatures = {
     rmdir:        [ 84, "ptr"],
     unlink:       [ 87, "ptr"],
     rename:       [ 82, "ptr", "ptr"],
-    chdir:        [ 80, "ptr"],
     gettimeofday: [ 96, "ptr", "u64"],
     getuid:       [102],
     getgid:       [104],
@@ -5661,6 +5660,9 @@ ThinThin.chdir = function (ptr)
 	this.pwd = this.pwd.replace(/\/\//, "/");
     while (this.pwd.match(/\/$/))
 	this.pwd = this.pwd.replace(/\/$/, "");
+    let fd = this.fds[%{AT_FDCWD}];
+    if (fd)
+	fd.path = this.pwd;
     return Promise.resolve(0);
 };
 
