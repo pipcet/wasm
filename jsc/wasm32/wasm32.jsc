@@ -3530,7 +3530,7 @@ ThinThinFDWriter.prototype.done = function ()
     return true;
 };
 
-function ThinThinHalfFD(process, half, fdno)
+function ThinThinHalfFD(half)
 {
     ThinThinFD.call(this);
 
@@ -3579,11 +3579,11 @@ ThinThinHalfFD.prototype.openat = function (path, flags)
         if ((obj instanceof Array) && obj.length && (obj[0] instanceof File)) {
             let pipe = new ThinThinHalf();
             new FileListHalf(pipe, obj);
-            return new ThinThinHalfFD(this.process, pipe);
+            return new ThinThinHalfFD(pipe);
         } else if (obj instanceof File) {
             let pipe = new ThinThinHalf();
             new FileHalf(pipe, obj);
-            return new ThinThinHalfFD(this.process, pipe);
+            return new ThinThinHalfFD(pipe);
         }
     });
 };
@@ -3599,16 +3599,19 @@ ThinThinHalfFD.prototype.write = function (heap, ptr, len)
 {
     let ret = ThinThinFD.prototype.write.call(this, heap, ptr, len);
     if (!this.other.reader_promise) {
-	return new Promise(r => this.other.reader_promise_promise = r).then(() => {
+	let ret = new Promise(r => {
+	    this.other.reader_promise_promise = r;
+	}).then(() => {
 	    this.other.reader_promise(this.write_string);
 	    return ret;
-	})
+	});
+	return ret;
     }
     this.other.reader_promise(this.write_string);
     return ret;
 };
 
-ThinThinHalfFD.prototype.read = function (heap, ptr, len)
+ThinThinHalfFD.prototype.read = async function (heap, ptr, len)
 {
     if (!this.reader) {
 	this.reader = new Promise(r => {
@@ -3618,10 +3621,9 @@ ThinThinHalfFD.prototype.read = function (heap, ptr, len)
 	    }
 	});
     }
-    return this.reader.then(data => {
-	this.readData = data;
-	return ThinThinFD.prototype.read.call(this, heap, ptr, len);
-    });
+    let data = await this.reader;
+    this.readData = data;
+    return ThinThinFD.prototype.read.call(this, heap, ptr, len);
 };
 
 function SparseMetaWriter(half)
@@ -5018,7 +5020,7 @@ if (typeof(os) !== "undefined" &&
 
         return 0;
     };
-    ThinThin.read = function (fdno, ptr, len) {
+    ThinThin.read = async function (fdno, ptr, len) {
         let fd = this.fds[fdno];
 
         if (!fd)
@@ -5027,7 +5029,7 @@ if (typeof(os) !== "undefined" &&
         if (len == 0)
             return 0;
 
-        let ret = fd.read(this.HEAPU8, ptr, len);
+        let ret = await fd.read(this.HEAPU8, ptr, len);
 
         return ret;
     };
@@ -5665,8 +5667,8 @@ ThinThin.chdir = function (ptr)
 ThinThin.pipe2 = function (ptr, flags)
 {
     let pipe = new ThinThinHalf();
-    let fds = [new ThinThinHalfFD(this.process, pipe),
-	       new ThinThinHalfFD(this.process, pipe)];
+    let fds = [new ThinThinHalfFD(pipe),
+	       new ThinThinHalfFD(pipe)];
     fds[0].other = fds[1];
     fds[1].other = fds[0];
     this.HEAP32[ptr >> 2] = this.open_fd(fds[0]);
