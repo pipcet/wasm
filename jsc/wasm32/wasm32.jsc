@@ -1433,15 +1433,15 @@ function Wasm32Process(system, fds)
 	this.fds = fds ? fds : [];
 	this.ddroot = system.ddroot = new ThinThinNodeDD("/");
 	this.ddcwd = new ThinThinNodeDD(".");
-	this.fds[4] = this.ddroot; // XXX %{AT_FDROOTD}
-	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
+	this.fds[%{AT_FDROOTD}] = this.ddroot;
+	this.fds[%{AT_FDCWD}] = this.ddcwd;
     } else {
 	this.fds = fds ? fds : [];
 	this.ddroot = system.ddroot = new ThinThinDD(this);
 	this.ddcwd = new ThinThinDD(this);
 
-	this.fds[4] = this.ddroot; // XXX %{AT_FDROOTD}
-	this.fds[5] = this.ddcwd; // XXX %{AT_FDCWD}
+	this.fds[%{AT_FDROOTD}] = this.ddroot;
+	this.fds[%{AT_FDCWD}] = this.ddcwd;
     }
 
     //system.ddroot.open();
