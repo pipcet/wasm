@@ -89,6 +89,7 @@ $VAR1 = {
           'tp1[&tp1->top_of_stack] = "module.top_of_stack"' => 'HEAP32[8192+32>>2] = module.top_of_stack;',
           'tp[&tp->initsp]' => 'this.HEAP32[this.threadpage+80>>2]',
           'tp[&tp->pc]' => 'this.HEAP32[this.threadpage+48>>2]',
+          'tp[&tp->rv] = "rv"' => 'this.HEAP32[this.threadpage+88>>2] = rv;',
           'tp[&tp->sp]' => 'this.HEAP32[this.threadpage+72>>2]',
           'tp[&tp->stop_reason]' => 'this.HEAP32[this.threadpage+40>>2]',
           'tvptr[&timeval::tv_sec]' => 'this.HEAP32[tvptr>>2]',
