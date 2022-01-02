@@ -40,17 +40,17 @@ clean: clean!
 # the build-or-install generic rule
 
 define do-build =
-wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/build/$(2)
+stamp/wasm32/$(1)/$(2)/install: stamp/wasm32/$(1)/$(2)/build
 	touch $$@
 endef
 
 define do-download =
-wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/download/$(2)
+stamp/wasm32/$(1)/$(2)/install: stamp/wasm32/$(1)/$(2)/download
 	touch $$@
 endef
 
 define build-or-install =
-wasm32/$(1)/stamp/install/$(2): wasm32/$(1)/stamp/install
+stamp/wasm32/$(1)/$(2)/install: stamp/wasm32/$(1)/$(2)/
 $(if $(filter all $(2),$(ARTIFACTS)),$(call do-build,$(1),$(2)),$(call do-download,$(1),$(2)))
 endef
 
@@ -68,19 +68,7 @@ wasm32/native: | wasm32
 	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
 	$(MKDIR) $@/lib
 
-wasm32/native/stamp: | wasm32/native
-	$(MKDIR) $@
-
-wasm32/native/stamp/configure: | wasm32/native
-	$(MKDIR) $@
-
-wasm32/native/stamp/build: | wasm32/native
-	$(MKDIR) $@
-
-wasm32/native/stamp/download: | wasm32/native
-	$(MKDIR) $@
-
-wasm32/native/stamp/install: | wasm32/native
+stamp/wasm32/native: | wasm32/native
 	$(MKDIR) $@
 
 wasm32/native/build: | wasm32/cross
@@ -98,19 +86,7 @@ wasm32/cross/bin: | wasm32/cross
 wasm32/cross/src: | wasm32/cross
 	$(MKDIR) $@
 
-wasm32/cross/stamp: | wasm32/cross
-	$(MKDIR) $@
-
-wasm32/cross/stamp/install: | wasm32/cross
-	$(MKDIR) $@
-
-wasm32/cross/stamp/configure: | wasm32/cross/stamp
-	$(MKDIR) $@
-
-wasm32/cross/stamp/build: | wasm32/cross/stamp
-	$(MKDIR) $@
-
-wasm32/cross/stamp/download: | wasm32/cross
+stamp/wasm32/cross: | wasm32/cross
 	$(MKDIR) $@
 
 # Binutils/GDB
@@ -121,14 +97,14 @@ wasm32/cross/src/binutils-gdb: | wasm32/cross/src
 	cp -as $(PWD)/subrepos/binutils-gdb/* $@T/
 	mv $@T $@
 
-wasm32/cross/stamp/configure/binutils-gdb: | wasm32/cross/src/binutils-gdb wasm32/cross/build/binutils-gdb wasm32/cross/stamp/configure
+stamp/wasm32/cross/binutils-gdb/configure: | wasm32/cross/src/binutils-gdb wasm32/cross/build/binutils-gdb stamp/wasm32/cross/binutils-gdb/
 	(cd wasm32/cross/src/binutils-gdb/gas; aclocal)
 	(cd wasm32/cross/src/binutils-gdb/gas; automake || true)
 	(cd wasm32/cross/src/binutils-gdb/gas; autoreconf2.69 || autoreconf || true)
 	(cd wasm32/cross/build/binutils-gdb; ../../src/binutils-gdb/configure --target=wasm32-unknown-none --enable-debug --disable-werror --prefix=$(PWD)/wasm32/cross CFLAGS=$(OPT_NATIVE))
 	touch $@
 
-wasm32/cross/stamp/build/binutils-gdb: wasm32/cross/stamp/configure/binutils-gdb | wasm32/cross/stamp/build
+stamp/wasm32/cross/binutils-gdb/build: stamp/wasm32/cross/binutils-gdb/configure | stamp/wasm32/cross/binutils-gdb/
 	$(MAKE) -C wasm32/cross/build/binutils-gdb
 	$(MAKE) -C wasm32/cross/build/binutils-gdb install
 	touch $@
@@ -140,11 +116,11 @@ $(eval $(call build-or-install,cross,binutils-gdb))
 wasm32/cross/src/gcc-preliminary: | wasm32/cross/src
 	test -L $@ || $(LN) ../../../subrepos/gcc $@
 
-wasm32/cross/stamp/configure/gcc-preliminary: | wasm32/cross/stamp/install/binutils-gdb wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc wasm32/cross/stamp/configure install/gcc-dependencies
+stamp/wasm32/cross/gcc-preliminary/configure: | stamp/wasm32/cross/binutils-gdb/install wasm32/cross/build/gcc-preliminary wasm32/cross/src/gcc stamp/wasm32/cross/gcc-preliminary/ install/gcc-dependencies
 	(cd wasm32/cross/build/gcc-preliminary; CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) ../../src/gcc/configure --enable-optimize=$(OPT_NATIVE) --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --enable-languages=c --disable-libssp --prefix=$(PWD)/wasm32/cross)
 	touch $@
 
-wasm32/cross/stamp/build/gcc-preliminary: wasm32/cross/stamp/configure/gcc-preliminary | wasm32/cross/stamp
+stamp/wasm32/cross/gcc-preliminary/build: stamp/wasm32/cross/gcc-preliminary/configure | stamp/wasm32/cross
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH CFLAGS=$(OPT_NATIVE) CXXFLAGS=$(OPT_NATIVE) $(MAKE) -C wasm32/cross/build/gcc-preliminary install
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.0/libgcc.a wasm32/cross/lib/gcc/wasm32-unknown-none/12.0.0/libgcc_eh.a
@@ -171,11 +147,11 @@ $(patsubst %,wasm32/cross/build/%,binutils-gdb gcc-preliminary gcc wabt binaryen
 $(patsubst %,wasm32/native/build/%,binutils-gdb gcc glibc ncurses bash wabt binaryen python gmp mpc zlib): wasm32/native/build/%: | wasm32/native/build
 	$(MKDIR) $@
 
-wasm32/native/stamp/configure/glibc: | wasm32/cross/stamp/install/gcc-preliminary wasm32/native/build/glibc wasm32/native/src/glibc wasm32/native/stamp/configure
+stamp/wasm32/native/glibc/configure: | stamp/wasm32/cross/gcc-preliminary/install wasm32/native/build/glibc wasm32/native/src/glibc stamp/wasm32/native/glibc/
 	(cd wasm32/native/build/glibc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/glibc/configure CFLAGS="-fPIC -O2 -Wno-error=missing-attributes" --enable-optimize=$(OPT_NATIVE) --host=wasm32-unknown-none --target=wasm32-unknown-none --enable-hacker-mode --prefix=$(PWD)/wasm32/native --disable-werror)
 	touch $@
 
-wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/native/stamp/build
+stamp/wasm32/native/glibc/build: stamp/wasm32/native/glibc/configure | stamp/wasm32/native/glibc/
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/glibc install
 	touch $@
@@ -183,21 +159,21 @@ wasm32/native/stamp/build/glibc: wasm32/native/stamp/configure/glibc | wasm32/na
 $(eval $(call build-or-install,native,glibc))
 
 ifneq (${GITHUB},1)
-wasm32/native/lib/libc.so: wasm32/native/stamp/build/glibc
-wasm32/native/lib/libm.so: wasm32/native/stamp/build/glibc
-wasm32/native/lib/ld.so.1: wasm32/native/stamp/build/glibc
-wasm32/native/lib/libcrypt.so: wasm32/native/stamp/build/glibc
-wasm32/native/lib/libutil.so: wasm32/native/stamp/build/glibc
-wasm32/native/lib/libdl.so: wasm32/native/stamp/build/glibc
+wasm32/native/lib/libc.so: stamp/wasm32/native/glibc/
+wasm32/native/lib/libm.so: stamp/wasm32/native/glibc/
+wasm32/native/lib/ld.so.1: stamp/wasm32/native/glibc/
+wasm32/native/lib/libcrypt.so: stamp/wasm32/native/glibc/
+wasm32/native/lib/libutil.so: stamp/wasm32/native/glibc/
+wasm32/native/lib/libdl.so: stamp/wasm32/native/glibc/
 endif
 
 # GCC (final build, C/C++/LTO, no libgccjit)
 
-wasm32/cross/stamp/configure/gcc: | wasm32/native/stamp/install/glibc wasm32/cross/stamp/install/gcc-preliminary wasm32/cross/build/gcc wasm32/cross/src/gcc wasm32/cross/stamp/configure install/gcc-dependencies
+stamp/wasm32/cross/gcc/configure: | stamp/wasm32/native/glibc/install stamp/wasm32/cross/gcc-preliminary/install wasm32/cross/build/gcc wasm32/cross/src/gcc stamp/wasm32/cross/gcc/ install/gcc-dependencies
 	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O2" CXXFLAGS="-O2" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O2" --enable-shared --enable-symvers=gnu)
 	touch $@
 
-wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/stamp/build wasm32/cross/src/gcc
+stamp/wasm32/cross/gcc/build: stamp/wasm32/cross/gcc/configure | stamp/wasm32/cross/build wasm32/cross/src/gcc
 	$(MKDIR) wasm32/cross/build/gcc/gcc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc
 	cp wasm32/cross/build/gcc/gcc/libgcc.a wasm32/cross/build/gcc/gcc/libgcc_eh.a
@@ -207,37 +183,37 @@ wasm32/cross/stamp/build/gcc: wasm32/cross/stamp/configure/gcc | wasm32/cross/st
 
 $(eval $(call build-or-install,cross,gcc))
 
-wasm32/cross/lib/libstdc++.so: wasm32/cross/stamp/install/glibc
+wasm32/cross/lib/libstdc++.so: stamp/wasm32/cross/glibc/install
 
 # ncurses
 
-wasm32/native/stamp/configure/ncurses: | wasm32/cross/stamp/install/gcc wasm32/native/src/ncurses wasm32/native/build/ncurses wasm32/native/stamp/configure
+stamp/wasm32/native/ncurses/configure: | stamp/wasm32/cross/gcc/install wasm32/native/src/ncurses wasm32/native/build/ncurses stamp/wasm32/native/ncurses/
 	(cd wasm32/native/build/ncurses; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/ncurses/configure MAKE_TERMINFO=1 --enable-optimize=$(OPT_WASM) --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-stripping --with-shared --without-cxx-binding)
 	touch $@
 
-wasm32/native/stamp/build/ncurses: wasm32/native/stamp/configure/ncurses | wasm32/native/stamp/build
+stamp/wasm32/native/ncurses/build: stamp/wasm32/native/ncurses/configure | stamp/wasm32/native/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/ncurses install
 	touch $@
 
 $(eval $(call build-or-install,native,ncurses))
 
-wasm32/native/lib/libncurses.so: wasm32/native/stamp/install/ncurses
+wasm32/native/lib/libncurses.so: stamp/wasm32/native/ncurses/install
 
 # bash
 
-wasm32/native/stamp/configure/bash: | wasm32/native/stamp/install/ncurses wasm32/native/src/bash wasm32/native/build/bash wasm32/native/stamp/configure
+stamp/wasm32/native/bash/configure: | stamp/wasm32/native/ncurses/install wasm32/native/src/bash wasm32/native/build/bash stamp/wasm32/native/bash/
 	(cd wasm32/native/build/bash; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/bash/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-bash-malloc)
 	touch $@
 
-wasm32/native/stamp/build/bash: wasm32/native/stamp/configure/bash | wasm32/native/stamp/build
+stamp/wasm32/native/bash/build: stamp/wasm32/native/bash/configure | stamp/wasm32/native/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/bash
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/bash install
 	touch $@
 
 $(eval $(call build-or-install,native,bash))
 
-wasm32/native/bin/bash: wasm32/native/stamp/install/bash
+wasm32/native/bin/bash: stamp/wasm32/native/bash/install
 
 # zsh
 
@@ -247,18 +223,18 @@ wasm32/native/build/zsh: | wasm32/native/build
 	cp -as $(PWD)/subrepos/zsh/* $@T/
 	mv $@T $@
 
-wasm32/native/stamp/configure/zsh: | wasm32/native/stamp/build/ncurses wasm32/native/build/zsh wasm32/native/stamp/configure
+stamp/wasm32/native/zsh/configure: | stamp/wasm32/native/ncurses/build wasm32/native/build/zsh stamp/wasm32/native/zsh/
 	(cd wasm32/native/build/zsh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH autoreconf -vif; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/zsh: wasm32/native/stamp/configure/zsh | wasm32/native/stamp/build
+stamp/wasm32/native/zsh/build: stamp/wasm32/native/zsh/configure | stamp/wasm32/native/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zsh install
 	touch $@
 
 $(eval $(call build-or-install,native,zsh))
 
-wasm32/native/bin/zsh: wasm32/native/stamp/install/zsh
+wasm32/native/bin/zsh: stamp/wasm32/native/zsh/install
 
 # coreutils
 
@@ -268,26 +244,26 @@ wasm32/native/build/coreutils: | wasm32/native/build
 	cp -as $(PWD)/subrepos/coreutils/* $@T/
 	mv $@T $@
 
-wasm32/native/stamp/configure/coreutils: | wasm32/native/stamp/build/ncurses wasm32/native/build/coreutils wasm32/native/stamp/configure wasm32/native/lib/js/wasm32.js
+stamp/wasm32/native/coreutils/configure: | stamp/wasm32/native/ncurses/build wasm32/native/build/coreutils stamp/wasm32/native/coreutils/ wasm32/native/lib/js/wasm32.js
 	(cd wasm32/native/build/coreutils; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./bootstrap --skip-po --no-git --gnulib-srcdir=$(PWD)/wasm32/native/build/coreutils/gnulib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure  --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/coreutils: wasm32/native/stamp/configure/coreutils | wasm32/native/stamp/build
+stamp/wasm32/native/coreutils/build: stamp/wasm32/native/coreutils/configure | stamp/wasm32/native/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) --trace -C wasm32/native/build/coreutils install
 	touch $@
 
 $(eval $(call build-or-install,native,coreutils))
 
-wasm32/native/bin/true wasm32/native/bin/false wasm32/native/bin/echo: wasm32/native/stamp/install/coreutils
+wasm32/native/bin/true wasm32/native/bin/false wasm32/native/bin/echo: stamp/wasm32/native/coreutils/install
 
 # Python
 
-wasm32/native/stamp/configure/python: | wasm32/cross/stamp/install/gcc wasm32/native/src/python wasm32/native/build/python wasm32/native/stamp/configure
+stamp/wasm32/native/python/configure: | stamp/wasm32/cross/gcc/install wasm32/native/src/python wasm32/native/build/python stamp/wasm32/native/python/
 	(cd wasm32/native/build/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/python/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-ipv6 --with-ensurepip=no)
 	touch $@
 
-wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/native/stamp/build
+stamp/wasm32/native/python/build: stamp/wasm32/native/python/configure | stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/python install
 	touch $@
@@ -295,7 +271,7 @@ wasm32/native/stamp/build/python: wasm32/native/stamp/configure/python | wasm32/
 $(eval $(call build-or-install,native,python))
 
 ifneq (${GITHUB},1)
-wasm32/native/bin/python3: wasm32/native/stamp/build/python
+wasm32/native/bin/python3: stamp/wasm32/native/python/build
 endif
 
 # Perl
@@ -308,23 +284,23 @@ wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libut
 	cp -as $(PWD)/subrepos/perl/* $(addprefix $(PWD)/subrepos/perl/.,dir-locals.el editorconfig lgtm.yml metaconf-exclusions.txt travis.yml) $@T/
 	mv $@T $@
 
-wasm32/native/stamp/configure/perl: | wasm32/native/build/perl wasm32/cross/stamp/build/gcc wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir wasm32/native/stamp/configure
+stamp/wasm32/native/perl/configure: | wasm32/native/build/perl stamp/wasm32/cross/gcc/build wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir stamp/wasm32/native/perl/
 	test -f wasm32/native/build/perl/config.sh && mv wasm32/native/build/perl/config.sh wasm32/native/build/perl/config.sh.old || true
 	touch wasm32/native/build/perl/config.sh
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	(cd wasm32/native/build/perl; PATH=$(PWD)/wasm32/cross/bin:$$PATH sh ./Configure -der -Uversiononly -Uusemymalloc -Dar=wasm32-unknown-none-ar -Dcc=wasm32-unknown-none-gcc -Doptimize="-O3 -fno-strict-aliasing" -Dincpth='' -Dcccdlflags='-fPIC -Wl,--shared -shared' -Dlddlflags='-Wl,--shared -shared' -Dccdlflags='-Wl,-E'  -Dloclibpth=' ' -Dglibpth=' ' -Dplibpth=' ' -Dusedl -Dlibs='-ldl -lm -lcrypt -lutil' -Dd_u32align=define -Dusedevel -Darchname='wasm32' -Dprefix='$(PWD)/wasm32/native')
 	touch $@
 
-wasm32/native/stamp/build/miniperl: wasm32/native/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/stamp/build
+stamp/wasm32/native/miniperl/build: stamp/wasm32/native/perl/configure | install/binfmt_misc/elf32-wasm32 stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl miniperl
 	cp wasm32/native/build/perl/miniperl wasm32/native/bin/miniperl
 	touch $@
 
 $(eval $(call build-or-install,native,miniperl))
 
-wasm32/native/bin/miniperl: wasm32/native/stamp/install/miniperl
+wasm32/native/bin/miniperl: stamp/wasm32/native/miniperl/install
 
-wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native/stamp/configure/perl | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir wasm32/native/stamp/build
+stamp/wasm32/native/perl/build: stamp/wasm32/native/miniperl/build stamp/wasm32/native/perl/configure | install/binfmt_misc/elf32-wasm32 wasm32/native/lib/js/wasm32.js wasm32/cross/bin/dotdir stamp/wasm32/native/build
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl < /dev/null
 	PERL_CORE=1 PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/perl install < /dev/null
@@ -332,30 +308,30 @@ wasm32/native/stamp/build/perl: wasm32/native/stamp/build/miniperl wasm32/native
 
 $(eval $(call build-or-install,native,perl))
 
-wasm32/native/bin/perl: wasm32/native/stamp/install/perl
+wasm32/native/bin/perl: stamp/wasm32/native/perl/install
 
 # zlib
 
-wasm32/native/stamp/configure/zlib: | wasm32/native/build/zlib wasm32/native/src/zlib wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
+stamp/wasm32/native/zlib/configure: | wasm32/native/build/zlib wasm32/native/src/zlib stamp/wasm32/cross/gcc/build stamp/wasm32/native/zlib/
 	(cd wasm32/native/build/zlib; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/zlib/configure --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/zlib: wasm32/native/stamp/configure/zlib | wasm32/native/stamp/build
+stamp/wasm32/native/zlib/build: stamp/wasm32/native/zlib/configure | stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/zlib install
 	touch $@
 
 $(eval $(call build-or-install,native,zlib))
 
-wasm32/native/lib/libz.so: wasm32/native/stamp/install/zlib
+wasm32/native/lib/libz.so: stamp/wasm32/native/zlib/install
 
 # GMP
 
-wasm32/native/stamp/configure/gmp: | wasm32/native/build/gmp wasm32/native/src/gmp wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
+stamp/wasm32/native/gmp/configure: | wasm32/native/build/gmp wasm32/native/src/gmp stamp/wasm32/cross/gcc/build stamp/wasm32/native/gmp/
 	(cd wasm32/native/build/gmp; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gmp/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/gmp: wasm32/native/stamp/configure/gmp | wasm32/native/stamp wasm32/native/stamp/build
+stamp/wasm32/native/gmp/build: stamp/wasm32/native/gmp/configure | stamp/wasm32/native stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gmp install
 	touch $@
@@ -364,11 +340,11 @@ $(eval $(call build-or-install,native,gmp))
 
 # MPC
 
-wasm32/native/stamp/configure/mpc: | wasm32/native/src/mpc wasm32/native/build/mpc wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure wasm32/native/stamp/install/mpfr wasm32/native/stamp/install/gmp
+stamp/wasm32/native/mpc/configure: | wasm32/native/src/mpc wasm32/native/build/mpc stamp/wasm32/cross/gcc/build stamp/wasm32/native/mpc/ stamp/wasm32/native/mpfr/install stamp/wasm32/native/gmp/install
 	(cd wasm32/native/build/mpc; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpc/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/mpc: wasm32/native/stamp/configure/mpc | wasm32/native/stamp/build
+stamp/wasm32/native/mpc/build: stamp/wasm32/native/mpc/configure | stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpc install
 	touch $@
@@ -385,12 +361,12 @@ wasm32/native/src/mpfr: | wasm32/native/src
 wasm32/native/build/mpfr: | wasm32/native/build
 	$(MKDIR) $@
 
-wasm32/native/stamp/configure/mpfr: | wasm32/native/src/mpfr wasm32/native/build/mpfr wasm32/cross/stamp/build/gcc wasm32/native/stamp/configure
+stamp/wasm32/native/mpfr/configure: | wasm32/native/src/mpfr wasm32/native/build/mpfr stamp/wasm32/cross/gcc/build stamp/wasm32/native/mpfr/
 	(cd wasm32/native/src/mpfr; libtoolize && sh autogen.sh)
 	(cd wasm32/native/build/mpfr; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/mpfr/configure --host=wasm32-unknown-none --build=$(native-triplet) --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/mpfr: wasm32/native/stamp/configure/mpfr | wasm32/native/stamp/build
+stamp/wasm32/native/mpfr/build: stamp/wasm32/native/mpfr/configure | stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/mpfr install
 	touch $@
@@ -404,12 +380,12 @@ wasm32/native/src/binutils-gdb: | wasm32/cross/src
 	cp -as $(PWD)/subrepos/binutils-gdb/* $@T/
 	mv $@T $@
 
-wasm32/native/stamp/configure/binutils-gdb: | wasm32/native/src/binutils-gdb wasm32/native/build/binutils-gdb wasm32/native/stamp/configure
+stamp/wasm32/native/binutils-gdb/configure: | wasm32/native/src/binutils-gdb wasm32/native/build/binutils-gdb stamp/wasm32/native/binutils-gdb/
 	(cd wasm32/native/src/binutils-gdb/gas; aclocal; automake; autoreconf)
 	(cd wasm32/native/build/binutils-gdb; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/binutils-gdb/configure --build=$(native-triplet) --target=wasm32-unknown-none --host=wasm32-unknown-none --enable-debug --prefix=$(PWD)/wasm32/native CFLAGS=$(OPT_WASM) --disable-werror)
 	touch $@
 
-wasm32/native/stamp/build/binutils-gdb: wasm32/native/stamp/configure/binutils-gdb | wasm32/native/stamp/build
+stamp/wasm32/native/binutils-gdb/build: stamp/wasm32/native/binutils-gdb/configure | stamp/wasm32/native/build
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/binutils-gdb install
 	touch $@
@@ -418,11 +394,11 @@ $(eval $(call build-or-install,native,binutils-gdb))
 
 # GCC (native)
 
-wasm32/native/stamp/configure/gcc: | wasm32/native/stamp/build/glibc wasm32/cross/stamp/build/gcc wasm32/native/build/gcc wasm32/native/src/gcc wasm32/native/stamp/configure wasm32/native/stamp/install/gmp wasm32/native/stamp/install/mpc wasm32/native/stamp/install/mpfr
+stamp/wasm32/native/gcc/configure: | stamp/wasm32/native/glibc/build stamp/wasm32/cross/gcc/build wasm32/native/build/gcc wasm32/native/src/gcc stamp/wasm32/native/gcc/ stamp/wasm32/native/gmp/install stamp/wasm32/native/mpc/install stamp/wasm32/native/mpfr/install
 	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
 	touch $@
 
-wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native/stamp/build wasm32/native/src/gcc
+stamp/wasm32/native/gcc/build: stamp/wasm32/native/gcc/configure | stamp/wasm32/native/build wasm32/native/src/gcc
 	$(MKDIR) wasm32/native/build/gcc/gcc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/gcc
 	cp wasm32/native/build/gcc/gcc/libgcc.a wasm32/native/build/gcc/gcc/libgcc_eh.a
@@ -432,7 +408,7 @@ wasm32/native/stamp/build/gcc: wasm32/native/stamp/configure/gcc | wasm32/native
 
 $(eval $(call build-or-install,native,gcc))
 
-wasm32/native/lib/libgccjit.so: wasm32/native/stamp/install/gcc
+wasm32/native/lib/libgccjit.so: stamp/wasm32/native/gcc/install
 
 # Emacs
 
@@ -441,11 +417,11 @@ wasm32/cross/build/emacs: | wasm32/cross/build
 	cp -as $(PWD)/subrepos/emacs/* $@T/
 	mv $@T $@
 
-wasm32/cross/stamp/configure/emacs: | wasm32/cross/build/emacs wasm32/cross/stamp/configure
+stamp/wasm32/cross/emacs/configure: | wasm32/cross/build/emacs stamp/wasm32/cross/emacs/
 	(cd wasm32/native/build/emacs; sh autogen.sh; ./configure --build=$(native-triplet) --host=$(native-triplet) --prefix=$(PWD)/wasm32/cross --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
 	touch $@
 
-wasm32/cross/stamp/build/emacs: wasm32/cross/stamp/configure/emacs
+stamp/wasm32/cross/emacs/build: stamp/wasm32/cross/emacs/configure
 	$(MAKE) -C wasm32/cross/build/emacs
 	(cd wasm32/cross/build/emacs; tar cvf elc.tar $$(find lisp/leim/quail -name '*.el') lisp/leim/ja-dic/ja-dic.el lisp/cedet/semantic/bovine/make-by.el lisp/cedet/semantic/wisent/python-wy.el $$(find -name '*.elc'))
 	touch $@
@@ -457,64 +433,41 @@ wasm32/native/build/emacs: | wasm32/native/build
 	mv $@T $@
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar || true
 
-wasm32/native/stamp/configure/emacs: | wasm32/native/build/emacs wasm32/cross/bin/dotdir wasm32/native/stamp/configure
+stamp/wasm32/native/emacs/configure: | wasm32/native/build/emacs wasm32/cross/bin/dotdir stamp/wasm32/native/emacs/
 	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
 	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	touch $@
 
-wasm32/native/stamp/build/emacs: wasm32/native/stamp/configure/emacs | wasm32/native/stamp/build/ncurses wasm32/native/stamp/build
+stamp/wasm32/native/emacs/build: stamp/wasm32/native/emacs/configure | stamp/wasm32/native/ncurses/build stamp/wasm32/native/build
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs install
 	touch $@
 
 # Needs runtime
-wasm32/native/stamp/build/emacs: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
-
-# Emacs with "native" (Emacs Lisp -> WebAssembly) compilation
-
-# Emacs is _built_ in the source directory, so copy that.
-wasm32/native/build/emacs-native-comp: | wasm32/native/build wasm32/native/stamp/install/gcc wasm32/native/stamp/install/ncurses wasm32/native/stamp/install/gmp
-	$(MKDIR) $@T
-	cp -as $(PWD)/subrepos/emacs-native-comp/* $@T/
-	mv $@T $@
-	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar || true
+stamp/wasm32/native/emacs/build: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
 
 # Temporary rule
 %.eln.wasm: %.eln
 	wasm32/cross/bin/elf-to-wasm --library --dynamic $< > $@
 
-wasm32/native/stamp/configure/emacs-native-comp: | wasm32/native/build/emacs-native-comp wasm32/cross/bin/dotdir wasm32/native/stamp/configure
-	(cd wasm32/native/build/emacs-native-comp; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=pdumper --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-json --without-xft --without-libgmp --without-all --with-nativecomp --with-zlib)
-	find wasm32/native/build/emacs-native-comp -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
-	touch $@
-
-wasm32/native/stamp/build/emacs-native-comp: wasm32/native/stamp/configure/emacs-native-comp | wasm32/native/stamp/build/ncurses wasm32/native/stamp/build
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp
-	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs-native-comp install
-	touch $@
-
-$(eval $(call build-or-install,native,emacs-native-comp))
-
-wasm32/native/stamp/build/emacs-native-comp: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm wasm/libz.wasm wasm/libgccjit.wasm
-
 # wabt
 
-wasm32/cross/stamp/configure/wabt: | wasm32/cross/build/wabt wasm32/cross/src/wabt wasm32/cross/stamp/configure
+stamp/wasm32/cross/wabt/configure: | wasm32/cross/build/wabt wasm32/cross/src/wabt stamp/wasm32/cross/wabt/
 	(cd wasm32/cross/build/wabt; cmake ../../src/wabt -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 	touch $@
 
-wasm32/cross/stamp/build/wabt: wasm32/cross/stamp/configure/wabt | wasm32/cross/stamp
+stamp/wasm32/cross/wabt/build: stamp/wasm32/cross/wabt/configure | stamp/wasm32/cross
 	$(MAKE) -C wasm32/cross/build/wabt
 	$(MAKE) -C wasm32/cross/build/wabt install
 	touch $@
 
 # Binaryen
 
-wasm32/cross/stamp/configure/binaryen: | wasm32/cross/build/binaryen wasm32/cross/src/binaryen wasm32/cross/stamp/configure
+stamp/wasm32/cross/binaryen/configure: | wasm32/cross/build/binaryen wasm32/cross/src/binaryen stamp/wasm32/cross/binaryen/
 	(cd wasm32/cross/build/binaryen; cmake ../../src/binaryen -DCMAKE_INSTALL_PREFIX=$(PWD)/wasm32/cross -DCMAKE_BUILD_TYPE=Debug)
 	touch $@
 
-wasm32/cross/stamp/build/binaryen: wasm32/cross/stamp/configure/binaryen | wasm32/cross/stamp
+stamp/wasm32/cross/binaryen/build: stamp/wasm32/cross/binaryen/configure | stamp/wasm32/cross
 	$(MAKE) -C wasm32/cross/build/binaryen
 	$(MAKE) -C wasm32/cross/build/binaryen install
 	touch $@
@@ -537,15 +490,15 @@ wasm32/native/test/glibc: | wasm32/native/test
 	$(MKDIR) $@
 
 # Copying wasm32-headers.o is unfortunate, but required by our linker script.
-wasm32/cross/test/binutils-gdb/summary: wasm32/cross/stamp/build/binutils-gdb | wasm32/cross/stamp/build/gcc-preliminary wasm32/cross/test/binutils-gdb
+wasm32/cross/test/binutils-gdb/summary: stamp/wasm32/cross/binutils-gdb/build | stamp/wasm32/cross/gcc-preliminary/build wasm32/cross/test/binutils-gdb
 	cp wasm32/cross/lib/gcc/wasm32-unknown-none/11.0.1/wasm32-headers.o wasm32/cross/build/binutils-gdb/ld/
 	(cd wasm32/cross/build/binutils-gdb; $(MAKE) check)
 	cat $(patsubst %,wasm32/cross/build/binutils-gdb/%,binutils/binutils.sum gas/testsuite/gas.sum libctf/libctf.sum ld/ld.sum sim/testsuite/testrun.sum) > $@
 
-wasm32/cross/test/gcc-preliminary/summary: wasm32/cross/stamp/build/gcc-preliminary | | wasm32/cross/test/gcc-preliminary
+wasm32/cross/test/gcc-preliminary/summary: stamp/wasm32/cross/gcc-preliminary/build | | wasm32/cross/test/gcc-preliminary
 	(cd wasm32/cross/build/gcc-preliminary; $(MAKE) check)
 
-wasm32/native/test/glibc/summary: wasm32/native/stamp/build/glibc | wasm32/native/test/glibc
+wasm32/native/test/glibc/summary: stamp/wasm32/native/glibc/build | wasm32/native/test/glibc
 	(cd wasm32/native/build/glibc; $(MAKE) check)
 
 
@@ -557,7 +510,7 @@ wasm32/native/test/glibc/summary: wasm32/native/stamp/build/glibc | wasm32/nativ
 
 
 
-wasm32/native/test/bash/summary: wasm32/native/stamp/bash | wasm32/native/test/bash
+wasm32/native/test/bash/summary: stamp/wasm32/native/bash | wasm32/native/test/bash
 	(cd wasm32/native/build/bash; $(MAKE) check)
 
 wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc wasm32/cross/test/gcc/tmp
@@ -1102,7 +1055,7 @@ wasm/python.wasm: wasm32/wasm/bin/python3 | wasm
 	$(LN) ../$< $@
 
 COREUTILS = echo true false ls cat seq od printf printenv
-$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/native/stamp/build/coreutils | wasm
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect stamp/wasm32/native/coreutils/build | wasm
 	$(LN) ../$< $@
 
 wasm32/native/lib: | wasm32/native
@@ -1116,7 +1069,7 @@ wasm32/native/lib/js/wasm32.js: jsc/wasm32/wasm32.jsc | wasm32/native/lib/js was
 	(echo "//autogenerated from $<, do not edit"; echo '"use strict";'; wasm32/cross/bin/jsc wasm32-unknown-none) < $< > $@.new
 	mv $@.new $@
 
-wasm32/native/stamp/build/all: wasm32/native/stamp/build/binutils-gdb wasm32/native/stamp/build/gcc-preliminary wasm32/native/stamp/build/glibc wasm32/native/stamp/build/gcc wasm32/native/stamp/build/ncurses wasm32/native/stamp/build/bash wasm32/native/stamp/build/gdb
+stamp/wasm32/native/all/build: stamp/wasm32/native/binutils-gdb/build stamp/wasm32/native/gcc-preliminary/build stamp/wasm32/native/glibc/build stamp/wasm32/native/gcc/build stamp/wasm32/native/ncurses/build stamp/wasm32/native/bash/build stamp/wasm32/native/gdb/build
 	touch $@
 
 wasm32/cross/lib/wasm32-lds/wasm32.lds: lds/wasm32.cpp-lds
@@ -1134,7 +1087,7 @@ wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds: lds/wasm32-wasmify.lds
 testsuite-dirs = $(wildcard testsuite/*)
 test-dirs = $(patsubst testsuite/%,test/wasm32/%,$(testsuite-dirs))
 
-$(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 wasm32/native/stamp/build/glibc
+$(test-dirs): test/wasm32/%: | testsuite/% test/wasm32 stamp/wasm32/native/glibc/build
 	$(MKDIR) test/wasm32/$*
 	cp -r testsuite/$*/* test/wasm32/$*/
 	$(LN) ../../../testsuite/$* test/wasm32/$*/src
@@ -1227,15 +1180,15 @@ install/%:
 endif
 
 # objdump debug rule
-%.wasm.wasm-objdump: %.wasm wasm32/cross/stamp/build/wabt
+%.wasm.wasm-objdump: %.wasm stamp/wasm32/cross/wabt/build
 	wasm32/cross/bin/wasm-objdump -dhx $< > $@
 
 # wasm-to-wasm optimization rules
-%.wasm.{O}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
+%.wasm.{O}.wasm: %.wasm stamp/wasm32/cross/binaryen/build
 	wasm32/cross/bin/wasm-opt $< -o $@
-%.wasm.{O4}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
+%.wasm.{O4}.wasm: %.wasm stamp/wasm32/cross/binaryen/build
 	wasm32/cross/bin/wasm-opt -O4 $< -o $@
-%.wasm.{Oz}.wasm: %.wasm wasm32/cross/stamp/build/binaryen
+%.wasm.{Oz}.wasm: %.wasm stamp/wasm32/cross/binaryen/build
 	wasm32/cross/bin/wasm-opt -Oz $< -o $@
 
 # C -> exe/o/s rules. These take special flags as part of the filename:
@@ -1371,7 +1324,7 @@ test/%.exp.cmp: test/%.exp test/%
 
 binutils-test!: install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
-	$(MAKE) wasm32/stamp/build/binutils-gdb
+	$(MAKE) stamp/wasm32/binutils-gdb/build
 	$(MAKE) artifacts/up
 	$(MAKE) artifact-timestamp
 	$(MAKE) -k -C build/wasm32/binutils-gdb check || true
@@ -1388,38 +1341,37 @@ gcc-testsuites-pack!: | artifacts/down/atomic.exp.{dejagnu}.tar artifacts/down/b
 	cd tmp; tar cvf ../artifacts/up/dejagnu.tar .
 
 sequence: \
-	wasm32/cross/stamp/build/binutils-gdb \
-	wasm32/cross/stamp/build/gcc-preliminary \
-	wasm32/native/stamp/build/glibc \
-	wasm32/cross/stamp/build/gcc \
-	wasm32/native/stamp/build/ncurses \
-	wasm32/native/stamp/build/bash \
-	wasm32/native/stamp/build/zsh \
-	wasm32/native/stamp/build/coreutils \
-	wasm32/native/stamp/build/python \
-	wasm32/native/stamp/build/miniperl \
-	wasm32/native/stamp/build/zlib \
-	wasm32/native/stamp/build/gmp \
-	wasm32/native/stamp/build/mpc \
-	wasm32/native/stamp/build/mpfr \
-	wasm32/native/stamp/build/binutils-gdb \
-	wasm32/native/stamp/build/gcc \
-	wasm32/cross/stamp/build/emacs \
-	wasm32/native/stamp/build/emacs \
-	wasm32/native/stamp/build/emacs-native-comp \
-	wasm32/cross/stamp/build/wabt \
-	wasm32/cross/stamp/build/binaryen
+	stamp/wasm32/cross/binutils-gdb/build \
+	stamp/wasm32/cross/gcc-preliminary/build \
+	stamp/wasm32/native/glibc/build \
+	stamp/wasm32/cross/gcc/build \
+	stamp/wasm32/native/ncurses/build \
+	stamp/wasm32/native/bash/build \
+	stamp/wasm32/native/zsh/build \
+	stamp/wasm32/native/coreutils/build \
+	stamp/wasm32/native/python/build \
+	stamp/wasm32/native/miniperl/build \
+	stamp/wasm32/native/zlib/build \
+	stamp/wasm32/native/gmp/build \
+	stamp/wasm32/native/mpc/build \
+	stamp/wasm32/native/mpfr/build \
+	stamp/wasm32/native/binutils-gdb/build \
+	stamp/wasm32/native/gcc/build \
+	stamp/wasm32/cross/emacs/build \
+	stamp/wasm32/native/emacs/build \
+	stamp/wasm32/cross/wabt/build \
+	stamp/wasm32/cross/binaryen/build
 
 all: sequence
 
 .PHONY: %! clean all
 .SUFFIXES:
 
-wasm32/cross/stamp/configure/python: | wasm32/cross/stamp/build/gcc wasm32/native/src/python wasm32/native/build/python wasm32/native/stamp/configure
+stamp/wasm32/cross/python/configure: | stamp/wasm32/cross/gcc/build wasm32/native/src/python wasm32/native/build/python stamp/wasm32/native/python/
 	(cd wasm32/native/build/python; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/python/configure --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --disable-ipv6 --with-ensurepip=no)
 	touch $@
 
-wasm32/cross/stamp/build/python: wasm32/cross/stamp/configure/python | wasm32/cross/stamp
+stamp/wasm32/cross/python/build: stamp/wasm32/cross/python/configure | stamp/wasm32/cross
 	$(MAKE) -C wasm32/cross/build/python
 	$(MAKE) -C wasm32/cross/build/python install
 	touch $@
@@ -1446,33 +1398,32 @@ problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
 gcc-testsuites!: $(patsubst %,build/wasm32/gcc-testsuite/%.{dejagnu}.tar,$(GCC_TESTSUITES)) | all
 
 daily/binutils-gdb!: | subrepos/binutils-gdb/checkout!
-	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
+	$(MAKE) stamp/wasm32/cross/binutils-gdb/build
 
 daily/gcc-preliminary!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	rm -rf wasm32/cross/stamp/*/gcc-preliminary
-	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
+	rm -rf stamp/wasm32/cross/*/gcc-preliminary
+	$(MAKE) stamp/wasm32/cross/gcc-preliminary/build
 
 daily/glibc!: | subrepos/glibc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	rm -rf wasm32/native/stamp/*/glibc
-	$(MAKE) wasm32/native/stamp/build/glibc
+	rm -rf stamp/wasm32/native/*/glibc
+	$(MAKE) stamp/wasm32/native/glibc/build
 
 daily/gcc!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	rm -rf wasm32/cross/stamp/*/gcc
-	$(MAKE) wasm32/cross/stamp/build/gcc
+	rm -rf stamp/wasm32/cross/*/gcc
+	$(MAKE) stamp/wasm32/cross/gcc/build
 	$(MAKE) wasm/libstdc++.wasm
 
 daily/ncurses!: | subrepos/ncurses/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	$(MAKE) wasm32/native/stamp/build/ncurses
+	$(MAKE) stamp/wasm32/native/ncurses/build
 	$(MAKE) wasm/libncurses.wasm
 
 daily/miniperl!: | subrepos/perl/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz
-	$(MAKE) wasm32/native/stamp/build/miniperl
+	$(MAKE) stamp/wasm32/native/miniperl/build
 	$(MAKE) wasm/miniperl.wasm
 
 daily/bash!: | install/file-slurp
 daily/coreutils!: | install/file-slurp
 daily/emacs!: | install/file-slurp
-daily/emacs-native-comp!: | install/file-slurp
 daily/miniperl!: | install/file-slurp
 daily/perl!: | install/file-slurp
 daily/python!: | install/file-slurp
@@ -1489,16 +1440,16 @@ daily/run-wasm!: | wasm32/native/lib/js/wasm32.js
 daily/zsh!: | install/file-slurp
 
 daily/bash!: | subrepos/bash/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz
-	$(MAKE) wasm32/native/stamp/build/bash wasm/bash.wasm
+	$(MAKE) stamp/wasm32/native/bash/build wasm/bash.wasm
 
-wasm32/native/stamp/build/zsh: | install/nroff
+stamp/wasm32/native/zsh/build: | install/nroff
 
 daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz
-	$(MAKE) wasm32/native/stamp/build/zsh
+	$(MAKE) stamp/wasm32/native/zsh/build
 
 daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/coreutils
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/coreutils/build
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 
 daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
@@ -1509,19 +1460,8 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	$(MAKE) artifacts/down/wasm/libutil.wasm
 	$(MAKE) artifacts/down/wasm/libm.wasm
 	$(MAKE) artifacts/down/wasm/libncurses.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/emacs/build
 	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
-
-daily/emacs-native-comp!: | subrepos/emacs-native-comp/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-gcc.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
-	$(MAKE) wasm/ld.wasm
-	$(MAKE) wasm/libc.wasm
-	$(MAKE) wasm/libdl.wasm
-	$(MAKE) wasm/libcrypt.wasm
-	$(MAKE) wasm/libutil.wasm
-	$(MAKE) wasm/libm.wasm
-	$(MAKE) wasm/libncurses.wasm
-	$(MAKE) wasm/libgccjit.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/emacs-native-comp
 
 daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm/ld.wasm
@@ -1531,7 +1471,7 @@ daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libncurses.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) wasm32/native/stamp/build/gmp
+	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/gmp/build
 
 daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
@@ -1541,7 +1481,7 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	$(MAKE) wasm32/native/stamp/build/miniperl wasm/miniperl.wasm
+	$(MAKE) stamp/wasm32/native/miniperl/build wasm/miniperl.wasm
 
 daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/sysctl/overcommit_memory wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
@@ -1551,10 +1491,10 @@ daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	$(MAKE) wasm32/native/stamp/build/perl wasm/perl.wasm
+	$(MAKE) stamp/wasm32/native/perl/build wasm/perl.wasm
 
 daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
-	$(MAKE) wasm32/cross/stamp/build/python
+	$(MAKE) stamp/wasm32/cross/python/build
 	$(MKDIR) wasm
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
@@ -1562,7 +1502,7 @@ daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	$(MAKE) wasm32/native/stamp/build/python wasm/python.wasm
+	$(MAKE) stamp/wasm32/native/python/build wasm/python.wasm
 	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 
@@ -1616,25 +1556,25 @@ artifact-wasm32-environment!: | artifacts artifacts/up artifacts/down install/fi
 
 artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts artifacts/up artifacts/down
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/build/binutils-gdb
+	$(MAKE) stamp/wasm32/cross/binutils-gdb/build
 	tar cf artifacts/up/wasm32-cross-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/build/gcc-preliminary
+	$(MAKE) stamp/wasm32/cross/gcc-preliminary/build
 	tar cf artifacts/up/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/gcc
+	$(MAKE) stamp/wasm32/native/gcc/build
 	tar cf artifacts/up/wasm32-native-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/glibc
+	$(MAKE) stamp/wasm32/native/glibc/build
 	tar cf artifacts/up/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm
 	cp wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm artifacts/up
@@ -1642,14 +1582,14 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts artifacts/up
 
 artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar extracted/artifacts/down/wasm32-native-glibc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/cross/stamp/build/gcc
+	$(MAKE) stamp/wasm32/cross/gcc/build
 	$(MAKE) wasm/libstdc++.wasm
 	tar cf artifacts/up/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
-	$(MKDIR) wasm32/cross/stamp/download
-	touch wasm32/cross/stamp/download/binutils-gdb
-	touch wasm32/cross/stamp/download/gcc-preliminary
-	touch wasm32/cross/stamp/download/glibc
-	touch wasm32/cross/stamp/download/gcc
+	$(MKDIR) stamp/wasm32/cross/download
+	touch stamp/wasm32/cross/download/binutils-gdb
+	touch stamp/wasm32/cross/download/gcc-preliminary
+	touch stamp/wasm32/cross/download/glibc
+	touch stamp/wasm32/cross/download/gcc
 	tar cf artifacts/up/wasm32-cross-toolchain.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none)
 	cp wasm/libstdc++.wasm artifacts/up
 	$(MAKE) artifact-push!
@@ -1657,7 +1597,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up arti
 artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/ncurses
+	$(MAKE) stamp/wasm32/native/ncurses/build
 	$(MAKE) wasm/libncurses.wasm
 	tar cf artifacts/up/wasm32-native-ncurses.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	cp wasm/libncurses.wasm artifacts/up/
@@ -1666,35 +1606,35 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts artifact
 artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts artifacts/up artifacts/down
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/binutils-gdb
+	$(MAKE) stamp/wasm32/native/binutils-gdb/build
 	tar cf artifacts/up/wasm32-native-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts artifacts/down artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/bash wasm/bash.wasm
+	$(MAKE) stamp/wasm32/native/bash/build wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/zsh wasm/zsh.wasm
+	$(MAKE) stamp/wasm32/native/zsh/build wasm/zsh.wasm
 	cp wasm/zsh.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/zlib wasm/libz.wasm
+	$(MAKE) stamp/wasm32/native/zlib/build wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/gmp
+	$(MAKE) stamp/wasm32/native/gmp/build
 	tar cf artifacts/up/wasm32-native-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
@@ -1702,7 +1642,7 @@ artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts artifacts/up a
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/mpfr
+	$(MAKE) stamp/wasm32/native/mpfr/build
 	tar cf artifacts/up/wasm32-native-mpfr.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
@@ -1711,7 +1651,7 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts artifacts/up art
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/mpc
+	$(MAKE) stamp/wasm32/native/mpc/build
 	tar cf artifacts/up/wasm32-native-mpc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
@@ -1720,13 +1660,13 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts arti
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
 	cp artifacts/down/*.wasm wasm
-	$(MAKE) wasm32/native/stamp/build/coreutils
+	$(MAKE) stamp/wasm32/native/coreutils/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/up/
 	$(MAKE) artifact-push!
 
 artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
-	$(MAKE) wasm32/cross/stamp/build/python
+	$(MAKE) stamp/wasm32/cross/python/build
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
 	$(MAKE) artifacts/down/wasm/ld.wasm
@@ -1735,7 +1675,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts artifacts/
 	$(MAKE) artifacts/down/wasm/libcrypt.wasm
 	$(MAKE) artifacts/down/wasm/libutil.wasm
 	$(MAKE) artifacts/down/wasm/libm.wasm
-	$(MAKE) wasm32/native/stamp/build/python wasm/python.wasm
+	$(MAKE) stamp/wasm32/native/python/build wasm/python.wasm
 	touch wasm32/native/lib/python3.10/encodings/.dir wasm32/native/lib/python3.10/.dir
 	PYTHONHOME=$(PWD)/wasm32/native ./wasm32/native/bin/python3 -c 'print(3+4)' < /dev/null
 	cp wasm/python.wasm artifacts/up/
@@ -1743,7 +1683,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts artifacts/
 
 artifact-emacs!: | subrepos/emacs/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/emacs
+	$(MAKE) stamp/wasm32/native/emacs/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 	cp $(patsubst %,wasm/%.wasm,temacs emacs) artifacts/up/
 	$(MAKE) artifact-push!
@@ -1758,13 +1698,13 @@ artifact-perl!: | install/file-slurp
 
 artifact-miniperl!: | subrepos/perl/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/miniperl wasm/miniperl.wasm
+	$(MAKE) stamp/wasm32/native/miniperl/build wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
 artifact-perl!: | subrepos/perl/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
-	$(MAKE) wasm32/native/stamp/build/perl wasm/perl.wasm
+	$(MAKE) stamp/wasm32/native/perl/build wasm/perl.wasm
 	cp wasm/perl.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
@@ -1894,22 +1834,22 @@ artifact-push!:
 	(cd artifacts/up; for file in *; do if [ "$$file" -nt ../../artifact-timestamp ]; then name=$$(basename "$$file"); (cd ../..; bash github/ul-artifact "$$name" "artifacts/up/$$name"); fi; done)
 
 ifneq ($(DAILY),)
-wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/daily/wasm32-native-%.tar.gz
+stamp/wasm32/native/download/%: stamp/wasm32/native/download extracted/daily/wasm32-native-%.tar.gz
 	touch $@
 
-wasm32/cross/stamp/download/binutils-gdb: wasm32/cross/stamp/download
+stamp/wasm32/cross/download/binutils-gdb: stamp/wasm32/cross/download
 	touch $@
 
-wasm32/cross/stamp/download/gcc-preliminary: wasm32/cross/stamp/download
+stamp/wasm32/cross/download/gcc-preliminary: stamp/wasm32/cross/download
 	touch $@
 
-wasm32/native/stamp/download/glibc: wasm32/native/stamp/download
+stamp/wasm32/native/download/glibc: stamp/wasm32/native/download
 	touch $@
 
-wasm32/cross/stamp/download/gcc: wasm32/cross/stamp/download
+stamp/wasm32/cross/download/gcc: stamp/wasm32/cross/download
 	touch $@
 else
-wasm32/native/stamp/download/%: wasm32/native/stamp/download extracted/artifacts/down/wasm32-native-%.tar
+stamp/wasm32/native/download/%: stamp/wasm32/native/download extracted/artifacts/down/wasm32-native-%.tar
 	touch $@
 endif
 endif
