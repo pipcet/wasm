@@ -70,6 +70,9 @@ if (typeof os === "undefined") {
     readline = function () {
 	return null;
     };
+} else if (os && os.sys && os.sys.call ||
+	   os && os.sys && os.sys.call64) {
+    host_system = "mozilla-syscall";
 }
 
 var path = args.shift();
@@ -5668,26 +5671,43 @@ ThinThin.pipe2 = function (ptr, flags)
     return 0;
 };
 
-ThinThin.linkat = function (oldfdno, coldpath,
-			    newfdno, cnewpath,
-			    flags)
-{
-    let oldpath = this.c_str(coldpath);
-    let newpath = this.c_str(cnewpath);
+if (host_system === "mozilla") {
+    ThinThin.linkat = function (oldfdno, coldpath,
+				newfdno, cnewpath,
+				flags)
+    {
+	let oldpath = this.c_str(coldpath);
+	let newpath = this.c_str(cnewpath);
 
-    if (oldpath[0] !== "/")
-	oldpath = this.pwd + "/" + oldpath;
+	if (oldpath[0] !== "/")
+	    oldpath = this.pwd + "/" + oldpath;
 
-    if (newpath[0] !== "/")
-	newpath = this.pwd + "/" + newpath;
+	if (newpath[0] !== "/")
+	    newpath = this.pwd + "/" + newpath;
 
-    if (host_system === "mozilla")
 	os.system(`cp ${oldpath} ${newpath}`)
-    else if (host_system === "node")
+
+	return 0;
+    };
+} else if (host_system === "node") {
+    ThinThin.linkat = function (oldfdno, coldpath,
+				newfdno, cnewpath,
+				flags)
+    {
+	let oldpath = this.c_str(coldpath);
+	let newpath = this.c_str(cnewpath);
+
+	if (oldpath[0] !== "/")
+	    oldpath = this.pwd + "/" + oldpath;
+
+	if (newpath[0] !== "/")
+	    newpath = this.pwd + "/" + newpath;
+
 	fs.linkSync(oldpath, newpath);
 
-    return 0;
-};
+	return 0;
+    };
+}
 
 ThinThin.openat = async function (fdno, ptr, flags, mode) {
     let path = this.c_str(ptr);
