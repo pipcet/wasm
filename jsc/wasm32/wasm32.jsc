@@ -1038,7 +1038,7 @@ Wasm32Thread.prototype.stop = function (reason)
 
 Wasm32Thread.prototype.set_rv = function (rv)
 {
-    //%XXX{tp[&tp->rv]} = rv;
+    //%XXX{tp[&tp->rv]} = rv;, but this has a different offset.
     this.HEAPU32[8192 + 12 * 8>>2] = rv;
 };
 
@@ -2859,7 +2859,6 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
     while (path.match(/\/\//))
 	path = path.replace(/\/\//, "/");
 
-    /* XXX check path is openable first? */
     let flags_node = "r";
     if ((flags & %{O_WRONLY}) || (flags & %{O_RDWR})) {
 	flags_node = "w+";
@@ -5042,9 +5041,6 @@ if (typeof(os) !== "undefined" &&
         return fd.write(this.HEAPU8, ptr, len);
     };
     ThinThin.close = function (fdno) {
-	if (fdno < 3)
-	    return 0; // XXX
-
 	return this.close_fdno(fdno);
     };
     ThinThin.newfstatat = async function (fdno, pathstr, statbufptr, flags) {
@@ -5901,7 +5897,6 @@ ThinThin.fchmodat = function ()
 
 ThinThin.fchmod = function ()
 {
-    /* XXX should go through fchmodat */
     return 0;
 };
 var sizes = {
