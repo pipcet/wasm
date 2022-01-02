@@ -1581,7 +1581,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts/up/ artifacts/dow
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/gcc/build
 	$(MAKE) wasm/libstdc++.wasm
-	tar cf artifacts/up/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
+	tar cf artifacts/up/wasm32-cross-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/gcc -N ./artifact-timestamp
 	$(MKDIR) stamp/wasm32/cross/download
 	touch stamp/wasm32/cross/binutils-gdb/download
 	touch stamp/wasm32/cross/gcc-preliminary/download
