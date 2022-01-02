@@ -173,7 +173,7 @@ stamp/wasm32/cross/gcc/configure: | stamp/wasm32/native/glibc/install stamp/wasm
 	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O2" CXXFLAGS="-O2" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O2" --enable-shared --enable-symvers=gnu)
 	touch $@
 
-stamp/wasm32/cross/gcc/build: stamp/wasm32/cross/gcc/configure | stamp/wasm32/cross/build wasm32/cross/src/gcc
+stamp/wasm32/cross/gcc/build: stamp/wasm32/cross/gcc/configure | stamp/wasm32/cross/gcc wasm32/cross/src/gcc
 	$(MKDIR) wasm32/cross/build/gcc/gcc
 	PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/cross/build/gcc
 	cp wasm32/cross/build/gcc/gcc/libgcc.a wasm32/cross/build/gcc/gcc/libgcc_eh.a
