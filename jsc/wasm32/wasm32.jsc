@@ -5901,7 +5901,7 @@ ThinThin.dup2 = function (oldfd, newfd) {
     this.close_fdno(newfd);
     this.fds[newfd] = this.fds[oldfd].ref();
 
-    return 0;
+    return newfd;
 };
 
 ThinThin.utimensat = function (fdno, cpath, timesptr, flag)
