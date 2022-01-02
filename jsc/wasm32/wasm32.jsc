@@ -954,7 +954,7 @@ Wasm32Thread.prototype.open_fd = function (fd, fdno = undefined)
 Wasm32Thread.prototype.close_fdno = function (fdno)
 {
     let fd = this.fds[fdno];
-    let ret = -%{EBADF};
+    let ret = 0; /* -%{EBADF} */
     if (fd)
 	ret = fd.unref();
 
