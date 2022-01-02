@@ -1286,7 +1286,7 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts artifacts/up artifacts/down wasm
+%.{dejagnu}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/ artifacts/up artifacts/down/ wasm
 	cp artifacts/down/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
@@ -1315,7 +1315,7 @@ test/%.exp.cmp: test/%.exp test/%
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/up/
 
-%.{dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm subrepos/gcc/checkout! artifacts artifacts/up artifacts/down src/gcc
+%.{dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ src/gcc/
 	$(MKDIR) wasm
 	cp artifacts/down/*.wasm wasm
 	$(MAKE) artifact-timestamp
@@ -1542,7 +1542,7 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 	$(MAKE) run-all-tests!
 
 # Build the various artifacts
-artifact-wasm32-environment!: | artifacts artifacts/up artifacts/down install/file-slurp
+artifact-wasm32-environment!: | artifacts/ artifacts/up/ artifacts/down/ install/file-slurp
 	$(MAKE) artifact-timestamp
 	wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
 	$(MKDIR) wasm32/cross/bin
@@ -1554,25 +1554,25 @@ artifact-wasm32-environment!: | artifacts artifacts/up artifacts/down install/fi
 	cat wasm32/native/lib/js/wasm32.js > artifacts/up/wasm32.js
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts artifacts/up artifacts/down
+artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ artifacts/up artifacts/down/
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/binutils-gdb/build
 	tar cf artifacts/up/wasm32-cross-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
+artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/gcc-preliminary/build
 	tar cf artifacts/up/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
+artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/gcc/build
 	tar cf artifacts/up/wasm32-native-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar
+artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/glibc/build
 	tar cf artifacts/up/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
@@ -1580,7 +1580,7 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts artifacts/up
 	cp wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm artifacts/up
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar extracted/artifacts/down/wasm32-native-glibc.tar github/install/gcc-dependencies
+artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar extracted/artifacts/down/wasm32-native-glibc.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/gcc/build
 	$(MAKE) wasm/libstdc++.wasm
@@ -1594,7 +1594,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts artifacts/up arti
 	cp wasm/libstdc++.wasm artifacts/up
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/ncurses/build
@@ -1603,42 +1603,42 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts artifact
 	cp wasm/libncurses.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts artifacts/up artifacts/down
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts/ artifacts/up artifacts/down
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/binutils-gdb/build
 	tar cf artifacts/up/wasm32-native-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts artifacts/down artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
+artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts/ artifacts/down/ artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/bash/build wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
+artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts/ artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/zsh/build wasm/zsh.wasm
 	cp wasm/zsh.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/zlib/build wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/gmp/build
 	tar cf artifacts/up/wasm32-native-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
+artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) artifact-timestamp
@@ -1646,7 +1646,7 @@ artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts artifacts/up a
 	tar cf artifacts/up/wasm32-native-mpfr.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
+artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-mpfr.tar
@@ -1655,7 +1655,7 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts artifacts/up art
 	tar cf artifacts/up/wasm32-native-mpc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/down/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/down/wasm32-environment.tar
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/down/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1665,7 +1665,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts arti
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
 	$(MAKE) stamp/wasm32/cross/python/build
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1681,7 +1681,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts artifacts/
 	cp wasm/python.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-emacs!: | subrepos/emacs/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+artifact-emacs!: | subrepos/emacs/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/emacs/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
@@ -1696,13 +1696,13 @@ artifact-perl!: | install/binfmt_misc/elf32-wasm32
 artifact-perl!: | install/binfmt_misc/wasm
 artifact-perl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
+artifact-miniperl!: | subrepos/perl/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/miniperl/build wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-perl!: | subrepos/perl/checkout! artifacts artifacts/up artifacts/down extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
+artifact-perl!: | subrepos/perl/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/perl/build wasm/perl.wasm
 	cp wasm/perl.wasm artifacts/up/
@@ -1795,7 +1795,7 @@ github/check-release!: | github
 github/latest: | github
 	$(MKDIR) $@
 
-artifacts artifacts/up artifacts/down: | .github-init
+artifacts/up artifacts/down: | .github-init
 	$(MKDIR) $@
 
 daily:
@@ -1820,7 +1820,7 @@ daily/%: | daily
 	bash github/dl-daily $*
 	ls -l $@
 
-artifacts/down/%: | artifacts/down
+artifacts/down/%: | artifacts/down/
 	bash github/dl-artifact $*
 	mv $@.new/$* $@
 	rm -rf $@.new
