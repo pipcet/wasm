@@ -1638,7 +1638,7 @@ Wasm32Kernel.prototype.init_port = function (thread, pid = 1)
     thread.pid = pid;
 
     return channel.port2;
-}
+};
 
 Wasm32Kernel.prototype.get_port = function (pid = 1)
 {
@@ -4932,11 +4932,6 @@ RemoteFD.prototype.outputPromise = function (heap, ptr, len)
     return Promise.resolve(len);
 };
 
-var fs;
-
-//if (typeof global !== "undefined")
-//    fs = require('fs');
-
 function FSDD(process, root, fdno)
 {
 
@@ -5577,6 +5572,7 @@ ThinThin.init_trampoline = async function (mtramp)
     var code = new Uint8Array (ab);
     var i = 0;
 
+    /* "asm\0" magic */
     code[i++] = 0x00;
     code[i++] = 0x61;
     code[i++] = 0x73;
