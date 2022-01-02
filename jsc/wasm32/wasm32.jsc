@@ -1989,6 +1989,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
             } else {
                 new ThinThinTTY(process, 0);
                 new ThinThinTTY(process, 1);
+		process.fds[1] = process.fds[0];
                 (new ThinThinTTY(process, 2)).read_stdin = null;
             }
 	    if (this.runqueue.indexOf(thread) === -1) {
@@ -2032,6 +2033,7 @@ Wasm32System.prototype.instantiate = function (module, vm, args, env, pid = 1)
     } else {
         new ThinThinTTY(process, 0);
         new ThinThinTTY(process, 1);
+	process.fds[1] = process.fds[0];
         (new ThinThinTTY(process, 2)).read_stdin = null;
     }
     if (this.runqueue.indexOf(thread) === -1) {
@@ -5204,7 +5206,6 @@ if (typeof(os) !== "undefined" &&
         }
     };
     ThinThin.ioctl_p = async function (fdno, code, intptr) {
-        fdno = 0; // XXX
         let fd = this.fds[fdno];
 
         switch (code) {
