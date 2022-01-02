@@ -1858,7 +1858,6 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
         //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 	await module.load(thread, vm);
         let ret = await module.instantiate(thread, vm, 0x4000, true);
-        let tos = (module.dyninfo.data_end + 4095) & -4096;
         //vm.%{zp[&zp->top_of_sbrk] = "tos"}
 
         process.HEAP8 = vm.HEAP8;
@@ -5057,7 +5056,7 @@ if (typeof(os) !== "undefined" &&
 	    dd = this.fds[fdno];
 	else if (fdno === %{AT_FDROOTD})
 	    dd = this.process.ddroot;
-	else if (fdno === %{AT_FDCWD} || fdno === -100)
+	else if (fdno === %{AT_FDCWD} || fdno === -100) /* XXX */
 	    dd = this.process.ddcwd;
 	else
 	    return -%{EBADF};
@@ -5088,6 +5087,10 @@ if (typeof(os) !== "undefined" &&
 
         if ("openat" in dd) {
 	    let fd = await dd.openat(path, flags);
+
+	    if (typeof fd !== "object")
+		return fd;
+
             for (let off = 0; off < %{sizeof(struct stat)}; off += 4)
                 this.HEAP32[statbufptr+off>>2] = 0;
 
@@ -5711,6 +5714,7 @@ if (host_system === "mozilla") {
 
 ThinThin.openat = async function (fdno, ptr, flags, mode) {
     let path = this.c_str(ptr);
+    let dd;
 
     /* Emacs uses this trick to check whether a path refers to a directory. */
     if (path.match(/\/$/) || (flags & %{O_DIRECTORY})) {
@@ -5735,18 +5739,17 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 
     if (path.match(/^\//)) {
 	try {
-	    dd = this.process.ddroot;
+	    let dd = this.process.ddroot;
 	    let fd = await dd.openat(path.substr(1), flags, mode);
 	    return this.open_fd(fd);
 	} catch (e) {
-	    console.log("exception!");
+	    console.log("exception!", e);
 	    return -%{ENOENT};
 	}
     }
 
     if (this.pwd && path[0] !== "/")
 	path = this.pwd + "/" + path;
-    let dd;
     if (fdno >= 0)
 	dd = this.fds[fdno];
     else if (fdno === %{AT_FDROOTD})
@@ -5755,7 +5758,6 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 	dd = this.process.ddcwd;
     else
 	return -%{EBADF};
-    let dd = this.fds[fdno];
     if (!dd)
         dd = this.process.ddcwd;
 
@@ -5845,9 +5847,6 @@ if (host_system === "node") {
 
 	let oldfd = this.fds[oldfdno];
 	let newfd = this.fds[newfdno];
-	let oldpath = oldfd.at_resolve(this.c_str(coldpath), flags, this);
-	let newpath = newfd.at_resolve(this.c_str(cnewpath), flags, this);
-
     };
 
     ThinThin.unlinkat = function (fdno, cpath)
