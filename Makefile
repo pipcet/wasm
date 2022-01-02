@@ -24,7 +24,7 @@ ARTIFACTS ?= all
 all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 # Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-extracted github/assets github/release github/install install ship src stamp test wasm wasm32/cross/test/gcc/tmp:
+stamp test wasm wasm32/cross/test/gcc/tmp:
 	$(MKDIR) $@
 
 start-over!:
@@ -1110,12 +1110,12 @@ test!: test/wasm32!
 github/install/binfmt_misc: | github/install
 	$(MKDIR) $@
 
-github/install/binfmt_misc/elf32-wasm32: | github/install github/install/binfmt_misc
+github/install/binfmt_misc/elf32-wasm32: | github/install/ github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
 
-github/install/binfmt_misc/wasm: | github/install github/install/binfmt_misc
+github/install/binfmt_misc/wasm: | github/install/ github/install/binfmt_misc
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
@@ -1126,32 +1126,32 @@ subrepos/%/checkout!:
 	git submodule update --depth=1 --single-branch --init --recursive subrepos/$*
 
 # install various packages on the GitHub VM:
-github/install/file-slurp: | github/install wasm32/cross/bin/locked
+github/install/file-slurp: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install cpanminus
 	sudo cpanm File::Slurp
 	touch $@
 
-github/install/nroff: | github/install wasm32/cross/bin/locked
+github/install/nroff: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install groff-base
 	touch $@
 
-github/install/texinfo-bison-flex: | github/install wasm32/cross/bin/locked
+github/install/texinfo-bison-flex: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install texinfo bison flex
 	touch $@
 
-github/install/gcc-dependencies: | github/install wasm32/cross/bin/locked
+github/install/gcc-dependencies: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev gcc g++
 	touch $@
 
-github/install/dejagnu: | github/install wasm32/cross/bin/locked
+github/install/dejagnu: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install dejagnu
 	touch $@
 
-github/install/gettext: | github/install wasm32/cross/bin/locked
+github/install/gettext: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gettext
 	touch $@
 
-github/install/sysctl/overcommit_memory: | github/install/sysctl
+github/install/sysctl/overcommit_memory: | github/install/sysctl/
 	echo 1 | sudo tee /proc/sys/vm/overcommit_memory
 	touch $@
 
@@ -1161,14 +1161,11 @@ github/install/wasm32-environment: | github/install/sysctl/overcommit_memory git
 artifact-miniperl!: | install/gettext
 artifact-perl!: | install/gettext
 artifact-python!: | install/gettext
-github/install/autopoint: | github/install wasm32/cross/bin/locked
+github/install/autopoint: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install autopoint
 
-github/install/gperf: | github/install wasm32/cross/bin/locked
+github/install/gperf: | github/install/ wasm32/cross/bin/locked
 	wasm32/cross/bin/locked --lockfile apt.lock sudo apt-get install gperf
-
-github/install/sysctl: | github/install
-	$(MKDIR) $@
 
 install/%: github/install/%
 	$(MKDIR) install/$(dir $*)
@@ -1286,7 +1283,7 @@ test/%.exp.cmp: test/%.exp test/%
 	diff -u $^ > $@ || (cat $@; false)
 
 
-%.{dejagnu}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/ artifacts/up artifacts/down/ wasm
+%.{dejagnu}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu build | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/ artifacts/up/ artifacts/down/ wasm
 	cp artifacts/down/*.wasm wasm
 	$(MAKE) artifact-timestamp
 	$(MKDIR) build/wasm32/gcc/gcc/testsuite/gcc
@@ -1311,11 +1308,11 @@ test/%.exp.cmp: test/%.exp test/%
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libstdc++.wasm
-	$(MAKE) artifacts/up artifact-timestamp
+	$(MAKE) artifacts/up/ artifact-timestamp
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar
 	cp build/wasm32/gcc-testsuite-tar/$*.{dejagnu}.tar artifacts/up/
 
-%.{dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ src/gcc/
+%.{dejanew}!: wasm32/native/lib/js/wasm32.js install/texinfo-bison-flex install/gcc-dependencies install/dejagnu | extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect install/binfmt_misc/wasm install/binfmt_misc/elf32-wasm32 artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm subrepos/gcc/checkout! artifacts/ artifacts/up/ artifacts/down/ src/gcc/
 	$(MKDIR) wasm
 	cp artifacts/down/*.wasm wasm
 	$(MAKE) artifact-timestamp
@@ -1325,7 +1322,7 @@ test/%.exp.cmp: test/%.exp test/%
 binutils-test!: install/dejagnu
 	$(MAKE) subrepos/binutils-gdb/checkout!
 	$(MAKE) stamp/wasm32/binutils-gdb/build
-	$(MAKE) artifacts/up
+	$(MAKE) artifacts/up/
 	$(MAKE) artifact-timestamp
 	$(MAKE) -k -C build/wasm32/binutils-gdb check || true
 	find build/wasm32/binutils-gdb -name '*.log' | egrep -v 'config\.log$$' | while read REPLY; do cp $$REPLY artifacts/up/; done
@@ -1390,7 +1387,7 @@ endif
 ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment wasm32/cross/src/gcc
 	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/native/lib/js/wasm32.js
-	$(MAKE) artifacts/up artifact-timestamp
+	$(MAKE) artifacts/up/ artifact-timestamp
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/cross/test/gcc/problem.tar
 	cp wasm32/cross/test/gcc/problem.tar artifacts/up
 	$(MAKE) artifact-push!
@@ -1554,25 +1551,25 @@ artifact-wasm32-environment!: | artifacts/ artifacts/up/ artifacts/down/ install
 	cat wasm32/native/lib/js/wasm32.js > artifacts/up/wasm32.js
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ artifacts/up artifacts/down/
+artifact-wasm32-cross-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ artifacts/up/ artifacts/down/
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/binutils-gdb/build
 	tar cf artifacts/up/wasm32-cross-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/binutils-gdb -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
+artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/cross/gcc-preliminary/build
 	tar cf artifacts/up/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/gcc-preliminary -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
+artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/gcc/build
 	tar cf artifacts/up/wasm32-native-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/gcc -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar
+artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/glibc/build
 	tar cf artifacts/up/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/glibc -N ./artifact-timestamp
@@ -1594,7 +1591,7 @@ artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts/ artifacts/up/ ar
 	cp wasm/libstdc++.wasm artifacts/up
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/ncurses/build
@@ -1603,42 +1600,42 @@ artifact-wasm32-native-ncurses!: | subrepos/ncurses/checkout! artifacts/ artifac
 	cp wasm/libncurses.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts/ artifacts/up artifacts/down
+artifact-wasm32-native-binutils-gdb!: | subrepos/binutils-gdb/checkout! artifacts/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar artifacts/ artifacts/up/ artifacts/down/
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/binutils-gdb/build
 	tar cf artifacts/up/wasm32-native-binutils-gdb.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/native/binutils-gdb -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts/ artifacts/down/ artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
+artifact-wasm32-native-bash!: | subrepos/bash/checkout! artifacts/ artifacts/down/ artifacts/up/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/bash/build wasm/bash.wasm
 	cp wasm/bash.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts/ artifacts/up extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
+artifact-wasm32-native-zsh!: | subrepos/zsh/checkout! artifacts/ artifacts/up/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/zsh/build wasm/zsh.wasm
 	cp wasm/zsh.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-zlib!: | subrepos/zlib/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/zlib/build wasm/libz.wasm
 	cp wasm/libz.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
+artifact-wasm32-native-gmp!: | subrepos/gmp/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/gmp/build
 	tar cf artifacts/up/wasm32-native-gmp.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
+artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) artifact-timestamp
@@ -1646,7 +1643,7 @@ artifact-wasm32-native-mpfr!: | subrepos/mpfr/checkout! artifacts/ artifacts/up 
 	tar cf artifacts/up/wasm32-native-mpfr.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
+artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-gmp.tar
 	$(MAKE) extracted/artifacts/down/wasm32-native-mpfr.tar
@@ -1655,7 +1652,7 @@ artifact-wasm32-native-mpc!: | subrepos/mpc/checkout! artifacts/ artifacts/up ar
 	tar cf artifacts/up/wasm32-native-mpc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/down/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/down/wasm32-environment.tar
+artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js artifacts/down/libc.wasm artifacts/down/ld.wasm artifacts/down/libm.wasm artifacts/down/libncurses.wasm wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/bin/elf-to-wasm extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) install/wasm32-environment
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1665,7 +1662,7 @@ artifact-wasm32-native-coreutils!: | subrepos/coreutils/checkout! artifacts/ art
 	cp $(patsubst %,wasm/%.wasm,$(COREUTILS)) artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
+artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js install/wasm32-environment install/file-slurp
 	$(MAKE) stamp/wasm32/cross/python/build
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
@@ -1681,7 +1678,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/ artifacts
 	cp wasm/python.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-emacs!: | subrepos/emacs/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+artifact-emacs!: | subrepos/emacs/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/emacs/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
@@ -1696,13 +1693,13 @@ artifact-perl!: | install/binfmt_misc/elf32-wasm32
 artifact-perl!: | install/binfmt_misc/wasm
 artifact-perl!: | install/file-slurp
 
-artifact-miniperl!: | subrepos/perl/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
+artifact-miniperl!: | subrepos/perl/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/miniperl/build wasm/miniperl.wasm
 	cp wasm/miniperl.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-perl!: | subrepos/perl/checkout! artifacts/ artifacts/up artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
+artifact-perl!: | subrepos/perl/checkout! artifacts/ artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar wasm32/native/lib/js/wasm32.js
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/perl/build wasm/perl.wasm
 	cp wasm/perl.wasm artifacts/up/
@@ -1720,7 +1717,7 @@ ship/%: artifacts/down/% | ship
 	cat $< > $@
 
 # Retrieve asset list (and cache it)
-github/assets/%.json: | github/release/list! github/assets
+github/assets/%.json: | github/release/list! github/assets/
 	if [ -e "github/release/\"$*\"" ]; then \
 	    curl -sSL "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets" > $@; \
 	else \
@@ -1728,55 +1725,55 @@ github/assets/%.json: | github/release/list! github/assets
 	fi
 
 # Ship assets
-ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm ship/libutil.wasm ship/libm.wasm ship/libdl.wasm ship/libcrypt.wasm github/assets/%.json | ship github github/release/list!
+ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm ship/libutil.wasm ship/libm.wasm ship/libdl.wasm ship/libcrypt.wasm github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-binutils/%!: ship/binutils.tar.gz github/assets/%.json | ship github github/release/list!
+ship-binutils/%!: ship/binutils.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-gcc-preliminary/%!: ship/gcc-preliminary.tar.gz github/assets/%.json | ship github github/release/list!
+ship-gcc-preliminary/%!: ship/gcc-preliminary.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship github github/release/list!
+ship-gcc/%!: ship/gcc.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship/wasm32-cross-toolchain/%!: ship/wasm32-cross-toolchain.tar.gz github/assets/%.json | ship github github/release/list!
+ship/wasm32-cross-toolchain/%!: ship/wasm32-cross-toolchain.tar.gz github/assets/%.json | ship/ github github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship/wasm32-environment/%!: ship/wasm32-environment.tar.gz github/assets/%.json | ship github github/release/list!
+ship/wasm32-environment/%!: ship/wasm32-environment.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-glibc/%!: ship/glibc.tar.gz github/assets/%.json | ship github github/release/list!
+ship-glibc/%!: ship/glibc.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-bash/%!: ship/bash.tar.gz github/assets/%.json | ship github github/release/list!
+ship-bash/%!: ship/bash.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship/wasm32-native-ncurses/%!: ship/wasm32-native-ncurses.tar.gz github/assets/%.json | ship github github/release/list!
+ship/wasm32-native-ncurses/%!: ship/wasm32-native-ncurses.tar.gz github/assets/%.json | ship/ github github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-ship-problem/%!: ship/problem.tar.gz github/assets/%.json | ship github github/release/list!
+ship-problem/%!: ship/problem.tar.gz github/assets/%.json | ship/ github github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
 
-github/release/list!: | github/release
+github/release/list!: | github/release/
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases?per_page=100 | jq '.[] | [(.).tag_name,(.).id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
 	curl -sSL https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/tags/latest | jq '.[.tag_name,.id] | .[]' | while read tag; do read id; echo $$id > github/release/$$tag; done
 	ls -l github/release/
@@ -1794,25 +1791,22 @@ github/check-release!: | github
 
 artifacts/up/ artifacts/down/: | .github-init
 
-daily:
-	$(MKDIR) $@
-
 .github-init:
 	bash github/artifact-init
 	touch $@
 
 # Extract an artifact
-extracted/%.tar: %.tar | extracted
+extracted/%.tar: %.tar | extracted/
 	$(MKDIR) $(dir extracted/$*)
 	tar xf $*.tar
 	touch $@
 
-extracted/%.tar.gz: %.tar.gz | extracted
+extracted/%.tar.gz: %.tar.gz | extracted/
 	$(MKDIR) $(dir extracted/$*)
 	tar xzf $*.tar.gz
 	touch $@
 
-daily/%: | daily
+daily/%: | daily/
 	bash github/dl-daily $*
 	ls -l $@
 
