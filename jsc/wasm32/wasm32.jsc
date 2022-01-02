@@ -5815,6 +5815,8 @@ if (host_system === "node") {
 	let fd = this.fds[fdno];
 	let path = this.c_str(cpath);
 
+	fs.unlinkSync(path);
+
 	return 0;
     };
 
