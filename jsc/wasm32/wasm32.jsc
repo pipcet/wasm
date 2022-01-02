@@ -5205,11 +5205,7 @@ if (typeof(os) !== "undefined" &&
         switch (code) {
         case %{FIONREAD}: {
 	    let avail = await fd.available();
-            if (avail) {
-                %{*intptr = "avail"}
-            } else {
-                %{*intptr = 0}
-            }
+            %{*intptr = "avail"}
 
             return 0;
 	}
