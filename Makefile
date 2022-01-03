@@ -1223,7 +1223,7 @@ test/wasm32/%.exe.wasm: test/wasm32/%.exe wasm32/cross/bin/elf-to-wasm
 
 # wasm output rule
 test/wasm32/%.wasm.out: test/wasm32/%.wasm
-	JS=$(JS) WASMDIR=$(PWD) EXECUTABLE=$< $(JS) $(PWD)/wasm32/native/lib/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
+	JS="$(JS)" WASMDIR=$(PWD) EXECUTABLE=$< $(JS) $(PWD)/wasm32/native/lib/js/wasm32.js $< > $@ 2> test/wasm32/$*.wasm.err || true
 	@echo "STDOUT"
 	@cat $@
 	@echo "STDERR"
