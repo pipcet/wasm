@@ -1710,10 +1710,10 @@ artifact-python!: | install/binfmt_misc/wasm
 artifact-python!: | install/file-slurp
 
 # Create a file to be shipped
-ship/%.gz: artifacts/down/% | ship
+ship/%.gz: artifacts/down/% | ship/
 	gzip < $< > $@
 
-ship/%: artifacts/down/% | ship
+ship/%: artifacts/down/% | ship/
 	cat $< > $@
 
 # Retrieve asset list (and cache it)
