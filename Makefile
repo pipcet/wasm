@@ -169,7 +169,7 @@ endif
 
 # GCC (final build, C/C++/LTO, no libgccjit)
 
-stamp/wasm32/cross/gcc/configure: | stamp/wasm32/native/glibc/install stamp/wasm32/cross/gcc-preliminary/install wasm32/cross/build/gcc wasm32/cross/src/gcc stamp/wasm32/cross/gcc/ install/gcc-dependencies
+stamp/wasm32/cross/gcc/configure: | stamp/wasm32/native/glibc/build stamp/wasm32/cross/gcc-preliminary/install wasm32/cross/build/gcc wasm32/cross/src/gcc stamp/wasm32/cross/gcc/ install/gcc-dependencies
 	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O2" CXXFLAGS="-O2" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O2" --enable-shared --enable-symvers=gnu)
 	touch $@
 
@@ -1563,7 +1563,7 @@ artifact-wasm32-cross-gcc-preliminary!: | subrepos/gcc/checkout! artifacts/up/ a
 	tar cf artifacts/up/wasm32-cross-gcc-preliminary.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/gcc-preliminary -N ./artifact-timestamp
 	$(MAKE) artifact-push!
 
-artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
+artifact-wasm32-native-gcc!: | subrepos/gcc/checkout! artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-native-glibc.tar artifacts/down/wasm32-cross-gcc.tar github/install/gcc-dependencies extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-gmp.tar extracted/artifacts/down/wasm32-native-mpc.tar extracted/artifacts/down/wasm32-native-mpfr.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/gcc/build
 	tar cf artifacts/up/wasm32-native-gcc.tar $(patsubst %,wasm32/cross/%,bin include lib libexec share stamp wasm32-unknown-none) $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/cross/gcc -N ./artifact-timestamp
