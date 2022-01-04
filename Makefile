@@ -408,7 +408,7 @@ wasm32/native/lib/libgccjit.so: stamp/wasm32/native/gcc/install
 
 # Emacs
 
-wasm32/cross/build/emacs: | wasm32/cross/build
+wasm32/cross/build/emacs/: | wasm32/cross/build
 	$(MKDIR) $@T
 	cp -as $(PWD)/subrepos/emacs/* $@T/
 	mv $@T $@
@@ -423,13 +423,13 @@ stamp/wasm32/cross/emacs/build: stamp/wasm32/cross/emacs/configure
 	touch $@
 
 # Emacs is _built_ in the source directory, so copy that.
-wasm32/native/build/emacs: | wasm32/native/build
+stamp/wasm32/native/emacs/copy: | stamp/wasm32/native/emacs/
 	$(MKDIR) $@T
 	cp -as $(PWD)/subrepos/emacs/* $@T/
 	mv $@T $@
 	test -e wasm32/cross/build/emacs/elc.tar && (cd wasm32/native/build/emacs; tar xv) < wasm32/cross/build/emacs/elc.tar || true
 
-stamp/wasm32/native/emacs/configure: | wasm32/native/build/emacs/ wasm32/cross/bin/dotdir stamp/wasm32/native/emacs/
+stamp/wasm32/native/emacs/configure: stamp/wasm32/native/emacs/copy | wasm32/native/build/emacs wasm32/cross/bin/dotdir stamp/wasm32/native/emacs/
 	(cd wasm32/native/build/emacs; sh autogen.sh; CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH ./configure --with-dumping=none --build=$(native-triplet) --host=wasm32-unknown-none --prefix=$(PWD)/wasm32/native --without-x --without-gnutls --without-modules --without-threads --without-x --without-libgmp --without-json --without-xft --without-all)
 	find wasm32/native/build/emacs -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
 	touch $@
