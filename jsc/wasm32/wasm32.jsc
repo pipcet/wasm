@@ -5133,8 +5133,6 @@ if (typeof(os) !== "undefined" &&
 	if (path === "" && (flags & %{AT_EMPTY_PATH})) {
 	    return ThinThin.fstat.call(this, fdno, statbufptr);
 	}
-	if (this.pwd && path[0] !== "/")
-	    path = this.pwd + "/" + path;
 
         if (!dd)
             return -%{EBADF};
@@ -5819,8 +5817,6 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 	}
     }
 
-    if (this.pwd && path[0] !== "/")
-	path = this.pwd + "/" + path;
     if (fdno >= 0)
 	dd = this.fds[fdno];
     else if (fdno === %{AT_FDROOTD})
@@ -5887,7 +5883,13 @@ if (host_system === "node") {
 	let fd = this.fds[fdno];
 	let path = this.c_str(cpath);
 
-	fs.unlinkSync(path);
+	try {
+	    fs.unlinkSync(path);
+	} catch (e) {
+	    if (e.code === "ENOENT")
+		throw new Wasm32Errno(-%{ENOENT}, "nodejs says", e);
+	    throw e;
+	}
 
 	return 0;
     };
