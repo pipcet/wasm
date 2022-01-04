@@ -98,6 +98,21 @@ jobs:
     - run: make GITHUB=1 -k artifact-wasm32-native-bash!
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  emacs:
+    name: emacs
+    runs-on: ubuntu-latest
+    needs:
+      - ncurses
+      - gmp
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: false
+    - name: Set env variables
+      uses: ./github/env/
+    - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-emacs!
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   zsh:
     name: zsh
     runs-on: ubuntu-latest
@@ -1205,22 +1220,5 @@ jobs:
   #   - name: Set env variables
   #     uses: ./github/env/
   #   - run: make GITHUB=1 -kj10 binutils-test!
-
-
-  # emacs:
-  #   name: emacs
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - ncurses
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       submodules: false
-  #   - name: Set env variables
-  #     uses: ./github/env/
-  #   - run: JS=$(pwd)/bin/js WASMDIR=$(pwd) make GITHUB=1 -k artifact-emacs!
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
 
