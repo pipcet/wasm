@@ -170,7 +170,7 @@ endif
 # GCC (final build, C/C++/LTO, no libgccjit)
 
 stamp/wasm32/cross/gcc/configure: | stamp/wasm32/native/glibc/build stamp/wasm32/cross/gcc-preliminary/install wasm32/cross/build/gcc wasm32/cross/src/gcc stamp/wasm32/cross/gcc/ install/gcc-dependencies
-	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O2" CXXFLAGS="-O2" --target=wasm32-unknown-none --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O2" --enable-shared --enable-symvers=gnu)
+	(cd wasm32/cross/build/gcc; ../../src/gcc/configure CFLAGS="-O2" CXXFLAGS="-O2" --target=wasm32-unknown-none --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/cross --enable-optimize="-O2" --enable-shared --enable-symvers=gnu)
 	touch $@
 
 stamp/wasm32/cross/gcc/build: stamp/wasm32/cross/gcc/configure | stamp/wasm32/cross/gcc/ wasm32/cross/src/gcc
@@ -395,7 +395,7 @@ $(eval $(call build-or-install,native,binutils-gdb))
 # GCC (native)
 
 stamp/wasm32/native/gcc/configure: | stamp/wasm32/native/glibc/build stamp/wasm32/cross/gcc/build wasm32/native/build/gcc wasm32/native/src/gcc stamp/wasm32/native/gcc/ stamp/wasm32/native/gmp/install stamp/wasm32/native/mpc/install stamp/wasm32/native/mpfr/install
-	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libatomic --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
+	(cd wasm32/native/build/gcc; PATH=$(PWD)/wasm32/cross/bin:$$PATH ../../src/gcc/configure CFLAGS="-Os" CXXFLAGS="-Os" --enable-languages=c,c++,fortran,lto,jit --enable-host-shared --host=wasm32-unknown-none --build=$(native-triplet) --target=wasm32-unknown-none --disable-libffi --disable-libgomp --disable-libquadmath --enable-explicit-exception-frame-registration --disable-libssp --prefix=$(PWD)/wasm32/native)
 	touch $@
 
 stamp/wasm32/native/gcc/build: stamp/wasm32/native/gcc/configure | stamp/wasm32/native/gcc/ wasm32/native/src/gcc
