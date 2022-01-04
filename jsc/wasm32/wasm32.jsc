@@ -82,6 +82,9 @@ var remote;
 
 var run;
 
+function strace(f) {
+}
+
 function backtick(command)
 {
     let timestamp = Date.now();
@@ -104,6 +107,8 @@ function CStringAt(heap, offset)
     for (let i0 = offset; heap[i0]; i0++) {
         ret += String.fromCharCode(heap[i0]);
     }
+
+    strace(() => console.error("string at", offset, "is", ret));
 
     return ret;
 }
@@ -278,6 +283,13 @@ RangeAllocator.prototype.free = function (start)
 
 var global = this;
 
+function Wasm32Errno(errno, what, why)
+{
+    this.errno = errno;
+    this.what = what;
+    this.why = why;
+}
+
 function Wasm32Symbol(name)
 {
     this.name = name;
@@ -353,6 +365,14 @@ function Wasm32LM(vm)
     this.symbols = new Map();
     this.allsymbols = new Set();
 }
+
+Wasm32LM.prototype.resolve_address = function (address)
+{
+    for (let [name, symbol] of this.symbols)
+	for (let def of symbol.definitions)
+	    if (def[1] === address)
+		return name;
+};
 
 Wasm32LM.prototype.dyninfo_fixups = function (dyninfo, imports, module)
 {
@@ -1106,6 +1126,31 @@ Wasm32Thread.prototype.read_debug = function (chp)
     return 1;
 };
 
+Wasm32Thread.prototype.backtrace_frame = function (fp)
+{
+    let nextfp = this.HEAP32[fp>>2];
+    console.error("Stack frame at", fp.toString(16));
+    for (let off = 0; off < nextfp - fp; off += 4) {
+	let val = this.HEAP32[(fp + off) >> 2];
+	let name;
+	if (val !== 0)
+	    name = this.vm.base_lm.resolve_address(val);
+	if (name !== undefined)
+	    console.error("  ", (fp + off).toString(16), val.toString(16), name);
+	else
+	    console.error("  ", (fp + off).toString(16), val.toString(16));
+    }
+    return nextfp;
+};
+
+Wasm32Thread.prototype.backtrace = function (sp)
+{
+    let fp = sp;
+    while (fp) {
+	fp = this.backtrace_frame(fp);
+    }
+};
+
 Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 {
     let sp = sp1 - 56 - 16 + 16;
@@ -1114,6 +1159,15 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     let funstr = c;
     let mod = this.c_str(modstr);
     let fun = this.c_str(funstr);
+
+    if (this.do_backtrace) {
+	delete this.do_backtrace;
+	console.error("attempting backtrace");
+	try {
+	    this.backtrace(sp);
+	} catch (e) {
+	}
+    }
 
     if (sp in this.extcallRet) {
         let ret = this.extcallRet[sp];
@@ -1157,14 +1211,18 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
         if (ThinThin[fun]) {
             try {
                 retv = ThinThin[fun].apply(this, args);
-                break;
             } catch (e) {
-		console.log("exception!");
-		console.log(e);
-		console.log(e.stack);
-                retv = this.errorToCode(e);
-                break;
+		if (e instanceof Wasm32Errno) {
+		    strace(() => console.error(mod, fun, args, e.what, e.why));
+		    retv = e.errno;
+		} else {
+		    console.log("exception!");
+		    console.log(e);
+		    console.log(e.stack);
+                    retv = this.errorToCode(e);
+		}
             }
+            break;
         }
         console.log ("could not find " + fun);
 	quit(0);
@@ -1190,25 +1248,35 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 
     if (typeof Promise !== "undefined" &&
         retv instanceof Promise) {
+	strace(() => console.error(mod, fun, args, "..."));
         this.extcallRet[sp] = retv;
-        this.stop(1);
+        if (!this.do_backtrace)
+	    this.stop(1);
 
         retv.then(r => {
+	    strace(() => console.error(mod, fun, args, "[DELAYED]", r));
             this.extcallRet[sp] = r;
 	    if (this.system.runqueue.indexOf(this) === -1)
 		this.system.runqueue.push(this);
             this.stop(0);
         }).catch(e => {
-	    console.log("exception");
-	    console.log(e);
-	    console.log(e.stack);
-            this.extcallRet[sp] = this.errorToCode(e);
-            this.stop(0);
+	    if (e instanceof Wasm32Errno) {
+		strace(() => console.error(mod, fun, args, e.what, e.why));
+		this.extcallRet[sp] = e.errno;
+		this.stop(0);
+	    } else {
+		console.log("exception");
+		console.log(e);
+		console.log(e.stack);
+		this.extcallRet[sp] = this.errorToCode(e);
+		this.stop(0);
+	    }
         });
 
         return sp|1;
     }
 
+    strace(() => console.error(mod, fun, args, retv));
     if (retv !== undefined && retv === retv) {
         this.set_rv(retv);
     } else if (retv !== retv) {
@@ -1609,7 +1677,7 @@ function Wasm32Kernel()
 	return gWasm32Kernel;
     gWasm32Kernel = this;
     this.space_pids = new RangeAllocator(() => {});
-    this.space_pids.alloc(2);
+    this.space_pids.alloc(3);
     this.ports_by_pid = {};
     this.pids_by_port = new WeakMap();
     this.threads_by_port = new WeakMap();
@@ -2779,7 +2847,7 @@ ThinThinDD.prototype.mode = function ()
 
 ThinThinDD.prototype.read = function ()
 {
-    return -%{EISDIR};
+    throw new Wasm32Errno(-%{EISDIR}, "is a directory", this);
 };
 
 ThinThinDD.prototype.openat = function (path, flags)
@@ -2787,7 +2855,7 @@ ThinThinDD.prototype.openat = function (path, flags)
     if (path[0] !== "/")
 	path = this.path + "/" + path;
     if (path.match(/^\/dev\/(u?random)$/))
-	return Promise.resolve(-%{ENOENT});
+	throw new Wasm32Errno(-%{ENOENT}, "doesn't exist", path);
     if (path === "" || path === "." || path.match(/\/\.$/)) {
 	let ret = new ThinThinDD();
 	let data = os.file.readFile(path + "/.dir", "utf-8");
@@ -2828,7 +2896,7 @@ ThinThinDD.prototype.openat = function (path, flags)
 	ret.path = path;
 	return Promise.resolve(ret);
     }
-    return Promise.resolve(-%{ENOENT});
+    throw new Wasm32Errno(-%{ENOENT}, "no handler", path);
 };
 
 ThinThinDD.prototype.readdir = function ()
@@ -2883,7 +2951,7 @@ ThinThinNodeDD.prototype.openat = async function (path, flags, mode)
 	return new ThinThinNodeDD(this.path + "/" + path);
     } catch (e) {
 	if (e.code === "ENOENT") {
-	    return -%{ENOENT};
+	    throw new Wasm32Errno(-%{ENOENT}, "nodejs says", e);
 	}
 	if (e.code === "EISDIR") {
 	    return new ThinThinNodeDD(this.path + "/" + path);
@@ -5023,7 +5091,7 @@ if (typeof(os) !== "undefined" &&
         let fd = this.fds[fdno];
 
         if (!fd)
-            return -%{EBADF};
+	    throw new Wasm32Errno(-%{EBADF}, "no fd", fdno);
 
         if (len == 0)
             return 0;
@@ -5036,7 +5104,7 @@ if (typeof(os) !== "undefined" &&
         let fd = this.fds[fdno];
 
         if (!fd)
-            return -%{EBADF};
+	    throw new Wasm32Errno(-%{EBADF}, "no fd", fdno);
 
         if (len == 0)
             return 0;
@@ -5157,8 +5225,8 @@ if (typeof(os) !== "undefined" &&
     };
     ThinThin.fstat = async function (fdno, bufptr) {
         let fd = this.fds[fdno];
-	if (!fd)
-	    return -%{EINVAL};
+        if (!fd)
+	    throw new Wasm32Errno(-%{EBADF}, "no fd", fdno);
         this.HEAP32[bufptr+ 0>>2] = 0;
         this.HEAP32[bufptr+ 4>>2] = 0;
         this.HEAP32[bufptr+ 8>>2] = 0;
@@ -5270,8 +5338,8 @@ if (typeof(os) !== "undefined" &&
     ThinThin.lseek = function (fdno, pos, whence) {
         let fd = this.fds[fdno];
 
-	if (!fd)
-	    return -%{EINVAL};
+        if (!fd)
+	    throw new Wasm32Errno(-%{EBADF}, "no fd", fdno);
         if (whence === %{SEEK_SET}) {
             fd.readPosition = (pos || 0);
 	    fd.writePosition = pos;
@@ -5406,7 +5474,7 @@ ThinThin.getuid = ThinThin.geteuid = ThinThin.getgid = ThinThin.getegid = functi
 
 ThinThin.getpid = ThinThin.getppid = function ()
 {
-    return this.pid || 1;
+    return this.pid || 2;
 };
 
 ThinThin.dlload = function (addr, len, memp)
@@ -5747,8 +5815,7 @@ ThinThin.openat = async function (fdno, ptr, flags, mode) {
 	    let fd = await dd.openat(path.substr(1), flags, mode);
 	    return this.open_fd(fd);
 	} catch (e) {
-	    console.log("exception!", e);
-	    return -%{ENOENT};
+	    throw e;
 	}
     }
 
@@ -5775,6 +5842,11 @@ ThinThin.faccessat = function (fdno, ptr, flags, mode) {
 };
 
 ThinThin.exit = async function (code) {
+    //console.log("enabling backtrace");
+    //this.do_backtrace = true;
+    //console.log("triggering backtrace");
+    //await new Promise(r => setTimeout(r, 10000));
+    //console.log("triggering backtrace");
     for (let fdno in this.fds)
 	this.fds[fdno].close();
     await this.kport.req("exit", code);
@@ -5784,7 +5856,7 @@ ThinThin.exit = async function (code) {
 ThinThin.isatty = function (fdno) {
     let fd = this.fds[fdno];
     if (!fd)
-	return -%{EINVAL};
+	throw new Wasm32Errno(-%{EBADF}, "no fd", fdno);
 
     return fd.isatty();
 };
@@ -5873,7 +5945,7 @@ if (host_system === "node") {
     };
 }
 
-ThinThin.fcntl_v = function ()
+ThinThin.fcntl_v = function (fdno, control, value)
 {
     return %{O_RDWR};
 };
@@ -5948,7 +6020,7 @@ async function load_os(path)
     let module = new Wasm32Module(new Wasm32Process(system), compiled);
     module.sizes = sizes;
 
-    await system.instantiate(module, vm, args, env);
+    await system.instantiate(module, vm, args, env, 2);
     try {
 	run = () => {
             try {
@@ -5986,7 +6058,7 @@ async function load_fetch(path)
     let compiled = await WebAssembly.compile(ab);
     module = new Wasm32Module(ab);
 
-    await system.instantiate(module, vm, args, []);
+    await system.instantiate(module, vm, args, [], 2);
     try {
         run = () => {
             try {
