@@ -439,6 +439,9 @@ stamp/wasm32/native/emacs/build: stamp/wasm32/native/emacs/configure | stamp/was
 	CC=wasm32-unknown-none-gcc PATH=$(PWD)/wasm32/cross/bin:$$PATH $(MAKE) -C wasm32/native/build/emacs install
 	touch $@
 
+wasm32/native/bin/emacs: stamp/wasm32/native/emacs/build
+wasm32/native/bin/temacs: stamp/wasm32/native/emacs/build
+
 # Needs runtime
 stamp/wasm32/native/emacs/build: wasm/ld.wasm wasm/libc.wasm wasm/libncurses.wasm
 
@@ -1028,6 +1031,12 @@ wasm/libdl.wasm: wasm32/wasm/lib/libdl.so.2 | wasm/
 	$(LN) ../$< $@
 
 wasm/bash.wasm: wasm32/wasm/bin/bash | wasm/
+	$(LN) ../$< $@
+
+wasm/emacs.wasm: wasm32/wasm/bin/emacs | wasm/
+	$(LN) ../$< $@
+
+wasm/temacs.wasm: wasm32/wasm/bin/temacs | wasm/
 	$(LN) ../$< $@
 
 wasm/libz.wasm: wasm32/wasm/lib/libz.so | wasm/
