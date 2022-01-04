@@ -23,10 +23,6 @@ ARTIFACTS ?= all
 
 all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
-# Top-level directories to be created automatically and deleted when cleaning. Keep them in sync!
-stamp test wasm wasm32/cross/test/gcc/tmp:
-	$(MKDIR) $@
-
 start-over!:
 	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32
 
@@ -63,7 +59,7 @@ env:
 wasm32:
 	$(MKDIR) $@
 
-wasm32/native: | wasm32
+wasm32/native: | wasm32/
 	$(MKDIR) $@
 	$(MKDIR) $(patsubst %,$@/%,bin include lib libexec share stamp wasm32-unknown-none)
 	$(MKDIR) $@/lib
@@ -474,19 +470,13 @@ stamp/wasm32/cross/binaryen/build: stamp/wasm32/cross/binaryen/configure | stamp
 
 ########################################
 
-wasm32/cross/test: wasm32/cross
+wasm32/cross/test/binutils-gdb: | wasm32/cross/test/
 	$(MKDIR) $@
 
-wasm32/native/test: wasm32/cross
+wasm32/native/test/bash: | wasm32/native/test/
 	$(MKDIR) $@
 
-wasm32/cross/test/binutils-gdb: | wasm32/cross/test
-	$(MKDIR) $@
-
-wasm32/native/test/bash: | wasm32/native/test
-	$(MKDIR) $@
-
-wasm32/native/test/glibc: | wasm32/native/test
+wasm32/native/test/glibc: | wasm32/native/test/
 	$(MKDIR) $@
 
 # Copying wasm32-headers.o is unfortunate, but required by our linker script.
@@ -513,7 +503,7 @@ wasm32/native/test/glibc/summary: stamp/wasm32/native/glibc/build | wasm32/nativ
 wasm32/native/test/bash/summary: stamp/wasm32/native/bash | wasm32/native/test/bash
 	(cd wasm32/native/build/bash; $(MAKE) check)
 
-wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc wasm32/cross/test/gcc/tmp
+wasm32/cross/test/gcc/site.exp: | wasm32/cross/test/gcc/tmp/
 	$(MKDIR) $(dir $@)
 	> $@
 	echo 'set rootme "$(PWD)/wasm32/cross/test/gcc"' >> $@
@@ -904,9 +894,6 @@ GCC_PROBLEM_TESTS = \
 	gcc.dg/var-expand1.c \
 	gcc.dg/varpool-1.c
 
-wasm32/cross/test/gcc: | wasm32/cross/test
-	$(MKDIR) $@
-
 # This rule isn't perfect, it tars up data it might not have written.
 wasm32/cross/test/gcc/problem.tar:
 	$(MAKE) -k $(GCC_PROBLEM_TESTS:%=wasm32/cross/test/gcc/results/%.{dejagnu}/okay) || true
@@ -1013,57 +1000,54 @@ wasm32/wasm/%.so.2: wasm32/native/%.so.2 | wasm32/cross/bin/elf-to-wasm wasm32/c
 
 # wasm/ targets. These should go away at some point.
 
-wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm
+wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm/
 	$(LN) ../$< $@
 
-wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm
+wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm
+wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so | wasm
+wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libutil.wasm: wasm32/wasm/lib/libutil.so.1 | wasm
+wasm/libutil.wasm: wasm32/wasm/lib/libutil.so.1 | wasm/
 	$(LN) ../$< $@
 
-wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm
+wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
+wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libdl.wasm: wasm32/wasm/lib/libdl.so.2 | wasm
+wasm/libdl.wasm: wasm32/wasm/lib/libdl.so.2 | wasm/
 	$(LN) ../$< $@
 
-wasm/bash.wasm: wasm32/wasm/bin/bash | wasm
+wasm/bash.wasm: wasm32/wasm/bin/bash | wasm/
 	$(LN) ../$< $@
 
-wasm/libz.wasm: wasm32/wasm/lib/libz.so | wasm
+wasm/libz.wasm: wasm32/wasm/lib/libz.so | wasm/
 	$(LN) ../$< $@
 
-wasm/libgccjit.wasm: wasm32/wasm/lib/libgccjit.so | wasm
+wasm/libgccjit.wasm: wasm32/wasm/lib/libgccjit.so | wasm/
 	$(LN) ../$< $@
 
-wasm/zsh.wasm: wasm32/wasm/bin/zsh | wasm
+wasm/zsh.wasm: wasm32/wasm/bin/zsh | wasm/
 	$(LN) ../$< $@
 
-wasm/miniperl.wasm: wasm32/wasm/bin/miniperl | wasm
+wasm/miniperl.wasm: wasm32/wasm/bin/miniperl | wasm/
 	$(LN) ../$< $@
 
-wasm/perl.wasm: wasm32/wasm/bin/perl | wasm
+wasm/perl.wasm: wasm32/wasm/bin/perl | wasm/
 	$(LN) ../$< $@
 
-wasm/python.wasm: wasm32/wasm/bin/python3 | wasm
+wasm/python.wasm: wasm32/wasm/bin/python3 | wasm/
 	$(LN) ../$< $@
 
 COREUTILS = echo true false ls cat seq od printf printenv
-$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect stamp/wasm32/native/coreutils/build | wasm
+$(patsubst %,wasm/%.wasm,$(COREUTILS)): wasm/%.wasm: wasm32/wasm/bin/% wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect stamp/wasm32/native/coreutils/build | wasm/
 	$(LN) ../$< $@
-
-wasm32/native/lib: | wasm32/native
-	$(MKDIR) $@
 
 # The ThinThin wrapper
 wasm32/cross/lib/js/wasm32.js: jsc/wasm32/wasm32.jsc | wasm32/cross/lib/js/ wasm32/cross/bin/jsc install/file-slurp
@@ -1108,15 +1092,12 @@ test/wasm32!: run-all-tests!
 
 test!: test/wasm32!
 
-github/install/binfmt_misc: | github/install/
-	$(MKDIR) $@
-
-github/install/binfmt_misc/elf32-wasm32: | github/install/ github/install/binfmt_misc
+github/install/binfmt_misc/elf32-wasm32: | github/install/ github/install/binfmt_misc/
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':elf32-wasm32:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x57\x41:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/elf32-wasm32"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
 
-github/install/binfmt_misc/wasm: | github/install/ github/install/binfmt_misc
+github/install/binfmt_misc/wasm: | github/install/ github/install/binfmt_misc/
 	sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc || true
 	echo ':wasm:M::\x00asm\x01\x00\x00\x00:\xff\xff\xff\xff\xff\xff\xff\xff:'"$(PWD)/wasm32/cross/bin/wasm"':' | sudo tee /proc/sys/fs/binfmt_misc/register
 	touch $@
