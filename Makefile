@@ -1021,7 +1021,7 @@ wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm
 wasm/libcrypt.wasm: wasm32/wasm/lib/libcrypt.so | wasm
 	$(LN) ../$< $@
 
-wasm/libutil.wasm: wasm32/wasm/lib/libutil.so | wasm
+wasm/libutil.wasm: wasm32/wasm/lib/libutil.so.1 | wasm
 	$(LN) ../$< $@
 
 wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm
@@ -1030,7 +1030,7 @@ wasm/libstdc++.wasm: wasm32/wasm/lib/libstdc++.so | wasm
 wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm
 	$(LN) ../$< $@
 
-wasm/libdl.wasm: wasm32/wasm/lib/libdl.so | wasm
+wasm/libdl.wasm: wasm32/wasm/lib/libdl.so.2 | wasm
 	$(LN) ../$< $@
 
 wasm/bash.wasm: wasm32/wasm/bin/bash | wasm
