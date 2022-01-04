@@ -1,7 +1,7 @@
 name: problem
 on:
   push:
-    branches: [ master, daily, wasm ]
+    branches: [ problem ]
   pull_request:
     branches: [ master, daily, wasm ]
 jobs:
