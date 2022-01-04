@@ -1006,6 +1006,9 @@ wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm/
 wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm/
 	$(LN) ../$< $@
 
+wasm/libanl.wasm: wasm32/wasm/lib/libanl.so | wasm/
+	$(LN) ../$< $@
+
 wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm/
 	$(LN) ../$< $@
 
