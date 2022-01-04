@@ -1247,7 +1247,7 @@ test/wasm32/%.o.exe: test/wasm32/%.o
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $< -o $@
 
 test/wasm32/%.cc.exe: test/wasm32/%.cc
-	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-g++ -DSHARED $< -o $@
 
 test/wasm32/%.c.s: test/wasm32/%.c
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc -S $< -o $@
