@@ -1006,6 +1006,10 @@ wasm32/wasm/%.so.1: wasm32/native/%.so.1 | wasm32/cross/bin/elf-to-wasm wasm32/c
 	$(MKDIR) $(dir wasm32/wasm/$*)
 	wasm32/cross/bin/elf-to-wasm --library --dynamic --output $@ $<
 
+wasm32/wasm/%.so.2: wasm32/native/%.so.2 | wasm32/cross/bin/elf-to-wasm wasm32/cross/bin/wasmrewrite wasm32/cross/bin/wasmsect wasm32/cross/bin/dyninfo wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds wasm32/cross/bin/wasm wasm32/cross/bin/elf32-wasm32
+	$(MKDIR) $(dir wasm32/wasm/$*)
+	wasm32/cross/bin/elf-to-wasm --library --dynamic --output $@ $<
+
 
 # wasm/ targets. These should go away at some point.
 
