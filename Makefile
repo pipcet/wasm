@@ -58,7 +58,7 @@ endef
 env:
 	@echo "export WASMDIR=$(PWD)"
 	@echo "export LANG=C"
-	@echo "export JS=$(JS)"
+	@echo "export JS="''"'"$(JS)"'"'
 
 wasm32:
 	$(MKDIR) $@
@@ -1194,7 +1194,7 @@ endif
 cflags = $(shell wasm32/cross/bin/cflags $(1) $(2))
 
 test/wasm32/%.c.exe: test/wasm32/%.c | wasm32/cross/bin/cflags
-	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) $< -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -DSHARED $< -o $@
 
 test/wasm32/%.c.{static}.exe: test/wasm32/%.c | wasm32/cross/bin/cflags
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-gcc $(call cflags,$*.c,$(dir testsuite/$*)) -Wl,-Map,test/wasm32/$*.c.{static}.map -static $< -o $@
@@ -1230,7 +1230,7 @@ test/wasm32/%.wasm.out: test/wasm32/%.wasm
 	@cat test/wasm32/$*.wasm.err
 
 test/wasm32/%.gdb.out: test/wasm32/%.gdb
-	JS=$(JS) WASMDIR=$(PWD) $(PWD)/wasm32/cross/bin/wasm32-unknown-none-gdb --command=$< --batch > $@
+	JS="$(JS)" WASMDIR=$(PWD) $(PWD)/wasm32/cross/bin/wasm32-unknown-none-gdb --command=$< --batch > $@
 
 comma = ,
 car = $(firstword $(1))
@@ -1238,7 +1238,7 @@ cdr = $(wordlist 2,$(words $(1)),$(1))
 multideps = $(addprefix $(2)$(call car,$(1)),$(subst $(comma), ,$(call cdr,$(1))))
 
 test/wasm32/%].exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
-	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) $^ -o $@
+	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) -DSHARED $^ -o $@
 
 test/wasm32/%].{static}.exe: $$(subst ./,,$$(call multideps,$$(subst [, ,./$$*),test/wasm32/))
 	$(PWD)/wasm32/cross/bin/wasm32-unknown-none-$(if $(filter %.cc.o %.cc.s.o,$^),g++,gcc) -static $^ -o $@
@@ -1446,8 +1446,8 @@ daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/d
 
 daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/coreutils/build
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
+	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/coreutils/build
+	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 
 daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) artifacts/down/wasm/ld.wasm
@@ -1457,8 +1457,8 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	$(MAKE) artifacts/down/wasm/libutil.wasm
 	$(MAKE) artifacts/down/wasm/libm.wasm
 	$(MAKE) artifacts/down/wasm/libncurses.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/emacs/build
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
+	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/emacs/build
+	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 
 daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz extracted/daily/ncurses.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MAKE) wasm/ld.wasm
@@ -1468,7 +1468,7 @@ daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
 	$(MAKE) wasm/libncurses.wasm
-	JS=$(JS) WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/gmp/build
+	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/gmp/build
 
 daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz extracted/daily/gcc.tar.gz extracted/daily/gcc-preliminary.tar.gz install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm wasm32/native/lib/js/wasm32.js wasm32/cross/bin/js
 	$(MKDIR) wasm
