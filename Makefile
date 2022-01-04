@@ -58,7 +58,7 @@ endef
 env:
 	@echo "export WASMDIR=$(PWD)"
 	@echo "export LANG=C"
-	@echo "export JS="''"'"$(JS)"'"'
+	@echo "export JS=\"$(JS)\""
 
 wasm32:
 	$(MKDIR) $@
