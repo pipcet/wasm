@@ -3513,13 +3513,14 @@ ThinThinTTY.prototype.read_stdin = async function ()
     }
 };
 
-ThinThinTTY.prototype.read = function (heap, ptr, len)
+ThinThinTTY.prototype.read = async function (heap, ptr, len)
 {
     if (this.readData.length === this.readPosition && this.read_stdin) {
-	return this.read_stdin().then(x => this.read(heap, ptr, len));
+	await this.read_stdin();
+	return await this.read(heap, ptr, len);
     }
 
-    return ThinThinFD.prototype.read.call(this, heap, ptr, len);
+    return await ThinThinFD.prototype.read.call(this, heap, ptr, len);
 };
 
 ThinThinTTY.prototype.close = function ()
@@ -3675,17 +3676,16 @@ ThinThinHalfFD.prototype.readdir = function ()
     });
 };
 
-ThinThinHalfFD.prototype.write = function (heap, ptr, len)
+ThinThinHalfFD.prototype.write = async function (heap, ptr, len)
 {
-    let ret = ThinThinFD.prototype.write.call(this, heap, ptr, len);
+    let ret = await ThinThinFD.prototype.write.call(this, heap, ptr, len);
     if (!this.other.reader_promise) {
-	let ret = new Promise(r => {
+	return await new Promise(r => {
 	    this.other.reader_promise_promise = r;
 	}).then(() => {
 	    this.other.reader_promise(this.write_string);
 	    return ret;
 	});
-	return ret;
     }
     this.other.reader_promise(this.write_string);
     return ret;
@@ -3703,7 +3703,7 @@ ThinThinHalfFD.prototype.read = async function (heap, ptr, len)
     }
     let data = await this.reader;
     this.readData = data;
-    return ThinThinFD.prototype.read.call(this, heap, ptr, len);
+    return await ThinThinFD.prototype.read.call(this, heap, ptr, len);
 };
 
 function SparseMetaWriter(half)
@@ -5389,7 +5389,7 @@ if (typeof(os) !== "undefined" &&
     ThinThin.fork = async function ()
     {
         let okay = false;
-        return new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
             let test; test = () => {
                 let sp = this.syscall_sp;
 
