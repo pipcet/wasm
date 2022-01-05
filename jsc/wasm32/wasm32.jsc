@@ -5394,7 +5394,8 @@ if (typeof(os) !== "undefined" &&
             let test; test = () => {
                 let sp = this.syscall_sp;
 
-                if (this.extcall_state[sp].ret instanceof Promise ||
+                if (this.extcall_state[sp] &&
+		    (this.extcall_state[sp].ret instanceof Promise) ||
                     okay) {
                     okay = true;
                     resolve();
