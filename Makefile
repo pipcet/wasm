@@ -1672,7 +1672,8 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/up/ artifa
 	cp wasm/python.wasm artifacts/up/
 	$(MAKE) artifact-push!
 
-artifact-emacs!: | subrepos/emacs/checkout! artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/cross/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+artifact-emacs!: | subrepos/emacs/checkout! artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-toolchain.tar extracted/artifacts/down/wasm32-native-ncurses.tar install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/cross/lib/js/wasm32.js wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libncurses.wasm
+	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/emacs/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
