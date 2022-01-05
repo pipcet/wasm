@@ -1676,12 +1676,12 @@ artifact-emacs!: | subrepos/emacs/checkout! artifacts/up/ artifacts/down/ extrac
 	$(MAKE) extracted/artifacts/down/wasm32-environment.tar
 	$(MAKE) artifact-timestamp
 	$(MKDIR) wasm
-	$(MAKE) artifacts/down/wasm/ld.wasm
-	$(MAKE) artifacts/down/wasm/libc.wasm
-	$(MAKE) artifacts/down/wasm/libdl.wasm
-	$(MAKE) artifacts/down/wasm/libcrypt.wasm
-	$(MAKE) artifacts/down/wasm/libutil.wasm
-	$(MAKE) artifacts/down/wasm/libm.wasm
+	$(MAKE) wasm/ld.wasm
+	$(MAKE) wasm/libc.wasm
+	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libcrypt.wasm
+	$(MAKE) wasm/libutil.wasm
+	$(MAKE) wasm/libm.wasm
 	$(MAKE) stamp/wasm32/native/emacs/build
 	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 	cp $(patsubst %,wasm/%.wasm,temacs emacs) artifacts/up/
