@@ -100,7 +100,7 @@ function backtick(command)
     }
 }
 
-function CStringAt(heap, offset)
+function CStringAt(heap, offset, quiet)
 {
     let ret = '';
 
@@ -108,7 +108,8 @@ function CStringAt(heap, offset)
         ret += String.fromCharCode(heap[i0]);
     }
 
-    strace(() => console.error("string at", offset, "is", ret));
+    if (!quiet)
+	strace(() => console.error("    string at", offset, "is", ret));
 
     return ret;
 }
@@ -952,12 +953,12 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
         this.kport.start();
 }
 
-Wasm32Thread.prototype.c_str = function (ptr)
+Wasm32Thread.prototype.c_str = function (ptr, quiet)
 {
-    return CStringAt(this.vm.HEAP8, ptr);
+    return CStringAt(this.vm.HEAP8, ptr, quiet);
 };
 
-Wasm32Thread.prototype.c_strs = function (ptr)
+Wasm32Thread.prototype.c_strs = function (ptr, quiet)
 {
     return CStringsAt(this.vm.heap, ptr);
 };
@@ -1162,8 +1163,8 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     this.syscall_sp = sp;
     let modstr = b;
     let funstr = c;
-    let mod = this.c_str(modstr);
-    let fun = this.c_str(funstr);
+    let mod = this.c_str(modstr, true);
+    let fun = this.c_str(funstr, true);
 
     if (this.do_backtrace) {
 	delete this.do_backtrace;
