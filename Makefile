@@ -1682,8 +1682,8 @@ artifact-emacs!: | subrepos/emacs/checkout! artifacts/up/ artifacts/down/ extrac
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
-	$(MAKE) stamp/wasm32/native/emacs/build
-	$(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
+	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/emacs/build
+	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,temacs emacs)
 	cp $(patsubst %,wasm/%.wasm,temacs emacs) artifacts/up/
 	$(MAKE) artifact-push!
 
