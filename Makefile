@@ -21,7 +21,7 @@ ARTIFACTS ?= all
 
 # This has to be the first rule: build everything, currently scattered over too many directories.
 
-all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libncurses.wasm wasm/bash.wasm
+all!: wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm/libdl.wasm wasm/libanl.wasm wasm/libncurses.wasm wasm/bash.wasm
 
 start-over!:
 	rm -rf artifacts daily extracted github/assets github/release github/install install js ship src stamp test wasm wasm32-unknown-none wasm32
@@ -161,6 +161,7 @@ wasm32/native/lib/ld.so.1: stamp/wasm32/native/glibc/
 wasm32/native/lib/libcrypt.so: stamp/wasm32/native/glibc/
 wasm32/native/lib/libutil.so: stamp/wasm32/native/glibc/
 wasm32/native/lib/libdl.so: stamp/wasm32/native/glibc/
+wasm32/native/lib/libanl.so: stamp/wasm32/native/glibc/
 endif
 
 # GCC (final build, C/C++/LTO, no libgccjit)
@@ -280,7 +281,7 @@ wasm32/native/build/perl: | wasm32/native/src/perl wasm/libcrypt.wasm wasm/libut
 	cp -as $(PWD)/subrepos/perl/* $(addprefix $(PWD)/subrepos/perl/.,dir-locals.el editorconfig lgtm.yml metaconf-exclusions.txt travis.yml) $@T/
 	mv $@T $@
 
-stamp/wasm32/native/perl/configure: | wasm32/native/build/perl stamp/wasm32/cross/gcc/build wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir stamp/wasm32/native/perl/
+stamp/wasm32/native/perl/configure: | wasm32/native/build/perl stamp/wasm32/cross/gcc/build wasm/libc.wasm wasm/libcrypt.wasm wasm/ld.wasm wasm/libutil.wasm wasm/libanl.wasm wasm/libdl.wasm wasm/libm.wasm wasm32/cross/bin/dotdir stamp/wasm32/native/perl/
 	test -f wasm32/native/build/perl/config.sh && mv wasm32/native/build/perl/config.sh wasm32/native/build/perl/config.sh.old || true
 	touch wasm32/native/build/perl/config.sh
 	find wasm32/native/build/perl -type d | while read REPLY; do (cd $$REPLY; $(PWD)/wasm32/cross/bin/dotdir > .dir); done
@@ -1030,6 +1031,9 @@ wasm/libncurses.wasm: wasm32/wasm/lib/libncurses.so | wasm/
 wasm/libdl.wasm: wasm32/wasm/lib/libdl.so.2 | wasm/
 	$(LN) ../$< $@
 
+wasm/libanl.wasm: wasm32/wasm/lib/libanl.so | wasm/
+	$(LN) ../$< $@
+
 wasm/bash.wasm: wasm32/wasm/bin/bash | wasm/
 	$(LN) ../$< $@
 
@@ -1098,7 +1102,7 @@ include $(patsubst %,%/test.mk,$(test-dirs))
 run-all-tests!: | install/binfmt_misc/elf32-wasm32
 run-all-tests!: | install/binfmt_misc/wasm
 run-all-tests!: | wasm32/cross/bin/elf-to-wasm wasm32/cross/lib/wasm32-lds/wasm32.lds wasm32/cross/lib/wasm32-lds/wasm32-wasmify.lds
-run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm
+run-all-tests!: $(patsubst testsuite/%,test/wasm32/%/status,$(wildcard testsuite/*)) wasm/libc.wasm wasm/libm.wasm wasm/ld.wasm wasm/libdl.wasm wasm/libanl.wasm
 
 test/wasm32!: run-all-tests!
 
@@ -1300,6 +1304,7 @@ test/%.exp.cmp: test/%.exp test/%
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1380,7 +1385,7 @@ endif
 
 ifeq (${GITHUB},1)
 problem!: | subrepos/gcc/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz wasm32/cross/bin/js install/dejagnu install/gcc-dependencies install/texinfo-bison-flex install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp install/wasm32-environment wasm32/cross/src/gcc
-	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/cross/lib/js/wasm32.js
+	$(MAKE) wasm wasm/ld.wasm wasm/libc.wasm wasm/libdl.wasm wasm/libanl.wasm wasm/libcrypt.wasm wasm/libutil.wasm wasm/libm.wasm wasm/libstdc++.wasm wasm32/cross/lib/js/wasm32.js
 	$(MAKE) artifacts/up/ artifact-timestamp
 	JS=$(PWD)/wasm32/cross/bin/js WASMDIR=$(PWD) $(MAKE) wasm32/cross/test/gcc/problem.tar
 	cp wasm32/cross/test/gcc/problem.tar artifacts/up
@@ -1439,7 +1444,7 @@ daily-zsh!: | subrepos/zsh/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) stamp/wasm32/native/zsh/build
 
 daily/coreutils!: | subrepos/coreutils/checkout! extracted/daily/wasm32-cross-toolchain.tar.gz extracted/daily/wasm32-native-ncurses.tar.gz extracted/daily/wasm32-environment.tar.gz install/gperf install/autopoint install/binfmt_misc/elf32-wasm32 install/binfmt_misc/wasm install/file-slurp wasm32/cross/lib/js/wasm32.js wasm32/cross/bin/js
-	$(MAKE) wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
+	$(MAKE) wasm/libc.wasm wasm/libm.wasm wasm/libdl.wasm wasm/libanl.wasm wasm/libutil.wasm wasm/libcrypt.wasm
 	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) stamp/wasm32/native/coreutils/build
 	JS="$(JS)" WASMDIR=$(PWD) $(MAKE) $(patsubst %,wasm/%.wasm,$(COREUTILS))
 
@@ -1447,6 +1452,7 @@ daily-emacs!: | subrepos/emacs/checkout! extracted/daily/binutils.tar.gz extract
 	$(MAKE) artifacts/down/wasm/ld.wasm
 	$(MAKE) artifacts/down/wasm/libc.wasm
 	$(MAKE) artifacts/down/wasm/libdl.wasm
+	$(MAKE) artifacts/down/wasm/libanl.wasm
 	$(MAKE) artifacts/down/wasm/libcrypt.wasm
 	$(MAKE) artifacts/down/wasm/libutil.wasm
 	$(MAKE) artifacts/down/wasm/libm.wasm
@@ -1458,6 +1464,7 @@ daily-gmp!: | subrepos/gmp/checkout! extracted/daily/binutils.tar.gz extracted/d
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1469,6 +1476,7 @@ daily-miniperl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1479,6 +1487,7 @@ daily-perl!: | subrepos/perl/checkout! extracted/daily/binutils.tar.gz extracted
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1490,6 +1499,7 @@ daily-python!: | subrepos/python/checkout! extracted/daily/binutils.tar.gz extra
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1502,6 +1512,7 @@ daily-run-elf!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz e
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1513,6 +1524,7 @@ daily-run-wasm!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.tar.gz 
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1526,6 +1538,7 @@ daily-run-all-tests!: | extracted/daily/binutils.tar.gz extracted/daily/glibc.ta
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1567,8 +1580,8 @@ artifact-wasm32-native-glibc!: | subrepos/glibc/checkout! artifacts/up/ artifact
 	$(MAKE) artifact-timestamp
 	$(MAKE) stamp/wasm32/native/glibc/build
 	tar cf artifacts/up/wasm32-native-glibc.tar $(patsubst %,wasm32/native/%,bin include lib libexec share stamp wasm32-unknown-none) stamp/wasm32/native/glibc -N ./artifact-timestamp
-	$(MAKE) wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm
-	cp wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm artifacts/up
+	$(MAKE) wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm wasm/libanl.wasm
+	cp wasm/libc.wasm wasm/ld.wasm wasm/libm.wasm wasm/libutil.wasm wasm/libcrypt.wasm wasm/libdl.wasm wasm/libanl.wasm artifacts/up
 	$(MAKE) artifact-push!
 
 artifact-wasm32-cross-gcc!: | subrepos/gcc/checkout! artifacts/up/ artifacts/down/ extracted/artifacts/down/wasm32-cross-binutils-gdb.tar extracted/artifacts/down/wasm32-cross-gcc-preliminary.tar extracted/artifacts/down/wasm32-native-glibc.tar github/install/gcc-dependencies
@@ -1663,6 +1676,7 @@ artifact-wasm32-native-python!: | subrepos/python/checkout! artifacts/up/ artifa
 	$(MAKE) artifacts/down/wasm/ld.wasm
 	$(MAKE) artifacts/down/wasm/libc.wasm
 	$(MAKE) artifacts/down/wasm/libdl.wasm
+	$(MAKE) artifacts/down/wasm/libanl.wasm
 	$(MAKE) artifacts/down/wasm/libcrypt.wasm
 	$(MAKE) artifacts/down/wasm/libutil.wasm
 	$(MAKE) artifacts/down/wasm/libm.wasm
@@ -1679,6 +1693,7 @@ artifact-emacs!: | subrepos/emacs/checkout! artifacts/up/ artifacts/down/ extrac
 	$(MAKE) wasm/ld.wasm
 	$(MAKE) wasm/libc.wasm
 	$(MAKE) wasm/libdl.wasm
+	$(MAKE) wasm/libanl.wasm
 	$(MAKE) wasm/libcrypt.wasm
 	$(MAKE) wasm/libutil.wasm
 	$(MAKE) wasm/libm.wasm
@@ -1727,7 +1742,7 @@ github/assets/%.json: | github/release/list! github/assets/
 	fi
 
 # Ship assets
-ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm ship/libutil.wasm ship/libm.wasm ship/libdl.wasm ship/libcrypt.wasm github/assets/%.json | ship/ github/ github/release/list!
+ship-wasm/%!: ship/libc.wasm ship/ld.wasm ship/libncurses.wasm ship/bash.wasm ship/libutil.wasm ship/libm.wasm ship/libdl.wasm ship/libanl.wasm ship/libcrypt.wasm github/assets/%.json | ship/ github/ github/release/list!
 	$(MAKE) github/release/list!
 	for name in $$(cd ship; ls *); do for id in $$(jq ".[] | if .name == \"$$name\" then .id else 0 end" < github/assets/$*.json); do [ $$id != "0" ] && curl -sSL -XDELETE -H "Authorization: token $$GITHUB_TOKEN" "https://api.github.com/repos/$$GITHUB_REPOSITORY/releases/assets/$$id"; echo; done; done
 	(for name in ship/*; do bname=$$(basename "$$name"); curl -sSL -XPOST -H "Authorization: token $$GITHUB_TOKEN" --header "Content-Type: application/octet-stream" "https://uploads.github.com/repos/$$GITHUB_REPOSITORY/releases/$$(cat github/release/\"$*\")/assets?name=$$bname" --upload-file $$name; echo; done)
