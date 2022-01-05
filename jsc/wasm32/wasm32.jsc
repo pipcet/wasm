@@ -905,7 +905,12 @@ function Wasm32Thread(kport, process, threadpage, vm, pid = 1)
 
     this.threadpage = threadpage;
 
-    this.extcallRet = {};
+    /* state of external calls, indexed by sp; usually empty or a
+     * singleton, but we might allow nested calls one day. In addition
+     * to a state's return value, this contains the number of
+     * arguments, for historical reasons (the place where that value
+     * lives on the stack is clobbered). */
+    this.extcall_state = {};
     this.exports = {};
     this.types = {};
     this.types_by_id = {};
@@ -1169,51 +1174,56 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 	}
     }
 
-    if (sp in this.extcallRet) {
-        let ret = this.extcallRet[sp];
+    let state = this.extcall_state[sp];
 
-        if (ret !== undefined) {
-            if (typeof Promise !== "undefined" &&
-                ret instanceof Promise) {
-                this.stop(1);
-                return sp|1;
-            }
+    if (!state) {
+	this.extcall_state[sp] = state = {
+	    nargs: 0,
+	    is_void: false,
+	    is_void2: false,
+	    ret: undefined,
+	};
+	state.nargs = this.HEAP32[sp1+8>>2];
+	if (state.nargs == -1)
+            state.nargs = 7;
+	state.is_void = (((state.nargs & 0x40000000) != 0) !=
+			 ((state.nargs & 0x80000000) != 0));
+	state.is_void2 = this.HEAP32[sp1>>2] != 0;
 
-            this.set_rv(ret);
+	if (state.is_void)
+            state.nargs ^= 0x40000000;
+    } else if (state.ret instanceof Promise) {
+        this.stop(1);
+        return sp|1;
+    } else if (state.ret !== undefined) {
+        this.set_rv(state.ret);
 
-            delete this.extcallRet[sp];
+	strace(() => { console.error(this.pid, state.ret) });
+	delete this.extcall_state[sp];
 
-            return sp;
-        }
+        return sp;
     }
 
-    let nargs = this.HEAP32[sp1+8>>2];
-    if (nargs == -1)
-        nargs = 7;
-    let is_void = ((nargs & 0x40000000) != 0) !=
-        ((nargs & 0x80000000) != 0);
-    let is_void_2 = this.HEAP32[sp1>>2] != 0;
-
-    if (is_void)
-        nargs ^= 0x40000000;
-
     let args = [];
-    if (nargs >= 0) {
-        for (let ai = 0; ai < nargs; ai++) {
+    if (state.nargs >= 0) {
+        for (let ai = 0; ai < state.nargs; ai++) {
             args[ai] = this.HEAP32[sp1+16+4*ai>>2];
         }
     }
 
     let retv;
+    strace(() => console.error(this.pid, mod, fun, args));
     outer:
     switch (mod) {
     case "thinthin":
-        if (ThinThin[fun]) {
+
+	let f = ThinThin[fun];
+        if (f) {
             try {
-                retv = ThinThin[fun].apply(this, args);
+                retv = f.apply(this, args);
             } catch (e) {
 		if (e instanceof Wasm32Errno) {
-		    strace(() => console.error(mod, fun, args, e.what, e.why));
+		    strace(() => console.error(this.pid, mod, fun, args, e.what, e.why));
 		    retv = e.errno;
 		} else {
 		    console.log("exception!");
@@ -1248,40 +1258,43 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
 
     if (typeof Promise !== "undefined" &&
         retv instanceof Promise) {
-	strace(() => console.error(mod, fun, args, "..."));
-        this.extcallRet[sp] = retv;
+	strace(() => console.error(this.pid, mod, fun, args, "..."));
+	state.ret = retv;
         if (!this.do_backtrace)
 	    this.stop(1);
 
         retv.then(r => {
-	    strace(() => console.error(mod, fun, args, "[DELAYED]", r));
-            this.extcallRet[sp] = r;
+	    strace(() => console.error(this.pid, mod, fun, args, "[DELAYED]", r));
+            state.ret = r;
 	    if (this.system.runqueue.indexOf(this) === -1)
 		this.system.runqueue.push(this);
             this.stop(0);
         }).catch(e => {
 	    if (e instanceof Wasm32Errno) {
-		strace(() => console.error(mod, fun, args, e.what, e.why));
-		this.extcallRet[sp] = e.errno;
+		strace(() => console.error(this.pid, mod, fun, args, e.what, e.why));
+		state.ret = e.errno;
 		this.stop(0);
 	    } else {
-		console.log("exception");
+		console.log("exceptionA");
 		console.log(e);
 		console.log(e.stack);
-		this.extcallRet[sp] = this.errorToCode(e);
+		state.ret = this.errorToCode(e);
 		this.stop(0);
 	    }
         });
 
+	this.extcall_state[sp] = state;
         return sp|1;
     }
+    delete this.extcall_state[sp];
 
-    strace(() => console.error(mod, fun, args, retv));
+    strace(() => console.error(this.pid, mod, fun, args, retv));
     if (retv !== undefined && retv === retv) {
         this.set_rv(retv);
     } else if (retv !== retv) {
         this.stop(1);
-        return sp|1;
+	this.extcall_state[sp] = state;
+	return sp|1;
     } else {
         throw "cannot resolve " + mod + ":" + fun;
     }
@@ -1524,13 +1537,13 @@ function Wasm32Process(system, fds)
 
 Wasm32Process.prototype.fork = function (kport, pid)
 {
-    let extcallRet = {};
-    for (let sp in this.threads[0].extcallRet) {
-	extcallRet[sp] = 0;
+    let extcall_state = {};
+    for (let sp in this.threads[0].extcall_state) {
+	extcall_state[sp] = { ret: 0 };
     }
-    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x.ref()), extcallRet, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice(), pid);
+    let ret = this.system.restore(this.modules, this.threads[0].vm.fork(), this.threads.map(x => x.pc())[0], this.threads.map(x => x.sp())[0], kport, this.fds.map(x => x.ref()), extcall_state, this.threads[0].vm.HEAP8.slice(), this.threads[0].pwd, this.threads[0].vm.HEAP32.slice(), pid);
     return ret.then(process => {
-	process.threads[0].extcallRet = extcallRet;
+	process.threads[0].extcall_state = extcall_state;
 	return process;
     });
 };
@@ -1909,7 +1922,7 @@ function abtoascii(ab)
 }
 
 Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
-						 fds, extcallRet, heap, pwd,
+						 fds, extcall_state, heap, pwd,
 						 heap32, pid)
 {
     let process;
@@ -1918,7 +1931,7 @@ Wasm32System.prototype.restore = async function (modules, vm, pc, sp, kport,
     thread = new Wasm32Thread(kport, process, 8192, undefined, pid);
     thread.pwd = pwd || ".";
     thread.vm = vm;
-    thread.extcallRet = extcallRet;
+    thread.extcall_state = extcall_state;
     process.vm = vm;
     process.pid = pid;
     for (let module of [modules[0]]) {
@@ -5380,7 +5393,7 @@ if (typeof(os) !== "undefined" &&
             let test; test = () => {
                 let sp = this.syscall_sp;
 
-                if (this.extcallRet[sp] instanceof Promise ||
+                if (this.extcall_state[sp].ret instanceof Promise ||
                     okay) {
                     okay = true;
                     resolve();
