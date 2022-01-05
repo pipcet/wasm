@@ -1378,9 +1378,7 @@ ifeq (${DAILY},1)
 wasm32/cross/bin/js: extracted/daily/wasm32-environment.tar.gz
 else
 wasm32/cross/bin/js:
-	wget http://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/jsshell-linux-x86_64.zip
-	$(MKDIR) wasm32/cross/bin
-	unzip -d wasm32/cross/bin jsshell-linux-x86_64.zip
+	ln -sf $$(which node) $@
 endif
 
 ifeq (${GITHUB},1)
