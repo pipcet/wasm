@@ -1,3 +1,6 @@
 #!/bin/bash
 export EXECUTABLE=${EXECUTABLE:-$1}
-EXECUTABLE=$EXECUTABLE exec $JS $(dirname "$0")/../../../wasm32/cross/lib/js/wasm32.js "$@"
+if [ x"$WASM_GDB_PORT" != x ]; then
+    JSARGS="--gdb-port $WASM_GDB_PORT"
+fi
+EXECUTABLE=$EXECUTABLE exec $JS $(dirname "$0")/../../../wasm32/cross/lib/js/wasm32.js $JSARGS "$@"
