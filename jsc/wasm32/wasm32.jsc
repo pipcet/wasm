@@ -1303,32 +1303,6 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     return sp;
 };
 
-Wasm32Thread.prototype.restart = function (dst, src, len, entry)
-{
-    let initsp = this.initsp();
-
-    this.restartCode = () => {
-        if (len) {
-            let i;
-
-            for (i = 0; i < len; i++)
-                this.HEAP8[dst+i] = this.HEAP8[src+i];
-        } else {
-            //datainit();
-        }
-
-        this.set_pc(entry>>4);
-        this.set_sp(initsp+16);
-        this.set_initsp(initsp);
-
-        delete this.restartCode;
-    };
-
-    this.stop(0);
-
-    return 0;
-};
-
 Wasm32Thread.prototype.step = function ()
 {
     let first = this.first;
@@ -5069,10 +5043,6 @@ if (typeof(os) !== "undefined" &&
 
         return 0;
     };
-    ThinThin.restart = function (dst, src, len, entry)
-    {
-        return this.restart(dst, src, len, entry);
-    };
     ThinThin.fork = function () {
         return os.sys.fork();
     };
@@ -5415,10 +5385,6 @@ if (typeof(os) !== "undefined" &&
 	    resolve(pid);
 	    run();
         }));
-    };
-    ThinThin.restart = function (dst, src, len, entry)
-    {
-        return this.restart(dst, src, len, entry);
     };
     ThinThin.execve = function (cpath, argvptr, envpptr)
     {
