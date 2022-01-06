@@ -1342,10 +1342,10 @@ Wasm32Thread.prototype.step = function ()
 
     while (true) {
         if (first) {
-            ret = this.indcall(-1, sp+16, 0, 0, rpc, this.entry);
+            ret = this.indcall(-1, sp+16, 0, 0, rpc, ofp, this.entry);
             first = this.first = false;
         } else {
-            ret = this.indcall(dpc, sp+16, 0, 0, rpc, pc0);
+            ret = this.indcall(dpc, sp+16, 0, 0, rpc, ofp, pc);
         }
 
         if (ret & 3) {
@@ -1437,9 +1437,9 @@ function build_sig(sigstr)
     return ret;
 }
 
-Wasm32Thread.prototype.indcall = function (mbz, sp, r0, r1, rpc, pc)
+Wasm32Thread.prototype.indcall = function (mbz, sp, r0, r1, rpc, ofp, pc)
 {
-    return this.vm.table.get(pc)(mbz, sp, r0, r1, rpc, pc);
+    return this.vm.table.get(pc)(mbz, sp, r0, r1, rpc, ofp);
 };
 
 Wasm32Thread.prototype.set_arg = function (index, arg)
