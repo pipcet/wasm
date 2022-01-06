@@ -3305,14 +3305,8 @@ ThinThinFD.prototype.read = async function (heap, ptr, len)
         }
         this.consume(i);
 
-        if (i == 0 || i == len) {
-            return i;
-	}
-
-        if (true || this.readUnbuffered)
-            return Promise.resolve(i);
-
-        return await this.read(heap, ptr+i, len-i) + j;
+        return i;
+        //return await this.read(heap, ptr+i, len-i) + j;
     }
 
     if (this.readPosition >= this.readData.length)
