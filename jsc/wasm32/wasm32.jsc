@@ -40,6 +40,49 @@ if (args[0] === "--gdbpipes") {
     args.shift();
 }
 
+var gdbstub_entry;
+var gdb_socket;
+
+if (args[0] === "--gdb-port") {
+    args.shift();
+    let port = parseInt(args.shift());
+    let net = require("net");
+    gdb_socket = net.createServer(c => {
+	c.on("data", data => {
+	    console.error("received", data);
+	});
+    });
+    gdb_socket.listen(port);
+}
+
+var gdb_clients = new Set();
+var gdb_data = [];
+var gdb_promise;
+var gdb_thread;
+if (0) {
+    let port = 5777;
+    let net = require("net");
+    gdb_socket = net.createServer(c => {
+	c.on("data", data => {
+	    for (let c of data)
+		gdb_data.push(c);
+	    if (gdb_promise)
+		gdb_promise();
+	    if (gdb_thread)
+		gdb_thread.stop(0);
+	});
+	c.on("end", () => {
+	    c.end();
+	    gdb_clients.delete(c)
+	});
+	gdb_clients.add(c);
+	c.on("error", () => {
+	    gdb_clients.delete(c);
+	});
+    });
+    gdb_socket.listen(port);
+}
+
 var host_system = "mozilla";
 var fs;
 var fs_promises;
@@ -362,6 +405,8 @@ function Wasm32LM(vm)
     this.refun = {};
     this.copy = {};
     this.dep = {};
+    if (gdb_socket)
+	this.dep["stub.wasm"] = -1;
     this.lazy = {};
     this.symbols = new Map();
     this.allsymbols = new Set();
@@ -394,6 +439,8 @@ Wasm32LM.prototype.dyninfo_fixups = function (dyninfo, imports, module)
     }
 };
 
+let main_entry;
+
 Wasm32LM.prototype.dyninfo_symbol_definitions =
     function (dyninfo, imports, module)
 {
@@ -414,6 +461,10 @@ Wasm32LM.prototype.dyninfo_symbol_definitions =
     }
     for (let [name, addr] of dyninfo.defun || []) {
 	addr += imports.sys.plt;
+	if (name === "gdbstub_entry")
+	    gdbstub_entry = addr;
+	if (name === "main")
+	    main_entry = addr;
 	if (!symbols.has(name))
 	    symbols.set(name, this.symbols.get(name) || new Wasm32Symbol(name));
 	if (symbols.get(name).get_addr()) {
@@ -1096,40 +1147,57 @@ Wasm32Thread.prototype.debug = function (dpc)
 
 Wasm32Thread.prototype.check_debug = function ()
 {
-    console.log("check_debug");
+    console.error("check_debug");
     return 1;
 };
 
 Wasm32Thread.prototype.write_debug = function (chp)
 {
-    //console.log(String.fromCharCode(this.vm.HEAPU8[chp]));
-    let r = redirect(`${gdbpipes}/out`);
-    putstr(String.fromCharCode(this.vm.HEAPU8[chp]));
-    redirect(r);
+    for (let c of gdb_clients) {
+	try {
+	    c.write(Buffer.from([this.vm.HEAPU8[chp]]));
+	} catch (e) {
+	    gdb_clients.delete(c);
+	}
+    }
     return 1;
 };
 
-let gdb_debug_string = "";
-
-Wasm32Thread.prototype.read_debug = function (chp)
+Wasm32Thread.prototype.read_debug = async function (chp)
 {
-    while (gdb_debug_string === "") {
-	try {
-	    gdb_debug_string = os.file.readFile(`${gdbpipes}/in`);
-	    if (gdb_debug_string !== "") {
-		os.system(`rm -f ${gdbpipes}/in`);
-	    }
-	} catch (e) {
-	}
+    gdb_thread = this;
+    while (!gdb_data.length) {
+	await new Promise(r => gdb_promise = r);
     }
-    this.vm.HEAPU8[chp] = gdb_debug_string.charCodeAt(0);
-    gdb_debug_string = gdb_debug_string.substr(1);
+    this.vm.HEAPU8[chp] = gdb_data.shift();
     return 1;
+};
+
+Wasm32Thread.prototype.return_from_debug = function ()
+{
+    if (!this.debug_stack || this.debug_stack.length === 0)
+	return 0;
+
+    let sp = this.syscall_sp;
+    delete this.extcall_state[this.syscall_sp];
+    let dse = this.debug_stack.pop();
+
+    this.stop(1);
+    Promise.resolve().then(() => {
+	delete this.extcall_state[sp];
+	this.%{tp1[&tp1->initsp]} = dse.initsp;
+	this.%{tp1[&tp1->pc]} = dse.pc;
+	this.%{tp1[&tp1->sp]} = dse.sp;
+	this.stop(0);
+    });
+
+    return new Promise(r => {});
 };
 
 Wasm32Thread.prototype.backtrace_frame = function (fp)
 {
     let nextfp = this.HEAP32[fp>>2];
+    if (!nextfp) nextfp = 512 * 1024 * 1024;
     console.error("Stack frame at", fp.toString(16));
     for (let off = 0; off < nextfp - fp; off += 4) {
 	let val = this.HEAP32[(fp + off) >> 2];
@@ -1189,8 +1257,11 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, ofp)
 	if (state.is_void)
             state.nargs ^= 0x40000000;
     } else if (state.ret instanceof Promise) {
-        this.stop(1);
-        return sp|1;
+	if (gdb_data.length === 0 || mod === "debug") {
+	    /* spurious wakeup */
+            this.stop(1);
+            return sp|1;
+	}
     } else if (state.ret !== undefined) {
         this.set_rv(state.ret);
 
@@ -1212,6 +1283,32 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, ofp)
     outer:
     switch (mod) {
     case "thinthin":
+	if (gdb_data.length !== 0) {
+	    if (!this.debug_stack)
+		this.debug_stack = [];
+
+	    if (!this.debug_stack.length) {
+		this.debug_stack.push({sp});
+		this.extcall_state[sp] = state;
+		return sp|1;
+	    }
+
+	    this.stop(1);
+
+	    let dse = this.debug_stack[this.debug_stack.length-1];
+
+	    dse.pc = this.%{tp1[&tp1->pc]};
+	    dse.initsp = this.%{tp1[&tp1->initsp]};
+	    dse.sp = this.%{tp1[&tp1->sp]};
+	    Promise.resolve().then(() => {
+		this.%{tp1[&tp1->initsp]} = -1;
+		this.%{tp1[&tp1->pc]} = gdbstub_entry;
+		this.%{tp1[&tp1->sp]} = sp + 56;
+		this.stop(0);
+	    });
+	    this.extcall_state[sp] = state;
+	    return sp|1;
+	}
 
 	let f = ThinThin[fun];
         if (f) {
@@ -1237,6 +1334,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, ofp)
 	case "check_debug":
 	case "write_debug":
 	case "read_debug":
+	case "return_from_debug":
 	    //console.log(fun);
             try {
                 retv = this[fun].apply(this, args);
@@ -1248,6 +1346,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, ofp)
 	}
     }
     default:
+        console.error("giving up,", this.vm.index, "pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
         i.dont.exist++;
         throw("giving up,", this.vm.index, "pc " + pc.toString(16) + " fun " + funstr.toString(16) + " " + fun + " mod " + modstr.toString(16) + " " + mod);
     }
