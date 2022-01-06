@@ -1292,7 +1292,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, ofp)
 	    Promise.resolve().then(() => {
 		this.%{tp1[&tp1->initsp]} = -1;
 		this.%{tp1[&tp1->pc]} = gdbstub_entry;
-		this.%{tp1[&tp1->sp]} = sp + 56;
+		this.%{tp1[&tp1->sp]} = sp;
 		this.stop(0);
 	    });
 	    this.extcall_state[sp] = state;
