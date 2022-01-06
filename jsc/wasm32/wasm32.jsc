@@ -43,24 +43,13 @@ if (args[0] === "--gdbpipes") {
 var gdbstub_entry;
 var gdb_socket;
 
-if (args[0] === "--gdb-port") {
-    args.shift();
-    let port = parseInt(args.shift());
-    let net = require("net");
-    gdb_socket = net.createServer(c => {
-	c.on("data", data => {
-	    console.error("received", data);
-	});
-    });
-    gdb_socket.listen(port);
-}
-
 var gdb_clients = new Set();
 var gdb_data = [];
 var gdb_promise;
 var gdb_thread;
-if (0) {
-    let port = 5777;
+if (args[0] === "--gdb-port") {
+    args.shift();
+    let port = parseInt(args.shift());
     let net = require("net");
     gdb_socket = net.createServer(c => {
 	c.on("data", data => {
