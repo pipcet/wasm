@@ -1178,7 +1178,7 @@ Wasm32Thread.prototype.extcall = function (a, pc, sp1, b, c, d)
     let state = this.extcall_state[sp];
 
     if (!state) {
-	this.extcall_state[sp] = state = {
+	state = {
 	    nargs: 0,
 	    is_void: false,
 	    is_void2: false,
