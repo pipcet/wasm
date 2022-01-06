@@ -1004,13 +1004,16 @@ wasm32/wasm/%.so.2: wasm32/native/%.so.2 | wasm32/cross/bin/elf-to-wasm wasm32/c
 
 # wasm/ targets. These should go away at some point.
 
+wasm32/native/lib/stub.so:
+	./wasm32/cross/bin/wasm32-unknown-none-g++ -fPIC -shared -o $@ ./subrepos/binutils-gdb/gdb/stubs/wasm32-stub-cpp.cc
+
+wasm/stub.wasm: wasm32/wasm/lib/stub.so | wasm/
+	$(LN) ../$< $@
+
 wasm/ld.wasm: wasm32/wasm/lib/ld.so.1 | wasm/
 	$(LN) ../$< $@
 
 wasm/libc.wasm: wasm32/wasm/lib/libc.so | wasm/
-	$(LN) ../$< $@
-
-wasm/libanl.wasm: wasm32/wasm/lib/libanl.so | wasm/
 	$(LN) ../$< $@
 
 wasm/libm.wasm: wasm32/wasm/lib/libm.so | wasm/
